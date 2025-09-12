@@ -1,4 +1,12 @@
 .custom-navbar{
-    background-color: #49AFD4 ;
-    color: black;
+    background-color: #ffffff ;
+}
+.btn-custom{
+    background-color: #004a97;
+    color: #ffffff;
+}
+
+.custom-navbar .navbar-brand,
+.custom-navbar .nav-link {
+  color: #004a97 !important;
 }
