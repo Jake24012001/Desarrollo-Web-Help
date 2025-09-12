@@ -1,5 +1,10 @@
-<header></header>
-<main>
+<!-- app.component.html -->
+<div class="d-flex flex-column min-vh-100">
+  <app-navbar></app-navbar>
+
+  <div class="flex-grow-1">
     <router-outlet></router-outlet>
-</main>
-<footer></footer>
+  </div>
+
+  <app-footer></app-footer>
+</div>
