@@ -30,6 +30,9 @@ export class VistaPrincipal {
       case 'Terminado':
         estadoElemento.classList.add('terminado');
         break;
+      case 'No disponible':
+        estadoElemento.classList.add('no-disponible');
+        break;
       default:
         estadoElemento.style.backgroundColor = 'transparent';
         estadoElemento.style.color = '#333';
