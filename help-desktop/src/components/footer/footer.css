@@ -9,3 +9,8 @@
   height: 90px;                /* Altura igual a la imagen */
   padding: 0;
 }
+
+.custom-letter-h5{
+  font-weight: bold;
+}
+
