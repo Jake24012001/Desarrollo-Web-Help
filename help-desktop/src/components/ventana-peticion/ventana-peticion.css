@@ -1,0 +1,57 @@
+.formulario-peticion {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.input-custom {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #004a97;
+  border-radius: 8px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
+
+.btn-custom {
+  background-color: #004a97;
+  color: white;
+  border-radius: 15px;
+  padding: 8px 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.estado-texto {
+  font-weight: bold;
+  font-size: 16px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: inline-block;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.disponible {
+  background-color: #28a745;
+  color: white;
+  border: 1px solid #1e7e34;
+}
+
+.en-proceso {
+  background-color: #ffc107; 
+  color: #212529;
+  border: 1px solid #e0a800;
+}
+
+.terminado {
+  background-color: #17a2b8; 
+  color: white;
+  border: 1px solid #117a8b;
+}
+
+.no-disponible {
+  background-color: #6c757d; 
+  color: white;
+  border: 1px solid #545b62;
+}
