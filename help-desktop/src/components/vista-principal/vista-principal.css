@@ -1,7 +1,12 @@
-.glass-card{
-  background: #004a97;
+.glass-card {
+  background: rgba(0, 74, 151, 0.4); /* 0.6 es el nivel de transparencia */
   padding: 10px;
   margin: 20px;
-  border-radius: 20px;
-  
+  border-radius: 10px;
+}
+
+.btn-custom{
+  background: white;
+  border-radius: 15px;
+  margin: 5px;
 }
