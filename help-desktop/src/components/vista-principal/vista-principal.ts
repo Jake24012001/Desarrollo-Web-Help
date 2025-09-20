@@ -11,10 +11,12 @@ import Swal from 'sweetalert2';
 export class VistaPrincipal {
   crearPeticion(): void {
     Swal.fire({
-      title: 'Petición creada',
-      text: 'Tu solicitud ha sido registrada correctamente.',
+      title: 'Crear Peticion',
+      text: '¿Deseas crear una peticion?',
       icon: 'success',
-      confirmButtonText: 'Cool',
+      showCancelButton: true,
+      confirmButtonText: 'Sí',
+      cancelButtonText: 'No',
     });
   }
 
