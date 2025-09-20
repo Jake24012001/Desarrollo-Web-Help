@@ -6,7 +6,8 @@
 }
 
 .btn-custom{
-  background: whitesmoke;
+  color: white;
+  background: #004a97;
   border-radius: 15px;
   margin: 5px;
 }
