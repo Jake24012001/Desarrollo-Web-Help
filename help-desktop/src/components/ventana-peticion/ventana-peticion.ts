@@ -11,6 +11,20 @@ import Swal from 'sweetalert2';
   styleUrl: './ventana-peticion.css',
 })
 export class VentanaPeticion {
+  usuariosConEquipos = [
+    {
+      usuario: 'Kevin Vargas',
+      equipos: ['Laptop MSI GF66', 'Router Machala'],
+    },
+    {
+      usuario: 'Ana Torres',
+      equipos: ['Sensor de humedad', 'Switch de respaldo'],
+    },
+  ];
+
+  usuarioSeleccionado = '';
+  equiposFiltrados: string[] = [];
+  equipoSeleccionado = '';
   constructor(private router: Router) {}
 
   cancelarAccion(): void {
@@ -70,5 +84,11 @@ export class VentanaPeticion {
       default:
         return '';
     }
+  }
+
+  filtrarEquipos(): void {
+    const usuario = this.usuariosConEquipos.find((u) => u.usuario === this.usuarioSeleccionado);
+    this.equiposFiltrados = usuario ? usuario.equipos : [];
+    this.equipoSeleccionado = ''; // Reinicia selección
   }
 }
