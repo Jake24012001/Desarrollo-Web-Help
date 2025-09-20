@@ -1,15 +1,34 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 @Component({
   selector: 'app-ventana-peticion',
-  imports: [],
+  standalone: true,
+  imports: [FormsModule, CommonModule],
   templateUrl: './ventana-peticion.html',
-  styleUrl: './ventana-peticion.css'
+  styleUrl: './ventana-peticion.css',
 })
 export class VentanaPeticion {
+  constructor(private router: Router) {}
+
+  cancelarAccion(): void {
+    Swal.fire({
+      title: '¿Cancelar petición?',
+      text: 'Se perderán los datos ingresados.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cancelar',
+      cancelButtonText: 'Volver',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.router.navigate(['/help-menu']);
+      }
+    });
+  }
   actualizarEstado(nuevoEstado: string): void {
     const estadoElemento = document.getElementById('estado-actual');
-
     if (!estadoElemento) return;
 
     // Limpiar clases anteriores
@@ -35,6 +54,21 @@ export class VentanaPeticion {
       default:
         estadoElemento.style.backgroundColor = 'transparent';
         estadoElemento.style.color = '#333';
+    }
+  }
+
+  getClaseEstado(estado: string): string {
+    switch (estado) {
+      case 'Disponible':
+        return 'disponible';
+      case 'En proceso':
+        return 'en-proceso';
+      case 'Terminado':
+        return 'terminado';
+      case 'No disponible':
+        return 'no-disponible';
+      default:
+        return '';
     }
   }
 }

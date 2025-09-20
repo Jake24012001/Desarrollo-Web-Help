@@ -6,15 +6,13 @@ export const routes: Routes = [
   {
     path: 'help-menu',
     component: VistaPrincipal,
-    children:[
-      {
-        path:'peticion',
-        component:VentanaPeticion
-      }
-    ]
+  },
+  {
+    path: 'peticion',
+    component: VentanaPeticion,
   },
   {
     path: '**',
-    redirectTo: 'help-menu'
-  }
+    redirectTo: 'help-menu',
+  },
 ];
