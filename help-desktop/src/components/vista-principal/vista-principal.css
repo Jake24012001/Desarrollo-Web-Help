@@ -6,7 +6,21 @@
 }
 
 .btn-custom{
-  background: white;
+  background: whitesmoke;
+  border-radius: 15px;
+  margin: 5px;
+}
+
+.btn-custom1{
+  color: white;
+  background: green;
+  border-radius: 15px;
+  margin: 5px;
+}
+
+.btn-custom2{
+  color:white;
+  background: brown;
   border-radius: 15px;
   margin: 5px;
 }
