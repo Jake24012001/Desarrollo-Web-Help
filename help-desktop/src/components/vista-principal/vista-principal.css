@@ -3,5 +3,6 @@
   height: auto;
   width: auto;
   background: #004a97;
-  
+  border-radius: 20px;
+  margin: 20px;
 }
