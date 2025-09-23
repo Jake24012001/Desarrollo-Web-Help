@@ -1,52 +1,42 @@
-<div class="social-bar bar-custom text-white py-2 px-3">
-  <ul class="list-inline mb-0">
-    <li class="list-inline-item">
-      <a href="https://x.com/machalaalcaldia" target="_blank" class="text-white">
-        <i class="bi bi-twitter"></i>
-      </a>
-    </li>
-    <li class="list-inline-item">
-      <a href="https://www.facebook.com/machalaalcaldia" target="_blank" class="text-white">
-        <i class="bi bi-facebook"></i>
-      </a>
-    </li>
-    <li class="list-inline-item">
-      <a href="https://www.youtube.com/channel/UC2OnMPQ8hj-GvA1CFJoOeEA/featured" target="_blank" class="text-white">
-        <i class="bi bi-youtube"></i>
-      </a>
-    </li>
-    <li class="list-inline-item">
-      <a href="https://www.instagram.com/machalaalcaldia/" target="_blank" class="text-white">
-        <i class="bi bi-instagram"></i>
-      </a>
-    </li>
-  </ul>
-</div>
-<nav class="navbar navbar-expand-lg custom-navbar">
-  <div class="container-fluid">
-    <img src="https://www.machala.gob.ec/wp-content/uploads/2024/01/logo_blanco_png.png" alt="Vista de Machala"
-      width="172" height="57">
+<nav class="navbar navbar-expand-lg custom-navbar bg-custom px-3 py-2">
+  <div class="container-fluid align-items-center">
+
+    <div class="d-flex align-items-center">
+      <div class="menu-hamburguesa position-relative me-3">
+        <button class="btn btn-transparent p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Menú principal">
+          <span class="menu-circle d-flex align-items-center justify-content-center">
+            <svg width="32" height="32" viewBox="0 0 32 32">
+              <circle cx="16" cy="16" r="16" fill="#6074a2" />
+              <rect x="9" y="13" width="14" height="2" rx="1" fill="#fff"/>
+              <rect x="9" y="16" width="14" height="2" rx="1" fill="#fff"/>
+              <rect x="9" y="19" width="14" height="2" rx="1" fill="#fff"/>
+            </svg>
+          </span>
+        </button>
+        <ul class="dropdown-menu mt-2">
+          <li><a class="dropdown-item" href="#"><i class="bi bi-pc-display"></i> Equipos</a></li>
+          <li><a class="dropdown-item" href="#"><i class="bi bi-journal-text"></i> Solicitudes</a></li>
+          <li><a class="dropdown-item" href="#"><i class="bi bi-check-circle"></i> Solucionado</a></li>
+          <li><a class="dropdown-item" href="#"><i class="bi bi-hourglass-split"></i> Pendientes</a></li>
+          <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Perfil</a></li>
+          <li><a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a></li>
+        </ul>
+      </div>
+      <img src="https://www.machala.gob.ec/wp-content/uploads/2019/07/cropped-logo-alcaldia.png" alt="Vista de Machala"
+        width="48" height="48" class="me-3">
+      <span class="navbar-brand mb-0 h4 text-white fw-bold" style="letter-spacing:1px;">Sistema GADMM 2025</span>
+    </div>
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
       aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Servicios disponibles
-          </a>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Opcion1</a></li>
-            <li><a class="dropdown-item" href="#">Opcion2</a></li>
-            <li><a class="dropdown-item" href="#">Opcion3</a></li>
-          </ul>
-        </li>
-      </ul>
-    </div>
-    <div class="d-flex align-items-center ms-auto">
-      <span class="me-2 text-dark">Kevin Vargas</span>
-      <img src="https://scontent.fgye30-1.fna.fbcdn.net/v/t39.30808-1/276290780_2179902638827828_7961079181750022126_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=102&ccb=1-7&_nc_sid=1d2534&_nc_eui2=AeHnl3I4FsnqgjXyBEFKgXUXSY33pi5RwlVJjfemLlHCVdYZHXLxr-WXZv9ht_DCCIm5raRhEhAWu4OCuxCx3f-v&_nc_ohc=gPvI2bTCEecQ7kNvwE_X_gD&_nc_oc=Admvcu0czeLCohgjySgBR533PxgmrPlPvKxA2BkZ3Ml6a4IrQpdhZNefFkDGRJ3f1CVMj3l3WR-xowd5D8zrUVaA&_nc_zt=24&_nc_ht=scontent.fgye30-1.fna&_nc_gid=imJWER2XrvpisGETfzsDGw&oh=00_AfaDihxPahdeSuf9ydW_7kKeYQPAiKEpTegds4APXH-4qg&oe=68CAA840" alt="Foto de perfil" class="rounded-circle" width="40" height="40">
+    <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+      <div class="d-flex align-items-center">
+        <span class="me-2 text-white fw-semibold">Usuario</span>
+        <img src="http://marketplace.canva.com/A5alg/MAESXCA5alg/1/tl/canva-user-icon-MAESXCA5alg.png"
+          alt="Foto de perfil" class="rounded-circle border border-2 border-white" width="40" height="40">
+      </div>
     </div>
   </div>
 </nav>

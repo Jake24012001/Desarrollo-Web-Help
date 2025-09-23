@@ -1,16 +1,5 @@
-.bg-custom{
-    background-color: #004a97;
+footer.bg-custom {
+  color: #090909;
+  background: #1976d2;
+  
 }
-
-.repetir-footer {
-  background-image: url('https://www.machala.gob.ec/wp-content/uploads/2019/11/footer-1.png');
-  background-repeat: repeat-x; /* Repetir horizontalmente */
-  background-size: contain;    /* Mantener proporción */
-  height: 90px;                /* Altura igual a la imagen */
-  padding: 0;
-}
-
-.custom-letter-h5{
-  font-weight: bold;
-}
-

@@ -1,32 +1,29 @@
 .custom-navbar {
-  background-color: #ffffff;
-}
-
-.btn-custom {
-  background-color: #004a97;
-  color: #ffffff;
+  background-color: #1976d2 !important;
+ 
 }
 
 .custom-navbar .navbar-brand,
-.custom-navbar .nav-link {
-  color: #004a97 !important;
+.custom-navbar .nav-link,
+.custom-navbar .fw-semibold {
+  color: #fff !important;
 }
 
-.bar-custom {
-  background-color: #004a97;
-  display: flex;
-  justify-content: end;
+.menu-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
 }
 
-.social-bar a {
-  height: 6px;
-  width: 20px;
-  margin: 0 8px;
-  transition: color 0.6s ease, opacity 0.6s ease;
+.menu-hamburguesa .dropdown-menu {
+  min-width: 200px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
 }
 
-.social-bar a:hover {
-  color: black;
-  opacity: 0.3;
+.menu-hamburguesa button:focus {
+  outline: none;
+  box-shadow: none;
 }
-

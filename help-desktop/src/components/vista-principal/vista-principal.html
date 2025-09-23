@@ -1,22 +1,23 @@
 <div class="glass-card">
-    <table class="table table-striped-columns">
-        <thead>
+    <table class="table table-hover align-middle">
+        <thead class="table-header">
             <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Usuario</th>
-                <th scope="col">Departamento</th>
-                <th scope="col">Descripcion</th>
-                <th scope="col">Estado</th>
+                <th>Fecha Entrega</th>
+                <th>Descripción</th>
+                <th>Recibido Por</th>
+                <th>Departamento</th>
+                <th>Elaborado por</th>
+                <th>Tipo</th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
-            <th scope="row"></th>
+            <!-- Sin datos, solo la cabecera -->
         </tbody>
     </table>
-
 </div>
-<div style="margin: 20px;" >
-    <button class="btn btn-custom" (click)="crearPeticion()">CREAR</button>
-    <button class="btn btn-custom1" (click)="modificarPeticion()">MODIFICAR</button>
-    <button class="btn btn-custom2" (click)="borrarPeticion()">BORRAR</button>
+<div style="margin: 20px;">
+    <button class="btn btn-custom" (click)="crearPeticion()"><i class="bi bi-plus-circle"></i> CREAR</button>
+    <button class="btn btn-custom1" (click)="modificarPeticion()"><i class="bi bi-pencil"></i> MODIFICAR</button>
+    <button class="btn btn-custom2" (click)="borrarPeticion()"><i class="bi bi-trash"></i> BORRAR</button>
 </div>
