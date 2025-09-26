@@ -1,46 +1,72 @@
-<form class="formulario-peticion">
-    <div class="form-group mb-3">
-        <label for="tipoPeticion">
-            <h2>Tipo de petición</h2>
-        </label>
-        <input id="tipoPeticion" class="input-custom" type="text" placeholder="Ingrese su petición" required>
-        <button type="button" class="btn-custom mt-2">Buscar</button>
-    </div>
-    <div class="form-group mb-3">
-        <!-- Combo box para seleccionar usuario -->
-        <label for="usuario">Selecciona un usuario:</label>
-        <select id="usuario" class="form-select mb-3" [(ngModel)]="usuarioSeleccionado" (change)="filtrarEquipos()"
-            name="usuario">
-            <option value="" disabled selected>-- Selecciona --</option>
-            <option *ngFor="let u of usuariosConEquipos" [value]="u.usuario">
-                {{ u.usuario }}
-            </option>
-        </select>
+<form class="formulario-peticion" (ngSubmit)="enviarPeticion()">
+  <div class="form-group mb-3">
+    <label for="tipoPeticion">
+      <h2>Tipo de petición</h2>
+    </label>
+    <input
+      id="tipoPeticion"
+      class="input-custom"
+      type="text"
+      placeholder="Ingrese su petición"
+      [(ngModel)]="tipoPeticion"
+      name="tipoPeticion"
+      required
+    />
+    <button type="button" class="btn-custom mt-2">Buscar</button>
+  </div>
 
-        <!-- Combo box para seleccionar equipo -->
-        <label for="equipo">Equipos disponibles:</label>
-        <select id="equipo" class="form-select mb-3" [(ngModel)]="equipoSeleccionado" name="equipo">
-            <option value="" disabled selected>-- Selecciona --</option>
-            <option *ngFor="let equipo of equiposFiltrados" [value]="equipo">
-                {{ equipo }}
-            </option>
-        </select>
-    </div>
+  <div class="form-group mb-3">
+    <label for="usuario">Selecciona un usuario:</label>
+    <select
+      id="usuario"
+      class="form-select mb-3"
+      [(ngModel)]="usuarioSeleccionado"
+      (change)="filtrarEquipos()"
+      name="usuario"
+      required
+    >
+      <option value="" disabled selected>-- Selecciona --</option>
+      <option *ngFor="let u of usuariosConEquipos" [value]="u.usuario">
+        {{ u.usuario }}
+      </option>
+    </select>
 
-    <div class="form-group mb-3">
-        <label for="detallePeticion">
-            <h2>Detalle de petición</h2>
-        </label>
-        <textarea id="detallePeticion" placeholder="Describa su problemática" class="input-custom" rows="4"
-            required></textarea>
-    </div>
+    <label for="equipo">Equipos disponibles:</label>
+    <select
+      id="equipo"
+      class="form-select mb-3"
+      [(ngModel)]="equipoSeleccionado"
+      name="equipo"
+      required
+    >
+      <option value="" disabled selected>-- Selecciona --</option>
+      <option *ngFor="let equipo of equiposFiltrados" [value]="equipo">
+        {{ equipo }}
+      </option>
+    </select>
+  </div>
 
-    <button type="submit" class="btn btn-danger mb-3">Enviar</button>
+  <div class="form-group mb-3">
+    <label for="detallePeticion">
+      <h2>Detalle de petición</h2>
+    </label>
+    <textarea
+      id="detallePeticion"
+      placeholder="Describa su problemática"
+      class="input-custom"
+      rows="4"
+      [(ngModel)]="detallePeticion"
+      name="detallePeticion"
+      required
+    ></textarea>
+  </div>
 
-    <div id="estado-container" class="estado-box">
-        <h3>Estado:</h3>
-        <p id="estado-actual" class="estado-texto disponible">Disponible</p>
-    </div>
-    <button class="btn btn-dark" (click)="cancelarAccion()">Cancelar</button>
+  <button type="submit" class="btn btn-danger mb-3">Enviar</button>
 
+  <div id="estado-container" class="estado-box">
+    <h3>Estado:</h3>
+    <p id="estado-actual" class="estado-texto disponible">Disponible</p>
+  </div>
+
+  <button type="button" class="btn btn-dark" (click)="cancelarAccion()">Cancelar</button>
 </form>

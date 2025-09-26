@@ -17,28 +17,24 @@ export class VistaPrincipal {
   mensajes = ['Equipos', 'Peticiones', 'Solicitudes', 'Solucionado'];
   mensajeIndex = 0;
 
-  datosFiltrados = [
-    {
-      fechaEntrega: new Date(), // Simula ingreso actual
-      descripcion: 'Petición de soporte',
-      recibidoPor: 'Kevin',
-      departamento: 'TI',
-      elaboradoPor: 'Admin',
-      tipo: 'Peticiones',
-    },
-    // ...otros registros
-  ];
+  datosFiltrados: any[] = [];
 
   ngOnInit() {
+    const peticionesGuardadas = JSON.parse(localStorage.getItem('peticiones') || '[]');
+
+    this.datosFiltrados = peticionesGuardadas.map((p: any) => ({
+      ...p,
+      fechaEntrega: new Date(p.fechaEntrega),
+    }));
+
     setInterval(() => {
       this.placeholderText = `Buscar ${this.mensajes[this.mensajeIndex]}`;
       this.mensajeIndex = (this.mensajeIndex + 1) % this.mensajes.length;
-    }, 5000); // cambia cada 5 segundos
+    }, 5000);
 
     setInterval(() => {
-      // Fuerza actualización del temporizador
       this.datosFiltrados = [...this.datosFiltrados];
-    }, 1000); // Actualiza cada segundo
+    }, 1000);
   }
 
   crearPeticion(): void {
@@ -55,6 +51,7 @@ export class VistaPrincipal {
       }
     });
   }
+
   modificarPeticion(): void {
     Swal.fire({
       title: 'Modificar petición',
@@ -66,7 +63,7 @@ export class VistaPrincipal {
     });
   }
 
-  borrarPeticion(): void {
+  borrarPeticion(index: number): void {
     Swal.fire({
       title: '¿Estás seguro?',
       text: 'Esta acción eliminará la petición permanentemente.',
@@ -74,10 +71,22 @@ export class VistaPrincipal {
       showCancelButton: true,
       confirmButtonText: 'Eliminar',
       cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const peticiones = JSON.parse(localStorage.getItem('peticiones') || '[]');
+        peticiones.splice(index, 1);
+        localStorage.setItem('peticiones', JSON.stringify(peticiones));
+
+        this.datosFiltrados = peticiones.map((p: any) => ({
+          ...p,
+          fechaEntrega: new Date(p.fechaEntrega),
+        }));
+      }
     });
   }
-
   calcularTiempo(fecha: Date): string {
+    if (!fecha || isNaN(new Date(fecha).getTime())) return '—';
+
     const ahora = new Date().getTime();
     const ingreso = new Date(fecha).getTime();
     const diferencia = ahora - ingreso;
@@ -88,5 +97,10 @@ export class VistaPrincipal {
     const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
 
     return `${dias}d ${horas}h ${minutos}m ${segundos}s`;
+  }
+
+  borrarTodas(): void {
+    localStorage.removeItem('peticiones');
+    this.datosFiltrados = [];
   }
 }

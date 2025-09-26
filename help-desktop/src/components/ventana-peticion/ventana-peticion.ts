@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
+
 @Component({
   selector: 'app-ventana-peticion',
   standalone: true,
@@ -25,7 +26,16 @@ export class VentanaPeticion {
   usuarioSeleccionado = '';
   equiposFiltrados: string[] = [];
   equipoSeleccionado = '';
+  tipoPeticion = '';
+  detallePeticion = '';
+
   constructor(private router: Router) {}
+
+  filtrarEquipos(): void {
+    const usuario = this.usuariosConEquipos.find((u) => u.usuario === this.usuarioSeleccionado);
+    this.equiposFiltrados = usuario ? usuario.equipos : [];
+    this.equipoSeleccionado = '';
+  }
 
   cancelarAccion(): void {
     Swal.fire({
@@ -41,17 +51,54 @@ export class VentanaPeticion {
       }
     });
   }
+
+  enviarPeticion(): void {
+    const tipo = (document.getElementById('tipoPeticion') as HTMLInputElement)?.value.trim();
+    const detalle = (
+      document.getElementById('detallePeticion') as HTMLTextAreaElement
+    )?.value.trim();
+
+    if (!tipo || !this.usuarioSeleccionado || !this.equipoSeleccionado || !detalle) {
+      Swal.fire({
+        title: 'Campos incompletos',
+        text: 'Por favor llena todos los campos antes de enviar.',
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+      });
+      return;
+    }
+
+    const nuevaPeticion = {
+      fechaEntrega: new Date().toISOString(),
+      tipo,
+      descripcion: detalle,
+      recibidoPor: this.usuarioSeleccionado,
+      departamento: 'TI',
+      elaboradoPor: 'Admin',
+      equipo: this.equipoSeleccionado,
+    };
+
+    const peticiones = JSON.parse(localStorage.getItem('peticiones') || '[]');
+    peticiones.push(nuevaPeticion);
+    localStorage.setItem('peticiones', JSON.stringify(peticiones));
+
+    Swal.fire({
+      title: 'Petición registrada',
+      text: 'Tu solicitud ha sido guardada correctamente.',
+      icon: 'success',
+      confirmButtonText: 'Aceptar',
+    }).then(() => {
+      this.router.navigate(['/help-menu']);
+    });
+  }
+
   actualizarEstado(nuevoEstado: string): void {
     const estadoElemento = document.getElementById('estado-actual');
     if (!estadoElemento) return;
 
-    // Limpiar clases anteriores
-    estadoElemento.classList.remove('disponible', 'en-proceso', 'terminado');
-
-    // Actualizar texto
+    estadoElemento.classList.remove('disponible', 'en-proceso', 'terminado', 'no-disponible');
     estadoElemento.textContent = nuevoEstado;
 
-    // Aplicar clase correspondiente
     switch (nuevoEstado) {
       case 'Disponible':
         estadoElemento.classList.add('disponible');
@@ -84,11 +131,5 @@ export class VentanaPeticion {
       default:
         return '';
     }
-  }
-
-  filtrarEquipos(): void {
-    const usuario = this.usuariosConEquipos.find((u) => u.usuario === this.usuarioSeleccionado);
-    this.equiposFiltrados = usuario ? usuario.equipos : [];
-    this.equipoSeleccionado = ''; // Reinicia selección
   }
 }
