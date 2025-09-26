@@ -1,23 +1,57 @@
-<div class="glass-card">
+<div class="container">
+  <!-- 🔍 Buscador -->
+  <div style="margin: 20px; display: flex; gap: 10px; align-items: center;">
+    <input
+      type="text"
+      class="form-control form-control-sm w-25"
+      [placeholder]="placeholderText"
+    />
+    <button class="btn btn-dark btn-sm">Buscar</button>
+  </div>
+
+  <!-- 📋 Tabla de peticiones -->
+  <div class="glass-card p-3 rounded shadow-sm">
     <table class="table table-hover align-middle">
-        <thead class="table-header">
-            <tr>
-                <th>Fecha Entrega</th>
-                <th>Descripción</th>
-                <th>Recibido Por</th>
-                <th>Departamento</th>
-                <th>Elaborado por</th>
-                <th>Tipo</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Sin datos, solo la cabecera -->
-        </tbody>
+      <thead class="table-dark">
+        <tr>
+          <th>Fecha Entrega</th>
+          <th>Descripción</th>
+          <th>Recibido Por</th>
+          <th>Departamento</th>
+          <th>Elaborado por</th>
+          <th>Tipo</th>
+          <th>⏱️ Tiempo Transcurrido</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of datosFiltrados">
+          <td>{{ item.fechaEntrega | date:'short' }}</td>
+          <td>{{ item.descripcion }}</td>
+          <td>{{ item.recibidoPor }}</td>
+          <td>{{ item.departamento }}</td>
+          <td>{{ item.elaboradoPor }}</td>
+          <td>{{ item.tipo }}</td>
+          <td>{{ calcularTiempo(item.fechaEntrega) }}</td>
+          <td>
+            <button class="btn btn-outline-primary btn-sm me-1" (click)="modificarPeticion()">Editar</button>
+            <button class="btn btn-outline-danger btn-sm" (click)="borrarPeticion()">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
     </table>
-</div>
-<div style="margin: 20px;">
-    <button class="btn btn-custom" (click)="crearPeticion()"><i class="bi bi-plus-circle"></i> CREAR</button>
-    <button class="btn btn-custom1" (click)="modificarPeticion()"><i class="bi bi-pencil"></i> MODIFICAR</button>
-    <button class="btn btn-custom2" (click)="borrarPeticion()"><i class="bi bi-trash"></i> BORRAR</button>
+  </div>
+
+  <!-- ➕ Botones principales -->
+  <div style="margin: 20px;" class="d-flex gap-3 justify-content-end">
+    <button class="btn btn-success btn-sm" (click)="crearPeticion()">
+      <i class="bi bi-plus-circle"></i> CREAR
+    </button>
+    <button class="btn btn-warning btn-sm" (click)="modificarPeticion()">
+      <i class="bi bi-pencil"></i> MODIFICAR
+    </button>
+    <button class="btn btn-danger btn-sm" (click)="borrarPeticion()">
+      <i class="bi bi-trash"></i> BORRAR
+    </button>
+  </div>
 </div>

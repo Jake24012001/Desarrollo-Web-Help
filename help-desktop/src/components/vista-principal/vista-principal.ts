@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import Swal from 'sweetalert2';
@@ -5,12 +6,40 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-vista-principal',
   standalone: true,
-  imports: [RouterModule],
+  imports: [RouterModule, CommonModule],
   templateUrl: './vista-principal.html',
   styleUrl: './vista-principal.css',
 })
 export class VistaPrincipal {
   constructor(private router: Router) {}
+
+  placeholderText = 'Buscar...';
+  mensajes = ['Equipos', 'Peticiones', 'Solicitudes', 'Solucionado'];
+  mensajeIndex = 0;
+
+  datosFiltrados = [
+    {
+      fechaEntrega: new Date(), // Simula ingreso actual
+      descripcion: 'Petición de soporte',
+      recibidoPor: 'Kevin',
+      departamento: 'TI',
+      elaboradoPor: 'Admin',
+      tipo: 'Peticiones',
+    },
+    // ...otros registros
+  ];
+
+  ngOnInit() {
+    setInterval(() => {
+      this.placeholderText = `Buscar ${this.mensajes[this.mensajeIndex]}`;
+      this.mensajeIndex = (this.mensajeIndex + 1) % this.mensajes.length;
+    }, 5000); // cambia cada 5 segundos
+
+    setInterval(() => {
+      // Fuerza actualización del temporizador
+      this.datosFiltrados = [...this.datosFiltrados];
+    }, 1000); // Actualiza cada segundo
+  }
 
   crearPeticion(): void {
     Swal.fire({
@@ -46,5 +75,18 @@ export class VistaPrincipal {
       confirmButtonText: 'Eliminar',
       cancelButtonText: 'Cancelar',
     });
+  }
+
+  calcularTiempo(fecha: Date): string {
+    const ahora = new Date().getTime();
+    const ingreso = new Date(fecha).getTime();
+    const diferencia = ahora - ingreso;
+
+    const segundos = Math.floor(diferencia / 1000) % 60;
+    const minutos = Math.floor(diferencia / (1000 * 60)) % 60;
+    const horas = Math.floor(diferencia / (1000 * 60 * 60)) % 24;
+    const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+
+    return `${dias}d ${horas}h ${minutos}m ${segundos}s`;
   }
 }
