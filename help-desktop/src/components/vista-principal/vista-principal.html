@@ -5,8 +5,9 @@
     <button class="btn btn-dark btn-sm">Buscar</button>
   </div>
 
-  <!-- 📋 Tabla de peticiones -->
-  <div class="glass-card p-3 rounded shadow-sm">
+  <!-- 📋 Tabla de peticiones pendientes -->
+  <div class="glass-card p-3 rounded shadow-sm mb-4">
+    <h5 class="fw-bold mb-3">📌 Peticiones Pendientes</h5>
     <table class="table table-hover table-bordered align-middle text-center">
       <thead class="table-dark">
         <tr>
@@ -22,7 +23,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let item of datosFiltrados; let i = index">
+        <tr *ngFor="let item of datosFiltradosPendientes; let i = index">
           <td>{{ item.fechaEntrega | date:'short' }}</td>
           <td>{{ item.descripcion }}</td>
           <td>{{ item.recibidoPor }}</td>
@@ -32,14 +33,46 @@
           <td>{{ calcularTiempo(item.fechaEntrega) }}</td>
           <td>
             <div class="d-flex justify-content-center gap-2">
-              <button class="btn btn-outline-primary btn-sm" (click)="modificarPeticion()">Editar</button>
+              <button class="btn btn-outline-primary btn-sm" (click)="modificarPeticion(item)">Editar</button>
               <button class="btn btn-outline-danger btn-sm" (click)="borrarPeticion(i)">Eliminar</button>
+              <button class="btn btn-outline-success btn-sm" (click)="marcarComoResuelta(item)">✔️ Resuelta</button>
             </div>
           </td>
           <td>
             <span [ngClass]="getClaseEstado(item.estado)" class="estado-label">
               {{ item.estado }}
             </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ✅ Tabla de peticiones resueltas -->
+  <div class="glass-card p-3 rounded shadow-sm">
+    <h5 class="fw-bold mb-3">✅ Peticiones Resueltas</h5>
+    <table class="table table-hover table-bordered align-middle text-center">
+      <thead class="table-success">
+        <tr>
+          <th>📅 Fecha Entrega</th>
+          <th>📝 Descripción</th>
+          <th>👤 Recibido Por</th>
+          <th>🏢 Departamento</th>
+          <th>✍️ Elaborado por</th>
+          <th>📦 Tipo</th>
+          <th>⏱️ Tiempo Transcurrido</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of datosResueltos">
+          <td>{{ item.fechaEntrega | date:'short' }}</td>
+          <td>{{ item.descripcion }}</td>
+          <td>{{ item.recibidoPor }}</td>
+          <td>{{ item.departamento }}</td>
+          <td>{{ item.elaboradoPor }}</td>
+          <td>{{ item.tipo }}</td>
+          <td>
+            {{ item.tiempoFinalizado || calcularTiempo(item.fechaEntrega) }}
           </td>
         </tr>
       </tbody>

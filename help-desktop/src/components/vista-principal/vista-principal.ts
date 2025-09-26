@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
+import { Peticion } from '../../interface/Peticion';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -10,16 +11,21 @@ import Swal from 'sweetalert2';
   templateUrl: './vista-principal.html',
   styleUrl: './vista-principal.css',
 })
-export class VistaPrincipal {
+export class VistaPrincipal implements OnDestroy {
   constructor(private router: Router) {}
 
   placeholderText = 'Buscar...';
   mensajes = ['Equipos', 'Peticiones', 'Solicitudes', 'Solucionado'];
   mensajeIndex = 0;
 
-  datosFiltrados: any[] = [];
+  datosFiltrados: Peticion[] = [];
+  datosFiltradosPendientes: Peticion[] = [];
+  datosResueltos: Peticion[] = [];
 
-  ngOnInit() {
+  temporizadorPlaceholder: any;
+  temporizadoresPorPeticion = new Map<number, any>();
+
+  ngOnInit(): void {
     const peticionesGuardadas = JSON.parse(localStorage.getItem('peticiones') || '[]');
 
     this.datosFiltrados = peticionesGuardadas.map((p: any) => ({
@@ -27,19 +33,51 @@ export class VistaPrincipal {
       fechaEntrega: new Date(p.fechaEntrega),
     }));
 
-    setInterval(() => {
+    this.actualizarListas();
+
+    this.datosFiltradosPendientes.forEach((p) => this.iniciarTemporizador(p.id));
+
+    this.temporizadorPlaceholder = setInterval(() => {
       this.placeholderText = `Buscar ${this.mensajes[this.mensajeIndex]}`;
       this.mensajeIndex = (this.mensajeIndex + 1) % this.mensajes.length;
     }, 5000);
+  }
 
-    setInterval(() => {
-      this.datosFiltrados = [...this.datosFiltrados];
+  ngOnDestroy(): void {
+    clearInterval(this.temporizadorPlaceholder);
+    this.temporizadoresPorPeticion.forEach((t) => clearInterval(t));
+    this.temporizadoresPorPeticion.clear();
+  }
+
+  iniciarTemporizador(id: number): void {
+    if (this.temporizadoresPorPeticion.has(id)) return;
+
+    const intervalo = setInterval(() => {
+      const peticion = this.datosFiltrados.find((p) => p.id === id);
+      if (peticion && peticion.estado !== 'Resuelto') {
+        this.datosFiltrados = [...this.datosFiltrados]; // fuerza refresco visual
+      }
     }, 1000);
 
-    this.datosFiltrados = peticionesGuardadas.map((p: any) => ({
-      ...p,
-      fechaEntrega: new Date(p.fechaEntrega),
-    }));
+    this.temporizadoresPorPeticion.set(id, intervalo);
+  }
+
+  detenerTemporizador(id: number): void {
+    const temporizador = this.temporizadoresPorPeticion.get(id);
+    if (temporizador) {
+      clearInterval(temporizador);
+      this.temporizadoresPorPeticion.delete(id);
+    }
+  }
+
+  actualizarListas(): void {
+    this.datosFiltradosPendientes = this.datosFiltrados.filter((p) => p.estado !== 'Resuelto');
+    this.datosResueltos = this.datosFiltrados.filter((p) => p.estado === 'Resuelto');
+    this.actualizarLocalStorage();
+  }
+
+  actualizarLocalStorage(): void {
+    localStorage.setItem('peticiones', JSON.stringify(this.datosFiltrados));
   }
 
   crearPeticion(): void {
@@ -57,7 +95,7 @@ export class VistaPrincipal {
     });
   }
 
-  modificarPeticion(): void {
+  modificarPeticion(item?: Peticion): void {
     Swal.fire({
       title: 'Modificar petición',
       text: '¿Deseas editar esta solicitud?',
@@ -66,6 +104,7 @@ export class VistaPrincipal {
       confirmButtonText: 'Sí',
       cancelButtonText: 'No',
     });
+    // Aquí podrías agregar lógica para redirigir con el ID de la petición
   }
 
   borrarPeticion(index: number): void {
@@ -78,14 +117,28 @@ export class VistaPrincipal {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        const peticiones = JSON.parse(localStorage.getItem('peticiones') || '[]');
-        peticiones.splice(index, 1);
-        localStorage.setItem('peticiones', JSON.stringify(peticiones));
+        const id = this.datosFiltrados[index].id;
+        this.detenerTemporizador(id);
+        this.datosFiltrados.splice(index, 1);
+        this.actualizarListas();
+      }
+    });
+  }
 
-        this.datosFiltrados = peticiones.map((p: any) => ({
-          ...p,
-          fechaEntrega: new Date(p.fechaEntrega),
-        }));
+  borrarTodas(): void {
+    Swal.fire({
+      title: '¿Eliminar todas?',
+      text: 'Se eliminarán todas las peticiones guardadas.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Eliminar todo',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem('peticiones');
+        this.datosFiltrados.forEach((p) => this.detenerTemporizador(p.id));
+        this.datosFiltrados = [];
+        this.actualizarListas();
       }
     });
   }
@@ -105,11 +158,6 @@ export class VistaPrincipal {
     return `${dias}d ${horas}h ${minutos}m ${segundos}s`;
   }
 
-  borrarTodas(): void {
-    localStorage.removeItem('peticiones');
-    this.datosFiltrados = [];
-  }
-
   getClaseEstado(estado: string): string {
     switch (estado) {
       case 'Disponible':
@@ -123,5 +171,12 @@ export class VistaPrincipal {
       default:
         return '';
     }
+  }
+
+  marcarComoResuelta(item: Peticion): void {
+    item.estado = 'Resuelto';
+    item.tiempoFinalizado = this.calcularTiempo(item.fechaEntrega);
+    this.detenerTemporizador(item.id);
+    this.actualizarListas();
   }
 }
