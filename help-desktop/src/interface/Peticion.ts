@@ -6,6 +6,6 @@ export interface Peticion {
   departamento: string;
   elaboradoPor: string;
   tipo: string;
-  estado: 'Pendiente' | 'Resuelto' | 'Disponible' | 'En proceso' | 'Terminado' | 'No disponible';
+  estado: 'Pendiente' | 'Resuelto' | 'En proceso' | 'Terminado' | 'No disponible';
   tiempoFinalizado?: string;
 }

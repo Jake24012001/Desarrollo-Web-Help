@@ -110,16 +110,23 @@ export class VistaPrincipal implements OnDestroy {
   borrarPeticion(index: number): void {
     Swal.fire({
       title: '¿Estás seguro?',
-      text: 'Esta acción eliminará la petición permanentemente.',
+      text: 'Esta acción eliminará la petición pendiente permanentemente.',
       icon: 'error',
       showCancelButton: true,
       confirmButtonText: 'Eliminar',
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        const id = this.datosFiltrados[index].id;
+        const id = this.datosFiltradosPendientes[index].id;
+
+        // Detener temporizador individual
         this.detenerTemporizador(id);
-        this.datosFiltrados.splice(index, 1);
+
+        // Eliminar solo si está en estado Pendiente
+        this.datosFiltrados = this.datosFiltrados.filter(
+          (p) => !(p.id === id && p.estado === 'Pendiente')
+        );
+
         this.actualizarListas();
       }
     });
@@ -160,14 +167,16 @@ export class VistaPrincipal implements OnDestroy {
 
   getClaseEstado(estado: string): string {
     switch (estado) {
-      case 'Disponible':
-        return 'disponible';
+      case 'Pendiente':
+        return 'pendiente';
       case 'En proceso':
         return 'en-proceso';
       case 'Terminado':
         return 'terminado';
       case 'No disponible':
         return 'no-disponible';
+      case 'Resuelto':
+        return 'resuelto';
       default:
         return '';
     }

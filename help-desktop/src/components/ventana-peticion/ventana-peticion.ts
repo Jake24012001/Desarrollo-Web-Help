@@ -77,7 +77,7 @@ export class VentanaPeticion {
       departamento: 'TI',
       elaboradoPor: 'Admin',
       equipo: this.equipoSeleccionado,
-      estado: 'Disponible', // ← Este es el paso 1
+      estado: 'Pendiente', // ← actualizado
     };
 
     const peticiones = JSON.parse(localStorage.getItem('peticiones') || '[]');
@@ -98,12 +98,12 @@ export class VentanaPeticion {
     const estadoElemento = document.getElementById('estado-actual');
     if (!estadoElemento) return;
 
-    estadoElemento.classList.remove('disponible', 'en-proceso', 'terminado', 'no-disponible');
+    estadoElemento.classList.remove('pendiente', 'en-proceso', 'terminado', 'no-disponible');
     estadoElemento.textContent = nuevoEstado;
 
     switch (nuevoEstado) {
-      case 'Disponible':
-        estadoElemento.classList.add('disponible');
+      case 'Pendiente':
+        estadoElemento.classList.add('pendiente');
         break;
       case 'En proceso':
         estadoElemento.classList.add('en-proceso');
@@ -122,8 +122,8 @@ export class VentanaPeticion {
 
   getClaseEstado(estado: string): string {
     switch (estado) {
-      case 'Disponible':
-        return 'disponible';
+      case 'Pendiente':
+        return 'pendiente';
       case 'En proceso':
         return 'en-proceso';
       case 'Terminado':
