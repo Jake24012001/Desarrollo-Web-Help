@@ -35,6 +35,11 @@ export class VistaPrincipal {
     setInterval(() => {
       this.datosFiltrados = [...this.datosFiltrados];
     }, 1000);
+
+    this.datosFiltrados = peticionesGuardadas.map((p: any) => ({
+      ...p,
+      fechaEntrega: new Date(p.fechaEntrega),
+    }));
   }
 
   crearPeticion(): void {
@@ -84,6 +89,7 @@ export class VistaPrincipal {
       }
     });
   }
+
   calcularTiempo(fecha: Date): string {
     if (!fecha || isNaN(new Date(fecha).getTime())) return '—';
 
@@ -102,5 +108,20 @@ export class VistaPrincipal {
   borrarTodas(): void {
     localStorage.removeItem('peticiones');
     this.datosFiltrados = [];
+  }
+
+  getClaseEstado(estado: string): string {
+    switch (estado) {
+      case 'Disponible':
+        return 'disponible';
+      case 'En proceso':
+        return 'en-proceso';
+      case 'Terminado':
+        return 'terminado';
+      case 'No disponible':
+        return 'no-disponible';
+      default:
+        return '';
+    }
   }
 }

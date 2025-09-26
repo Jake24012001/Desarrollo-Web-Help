@@ -68,6 +68,7 @@ export class VentanaPeticion {
       return;
     }
 
+    // 👇 Aquí construyes la petición con el campo estado
     const nuevaPeticion = {
       fechaEntrega: new Date().toISOString(),
       tipo,
@@ -76,6 +77,7 @@ export class VentanaPeticion {
       departamento: 'TI',
       elaboradoPor: 'Admin',
       equipo: this.equipoSeleccionado,
+      estado: 'Disponible', // ← Este es el paso 1
     };
 
     const peticiones = JSON.parse(localStorage.getItem('peticiones') || '[]');
