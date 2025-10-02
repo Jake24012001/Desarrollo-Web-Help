@@ -46,13 +46,13 @@ export class VentanaPeticion implements OnInit {
     this.equipoService.getAll().subscribe((equipos) => {
       this.equiposInventario = equipos;
 
-      // Extraer productos únicos por nombre
-      const nombresSet = new Set<string>();
+      // Extraer productos únicos por type
+      const tiposSet = new Set<string>();
       this.productosUnicos = equipos
         .map((e) => e.product)
         .filter((p) => {
-          if (!p?.name || nombresSet.has(p.name)) return false;
-          nombresSet.add(p.name);
+          if (!p?.type || tiposSet.has(p.type)) return false;
+          tiposSet.add(p.type);
           return true;
         });
     });

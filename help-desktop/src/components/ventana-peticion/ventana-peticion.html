@@ -18,8 +18,8 @@
   <div class="form-group mb-3">
     <label for="producto">Categoría de equipo</label>
     <select name="producto" id="producto" class="form-select" [(ngModel)]="productoSeleccionado" required>
-      <option value="" disabled selected>-- Selecciona --</option>
-      <option *ngFor="let producto of productosUnicos" [value]="producto.name">
+      <option value="" disabled>-- Selecciona --</option>
+      <option *ngFor="let producto of productosUnicos" [value]="producto.type">
         {{ producto.type }} - {{ producto.name }}
       </option>
     </select>
