@@ -4,11 +4,12 @@ import { Router, RouterModule } from '@angular/router';
 import { Peticion } from '../../interface/Peticion';
 import Swal from 'sweetalert2';
 import { ticket } from '../../app/services/ticket';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-vista-principal',
   standalone: true,
-  imports: [RouterModule, CommonModule],
+  imports: [RouterModule, CommonModule,HttpClientModule],
   templateUrl: './vista-principal.html',
   styleUrl: './vista-principal.css',
 })
