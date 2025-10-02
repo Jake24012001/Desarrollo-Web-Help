@@ -5,18 +5,18 @@
     <button class="btn btn-dark btn-sm">Buscar</button>
   </div>
 
-  <!-- Tabla de peticiones pendientes -->
+  <!-- 📌 Tabla de tickets pendientes -->
   <div class="glass-card p-3 rounded shadow-sm mb-4">
-    <h5 class="fw-bold mb-3">📌 Peticiones Pendientes</h5>
+    <h5 class="fw-bold mb-3">📌 Tickets Pendientes</h5>
     <table class="table table-hover table-bordered align-middle text-center">
       <thead class="table-dark">
         <tr>
-          <th>Fecha de Peticion</th>
+          <th>Fecha de Creación</th>
           <th>Descripción</th>
-          <th>Recibido Por</th>
-          <th>Departamento</th>
-          <th>Elaborado por</th>
-          <th>Tipo</th>
+          <th>Asignado a</th>
+          <th>Equipo Afectado</th>
+          <th>Creado por</th>
+          <th>Prioridad</th>
           <th>Tiempo Transcurrido</th>
           <th>Acciones</th>
           <th>Estado</th>
@@ -24,16 +24,22 @@
       </thead>
       <tbody>
         <tr *ngFor="let item of datosFiltradosPendientes; let i = index">
-          <td>{{ item.fechaEntrega | date:'short' }}</td>
-          <td>{{ item.descripcion }}</td>
-          <td>{{ item.recibidoPor }}</td>
-          <td>{{ item.departamento }}</td>
-          <td>{{ item.elaboradoPor }}</td>
-          <td>{{ item.tipo }}</td>
           <td>
-            <span [ngClass]="{ 'tiempo-rojo': calcularTiempo(item.fechaEntrega, item.tiempoLimite).vencido }">
-              {{ calcularTiempo(item.fechaEntrega, item.tiempoLimite).texto }}
+            <span *ngIf="item.fecha_creacion">
+              {{ item.fecha_creacion | date:'short' }}
             </span>
+            <span *ngIf="!item.fecha_creacion">—</span>
+          </td>
+          <td>{{ item.descripcion || '—' }}</td>
+          <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
+          <td>{{ item.equipoAfectado?.product?.name || '—' }}</td>
+          <td>{{ item.usuario_creador?.nombre || '—' }}</td>
+          <td>{{ item.priority?.nombre || '—' }}</td>
+          <td>
+            <span *ngIf="item.fecha_cierre">
+              {{ calcularTiempoRestante(item.fecha_cierre) }}
+            </span>
+            <span *ngIf="!item.fecha_cierre">—</span>
           </td>
           <td>
             <div class="d-flex justify-content-center gap-2">
@@ -43,8 +49,8 @@
             </div>
           </td>
           <td>
-            <span [ngClass]="getClaseEstado(item.estado)" class="estado-label">
-              {{ item.estado }}
+            <span [ngClass]="getClaseEstado(item.status?.nombre || '')" class="estado-label">
+              {{ item.status?.nombre || '—' }}
             </span>
           </td>
         </tr>
@@ -52,31 +58,39 @@
     </table>
   </div>
 
-  <!-- Tabla de peticiones resueltas -->
+  <!-- ✅ Tabla de tickets resueltos -->
   <div class="glass-card p-3 rounded shadow-sm">
-    <h5 class="fw-bold mb-3">✅ Peticiones Resueltas</h5>
+    <h5 class="fw-bold mb-3">✅ Tickets Resueltos</h5>
     <table class="table table-hover table-bordered align-middle text-center">
       <thead class="table-success">
         <tr>
-          <th>Fecha Entrega</th>
+          <th>Fecha de Creación</th>
           <th>Descripción</th>
-          <th>Recibido Por</th>
-          <th>Departamento</th>
-          <th>Elaborado por</th>
-          <th>Tipo</th>
+          <th>Asignado a</th>
+          <th>Equipo Afectado</th>
+          <th>Creado por</th>
+          <th>Prioridad</th>
           <th>Tiempo Transcurrido</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let item of datosResueltos">
-          <td>{{ item.fechaEntrega | date:'short' }}</td>
-          <td>{{ item.descripcion }}</td>
-          <td>{{ item.recibidoPor }}</td>
-          <td>{{ item.departamento }}</td>
-          <td>{{ item.elaboradoPor }}</td>
-          <td>{{ item.tipo }}</td>
           <td>
-            {{ item.tiempoFinalizado || calcularTiempo(item.fechaEntrega) }}
+            <span *ngIf="item.fecha_creacion">
+              {{ item.fecha_creacion | date:'short' }}
+            </span>
+            <span *ngIf="!item.fecha_creacion">—</span>
+          </td>
+          <td>{{ item.descripcion || '—' }}</td>
+          <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
+          <td>{{ item.equipoAfectado?.product?.name || '—' }}</td>
+          <td>{{ item.usuario_creador?.nombre || '—' }}</td>
+          <td>{{ item.priority?.nombre || '—' }}</td>
+          <td>
+            <span *ngIf="item.fecha_cierre">
+              {{ calcularTiempoRestante(item.fecha_cierre) }}
+            </span>
+            <span *ngIf="!item.fecha_cierre">—</span>
           </td>
         </tr>
       </tbody>
@@ -88,7 +102,7 @@
     <button class="btn btn-success btn-sm" (click)="crearPeticion()">
       <i class="bi bi-plus-circle"></i> CREAR
     </button>
-    <button class="btn btn-warning btn-sm" (click)="modificarPeticion()">
+    <button class="btn btn-warning btn-sm" [disabled]="true">
       <i class="bi bi-pencil"></i> MODIFICAR
     </button>
     <button class="btn btn-danger btn-sm" (click)="borrarTodas()">

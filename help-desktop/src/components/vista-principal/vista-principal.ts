@@ -1,15 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { Peticion } from '../../interface/Peticion';
 import Swal from 'sweetalert2';
 import { TicketService } from '../../app/services/ticket.service';
 import { HttpClientModule } from '@angular/common/http';
+import { Ticket } from '../../interface/Ticket';
 
 @Component({
   selector: 'app-vista-principal',
   standalone: true,
-  imports: [RouterModule, CommonModule,HttpClientModule],
+  imports: [RouterModule, CommonModule, HttpClientModule],
   templateUrl: './vista-principal.html',
   styleUrl: './vista-principal.css',
 })
@@ -20,28 +20,36 @@ export class VistaPrincipal implements OnDestroy {
   mensajes = ['Equipos', 'Peticiones', 'Solicitudes', 'Solucionado'];
   mensajeIndex = 0;
 
-  datosFiltrados: Peticion[] = [];
-  datosFiltradosPendientes: Peticion[] = [];
-  datosResueltos: Peticion[] = [];
+  datosFiltrados: Ticket[] = [];
+  datosFiltradosPendientes: Ticket[] = [];
+  datosResueltos: Ticket[] = [];
 
   temporizadorPlaceholder: any;
   temporizadoresPorPeticion = new Map<number, any>();
 
   ngOnInit(): void {
     this.servicios.getAll().subscribe((tickets) => {
-      this.datosFiltrados = tickets.map((p: any) => ({
+      this.datosFiltrados = tickets.map((p: Ticket) => ({
         ...p,
-        fechaEntrega: new Date(p.fechaEntrega),
+        fechaEntrega: this.isValidDate(p.fecha_creacion) ? new Date(p.fecha_creacion!) : null,
       }));
 
       this.actualizarListas();
-      this.datosFiltradosPendientes.forEach((p) => this.iniciarTemporizador(p.id));
+      this.datosFiltradosPendientes.forEach((p) => {
+        if (p.id_ticket !== undefined && p.id_ticket !== null) {
+          this.iniciarTemporizador(p.id_ticket);
+        }
+      });
     });
 
     this.temporizadorPlaceholder = setInterval(() => {
       this.placeholderText = `Buscar ${this.mensajes[this.mensajeIndex]}`;
       this.mensajeIndex = (this.mensajeIndex + 1) % this.mensajes.length;
     }, 5000);
+  }
+
+  isValidDate(date: any): boolean {
+    return date && !isNaN(new Date(date).getTime());
   }
 
   ngOnDestroy(): void {
@@ -54,9 +62,9 @@ export class VistaPrincipal implements OnDestroy {
     if (this.temporizadoresPorPeticion.has(id)) return;
 
     const intervalo = setInterval(() => {
-      const peticion = this.datosFiltrados.find((p) => p.id === id);
-      if (peticion && peticion.estado !== 'Resuelto') {
-        this.datosFiltrados = [...this.datosFiltrados]; // fuerza refresco visual
+      const peticion = this.datosFiltrados.find((p) => p.id_ticket === id);
+      if (peticion && peticion.status?.nombre !== 'Resuelto') {
+        this.datosFiltrados = [...this.datosFiltrados];
       }
     }, 1000);
 
@@ -72,8 +80,12 @@ export class VistaPrincipal implements OnDestroy {
   }
 
   actualizarListas(): void {
-    this.datosFiltradosPendientes = this.datosFiltrados.filter((p) => p.estado !== 'Resuelto');
-    this.datosResueltos = this.datosFiltrados.filter((p) => p.estado === 'Resuelto');
+    this.datosFiltradosPendientes = this.datosFiltrados.filter(
+      (p) => p.status?.nombre !== 'Resuelto'
+    );
+
+    this.datosResueltos = this.datosFiltrados.filter((p) => p.status?.nombre === 'Resuelto');
+
     this.actualizarLocalStorage();
   }
 
@@ -96,16 +108,21 @@ export class VistaPrincipal implements OnDestroy {
     });
   }
 
-  modificarPeticion(item?: Peticion): void {
+  modificarPeticion(item?: Ticket): void {
+    if (!item?.id_ticket) return;
+
     Swal.fire({
-      title: 'Modificar petición',
+      title: 'Modificar ticket',
       text: '¿Deseas editar esta solicitud?',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí',
       cancelButtonText: 'No',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.router.navigate(['/peticion', item.id_ticket]);
+      }
     });
-    // Aquí podrías agregar lógica para redirigir con el ID de la petición
   }
 
   borrarPeticion(index: number): void {
@@ -118,14 +135,14 @@ export class VistaPrincipal implements OnDestroy {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        const id = this.datosFiltradosPendientes[index].id;
-
-        // Detener temporizador individual
-        this.detenerTemporizador(id);
+        const id = this.datosFiltradosPendientes[index].id_ticket;
+        if (id !== undefined && id !== null) {
+          this.detenerTemporizador(id);
+        }
 
         // Eliminar solo si está en estado Pendiente
         this.datosFiltrados = this.datosFiltrados.filter(
-          (p) => !(p.id === id && p.estado === 'Pendiente')
+          (p) => !(p.id_ticket === id && p.status?.nombre === 'Pendiente')
         );
 
         this.actualizarListas();
@@ -144,31 +161,34 @@ export class VistaPrincipal implements OnDestroy {
     }).then((result) => {
       if (result.isConfirmed) {
         localStorage.removeItem('peticiones');
-        this.datosFiltrados.forEach((p) => this.detenerTemporizador(p.id));
+
+        this.datosFiltrados.forEach((p) => {
+          if (p.id_ticket !== undefined && p.id_ticket !== null) {
+            this.detenerTemporizador(p.id_ticket);
+          }
+        });
+
         this.datosFiltrados = [];
         this.actualizarListas();
       }
     });
   }
 
-  calcularTiempo(fecha: Date, limiteMs?: number): { texto: string; vencido: boolean } {
-    if (!fecha || isNaN(new Date(fecha).getTime())) return { texto: '—', vencido: false };
+  calcularTiempoRestante(fechaCierre: string): string {
+    if (!fechaCierre || isNaN(new Date(fechaCierre).getTime())) return '—';
 
     const ahora = new Date().getTime();
-    const ingreso = new Date(fecha).getTime();
-    const diferencia = ahora - ingreso;
+    const cierre = new Date(fechaCierre).getTime();
+    const diferencia = cierre - ahora;
+
+    if (diferencia <= 0) return 'Expirado';
 
     const segundos = Math.floor(diferencia / 1000) % 60;
     const minutos = Math.floor(diferencia / (1000 * 60)) % 60;
     const horas = Math.floor(diferencia / (1000 * 60 * 60)) % 24;
     const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
 
-    const vencido = limiteMs !== undefined && diferencia > limiteMs;
-
-    return {
-      texto: `${dias}d ${horas}h ${minutos}m ${segundos}s`,
-      vencido,
-    };
+    return `${dias}d ${horas}h ${minutos}m ${segundos}s restantes`;
   }
 
   getClaseEstado(estado: string): string {
@@ -184,17 +204,19 @@ export class VistaPrincipal implements OnDestroy {
       case 'Resuelto':
         return 'resuelto';
       default:
-        return '';
+        return 'estado-desconocido'; // clase opcional para estilos neutros
     }
   }
 
-  marcarComoResuelta(item: Peticion): void {
-    item.estado = 'Resuelto';
+  marcarComoResuelta(item: Ticket): void {
+    if (item.status?.nombre !== 'Resuelto') {
+      item.status.nombre = 'Resuelto';
+    }
 
-    const resultadoTiempo = this.calcularTiempo(item.fechaEntrega, item.tiempoLimite);
-    item.tiempoFinalizado = resultadoTiempo.texto;
+    if (item.id_ticket !== undefined) {
+      this.detenerTemporizador(item.id_ticket);
+    }
 
-    this.detenerTemporizador(item.id);
     this.actualizarListas();
   }
 }
