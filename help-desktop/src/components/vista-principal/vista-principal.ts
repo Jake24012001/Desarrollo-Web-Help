@@ -3,7 +3,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Peticion } from '../../interface/Peticion';
 import Swal from 'sweetalert2';
-import { ticket } from '../../app/services/ticket';
+import { TicketService } from '../../app/services/ticket.service';
 import { HttpClientModule } from '@angular/common/http';
 
 @Component({
@@ -14,7 +14,7 @@ import { HttpClientModule } from '@angular/common/http';
   styleUrl: './vista-principal.css',
 })
 export class VistaPrincipal implements OnDestroy {
-  constructor(private router: Router, private servicios: ticket) {}
+  constructor(private router: Router, private servicios: TicketService) {}
 
   placeholderText = 'Buscar...';
   mensajes = ['Equipos', 'Peticiones', 'Solicitudes', 'Solucionado'];

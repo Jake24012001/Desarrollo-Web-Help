@@ -1,13 +1,14 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Ticket } from '../../interface/Ticket';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ticket {
-  private apiUrl = 'http://localhost:8090/api/ticket';
+export class TicketService {
+  private apiUrl = `${environment.apiUrl}/ticket`;
 
   constructor(private http: HttpClient) {}
 
@@ -30,9 +31,9 @@ export class ticket {
   delete(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
-  private ticket: Ticket[] = [
-    // { ... }
-  ];
+
+  // Si esta parte es solo para pruebas locales, puedes dejarla o eliminarla
+  private ticket: Ticket[] = [];
 
   getTicket() {
     return this.ticket;
