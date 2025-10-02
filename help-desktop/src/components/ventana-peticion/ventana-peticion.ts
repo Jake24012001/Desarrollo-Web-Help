@@ -8,6 +8,7 @@ import { EquipoService } from '../../app/services/equipos.service';
 import { Usuario } from '../../interface/Usuario';
 import { TicketService } from '../../app/services/ticket.service';
 import { InventoryUnit } from '../../interface/InventoryUnit';
+import { Product } from '../../interface/Product';
 @Component({
   selector: 'app-ventana-peticion',
   standalone: true,
@@ -24,6 +25,8 @@ export class VentanaPeticion implements OnInit {
   tipoPeticion = '';
   detallePeticion = '';
 
+  productosUnicos: Product[] = [];
+
   // Para crear nuevo equipo - ACTUALIZADO con campos correctos
   mostrarFormularioEquipo = false;
 
@@ -35,13 +38,23 @@ export class VentanaPeticion implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Cargar usuarios
     this.usuarioService.getAll().subscribe((usuarios) => {
       this.usuarios = usuarios;
     });
 
-    // Cargar equipos de inventario
-    this.cargarEquipos();
+    this.equipoService.getAll().subscribe((equipos) => {
+      this.equiposInventario = equipos;
+
+      // Extraer productos únicos
+      const productosMap = new Map<number, Product>();
+      equipos.forEach((equipo) => {
+        const prod = equipo.product;
+        if (prod?.id && !productosMap.has(prod.id)) {
+          productosMap.set(prod.id, prod);
+        }
+      });
+      this.productosUnicos = Array.from(productosMap.values());
+    });
   }
 
   cargarEquipos(): void {
