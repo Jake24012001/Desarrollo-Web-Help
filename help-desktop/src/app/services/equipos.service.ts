@@ -2,26 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-
-export interface InventoryUnit {
-  id?: number;
-  stock?: number;
-  product?: {
-    id?: number;
-    name?: string;
-    // otros campos del producto
-  };
-  municipalCode?: string;
-  serial?: string;
-  maxStock?: number;
-  minStock?: number;
-  status?: string;
-  custodian?: {
-    id_persona?: number;
-    // otros campos de persona
-  };
-  urlImg?: string;
-}
+import { InventoryUnit } from '../../interface/InventoryUnit'
 
 @Injectable({
   providedIn: 'root',
@@ -29,7 +10,7 @@ export interface InventoryUnit {
 export class EquipoService {
   private apiUrl = `${environment.apiUrl}/inventoryunit`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAll(): Observable<InventoryUnit[]> {
     return this.http.get<InventoryUnit[]>(this.apiUrl);
