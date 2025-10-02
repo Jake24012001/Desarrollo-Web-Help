@@ -237,8 +237,8 @@ export class VentanaPeticion implements OnInit {
   }
 
   filtrarEquiposPorTipo(): void {
-  this.equiposFiltrados = this.equiposInventario.filter(
-    (equipo) => equipo.product?.type === this.productoSeleccionado
-  );
-}
+    this.equiposFiltrados = this.equiposInventario.filter(
+      (equipo) => equipo.product?.type === this.productoSeleccionado
+    );
+  }
 }
