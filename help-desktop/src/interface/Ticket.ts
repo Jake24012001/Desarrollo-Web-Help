@@ -12,7 +12,7 @@ export interface Ticket {
   usuario_creador: Usuario;
   usuario_asignado?: Usuario;
   equipoAfectado?: InventoryUnit;
-  fecha_creacion?: string;       // ISO string (LocalDateTime)
+  fecha_creacion?: string;    
   fecha_actualizacion?: string;
   fecha_cierre?: string;
 }
