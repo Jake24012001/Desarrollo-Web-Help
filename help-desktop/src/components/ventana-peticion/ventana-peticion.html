@@ -17,10 +17,10 @@
 
   <div class="form-group mb-3">
     <label for="producto">Categoría de equipo</label>
-    <select name="producto" id="producto" class="form-select" [(ngModel)]="productosUnicos" required>
+    <select name="producto" id="producto" class="form-select" [(ngModel)]="productoSeleccionado" required>
       <option value="" disabled selected>-- Selecciona --</option>
-      <option *ngFor="let producto of productosUnicos" [value]="producto.id">
-        {{ producto.type}}
+      <option *ngFor="let producto of productosUnicos" [value]="producto.name">
+        {{ producto.type }}
       </option>
     </select>
   </div>
@@ -31,7 +31,7 @@
       <select id="equipo" class="form-select" [(ngModel)]="equipoSeleccionado" name="equipo" required>
         <option value="" disabled selected>-- Selecciona --</option>
         <option *ngFor="let equipo of equiposInventario" [value]="equipo.id">
-          {{ equipo.municipalCode }} - {{ equipo.serial }}
+          {{ equipo.serial }} - {{ equipo.municipalCode }}
         </option>
       </select>
       <button type="button" class="btn btn-outline-primary" (click)="mostrarFormEquipo()">

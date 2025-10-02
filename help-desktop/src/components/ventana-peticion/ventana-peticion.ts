@@ -26,6 +26,7 @@ export class VentanaPeticion implements OnInit {
   detallePeticion = '';
 
   productosUnicos: Product[] = [];
+  productoSeleccionado: string = '';
 
   // Para crear nuevo equipo - ACTUALIZADO con campos correctos
   mostrarFormularioEquipo = false;
@@ -45,15 +46,15 @@ export class VentanaPeticion implements OnInit {
     this.equipoService.getAll().subscribe((equipos) => {
       this.equiposInventario = equipos;
 
-      // Extraer productos únicos
-      const productosMap = new Map<number, Product>();
-      equipos.forEach((equipo) => {
-        const prod = equipo.product;
-        if (prod?.id && !productosMap.has(prod.id)) {
-          productosMap.set(prod.id, prod);
-        }
-      });
-      this.productosUnicos = Array.from(productosMap.values());
+      // Extraer productos únicos por nombre
+      const nombresSet = new Set<string>();
+      this.productosUnicos = equipos
+        .map((e) => e.product)
+        .filter((p) => {
+          if (!p?.name || nombresSet.has(p.name)) return false;
+          nombresSet.add(p.name);
+          return true;
+        });
     });
   }
 
