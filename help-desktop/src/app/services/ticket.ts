@@ -11,6 +11,7 @@ export class ticket {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8090/api/ticket';
 
+
   getAll(): Observable<Ticket[]> {
     return this.http.get<Ticket[]>(this.apiUrl);
   }
