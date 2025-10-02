@@ -8,7 +8,6 @@ import { EquipoService } from '../../app/services/equipos.service';
 import { Usuario } from '../../interface/Usuario';
 import { TicketService } from '../../app/services/ticket.service';
 import { InventoryUnit } from '../../interface/InventoryUnit';
-import { Title } from '@angular/platform-browser';
 @Component({
   selector: 'app-ventana-peticion',
   standalone: true,
