@@ -3,6 +3,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Peticion } from '../../interface/Peticion';
 import Swal from 'sweetalert2';
+import { ticket } from '../../app/services/ticket';
 
 @Component({
   selector: 'app-vista-principal',
@@ -12,7 +13,7 @@ import Swal from 'sweetalert2';
   styleUrl: './vista-principal.css',
 })
 export class VistaPrincipal implements OnDestroy {
-  constructor(private router: Router) {}
+  constructor(private router: Router, private servicios: ticket) {}
 
   placeholderText = 'Buscar...';
   mensajes = ['Equipos', 'Peticiones', 'Solicitudes', 'Solucionado'];
@@ -26,16 +27,15 @@ export class VistaPrincipal implements OnDestroy {
   temporizadoresPorPeticion = new Map<number, any>();
 
   ngOnInit(): void {
-    const peticionesGuardadas = JSON.parse(localStorage.getItem('peticiones') || '[]');
+    this.servicios.getAll().subscribe((tickets) => {
+      this.datosFiltrados = tickets.map((p: any) => ({
+        ...p,
+        fechaEntrega: new Date(p.fechaEntrega),
+      }));
 
-    this.datosFiltrados = peticionesGuardadas.map((p: any) => ({
-      ...p,
-      fechaEntrega: new Date(p.fechaEntrega),
-    }));
-
-    this.actualizarListas();
-
-    this.datosFiltradosPendientes.forEach((p) => this.iniciarTemporizador(p.id));
+      this.actualizarListas();
+      this.datosFiltradosPendientes.forEach((p) => this.iniciarTemporizador(p.id));
+    });
 
     this.temporizadorPlaceholder = setInterval(() => {
       this.placeholderText = `Buscar ${this.mensajes[this.mensajeIndex]}`;

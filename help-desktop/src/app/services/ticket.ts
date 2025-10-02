@@ -6,7 +6,7 @@ import { Ticket } from '../../interface/Ticket';
 @Injectable({
   providedIn: 'root'
 })
-export class TicketService {
+export class ticket {
 
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8090/api/ticket';
