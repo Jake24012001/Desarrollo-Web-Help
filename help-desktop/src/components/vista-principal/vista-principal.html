@@ -1,8 +1,11 @@
 <div class="container">
   <!-- 🔍 Buscador -->
   <div class="d-flex align-items-center gap-2 my-3">
-    <input type="text" class="form-control form-control-sm w-25" [placeholder]="placeholderText" />
-    <button class="btn btn-dark btn-sm">Buscar</button>
+    <input type="text" class="form-control form-control-sm w-25" 
+           [placeholder]="placeholderText" 
+           [(ngModel)]="terminoBusqueda" 
+           (input)="filtrarDatos()" />
+    <button class="btn btn-dark btn-sm" (click)="limpiarBusqueda()">Limpiar</button>
   </div>
 
   <!-- 📌 Tabla de tickets pendientes -->
@@ -33,7 +36,7 @@
           <td>{{ item.descripcion || '—' }}</td>
           <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
           <td>{{ item.equipoAfectado?.product?.name || '—' }}</td>
-          <td>{{ item.usuario_creador?.nombre || '—' }}</td>
+          <td>{{ item.usuario_creador.nombre || '—' }}</td>
           <td>{{ item.priority?.nombre || '—' }}</td>
           <td>
             <span *ngIf="item.fecha_cierre">
@@ -49,8 +52,8 @@
             </div>
           </td>
           <td>
-            <span [ngClass]="getClaseEstado(item.status?.nombre || '')" class="estado-label">
-              {{ item.status?.nombre }}
+            <span [ngClass]="getClaseEstado(item.status.nombre || '')" class="estado-label">
+              {{ item.status.nombre }}
             </span>
           </td>
         </tr>
@@ -58,7 +61,6 @@
     </table>
   </div>
 
-  <!-- ✅ Tabla de tickets resueltos -->
   <div class="glass-card p-3 rounded shadow-sm">
     <h5 class="fw-bold mb-3">✅ Tickets Resueltos</h5>
     <table class="table table-hover table-bordered align-middle text-center">
@@ -84,7 +86,7 @@
           <td>{{ item.descripcion || '—' }}</td>
           <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
           <td>{{ item.equipoAfectado?.product?.name || '—' }}</td>
-          <td>{{ item.usuario_creador?.nombre || '—' }}</td>
+          <td>{{ item.usuario_creador.nombre || '—' }}</td>
           <td>{{ item.priority?.nombre || '—' }}</td>
           <td>
             <span *ngIf="item.fecha_cierre">

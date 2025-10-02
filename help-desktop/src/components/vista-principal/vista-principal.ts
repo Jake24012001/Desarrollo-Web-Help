@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms'; // Agregar esta importación
 import Swal from 'sweetalert2';
 import { TicketService } from '../../app/services/ticket.service';
 import { HttpClientModule } from '@angular/common/http';
@@ -9,17 +10,21 @@ import { Ticket } from '../../interface/Ticket';
 @Component({
   selector: 'app-vista-principal',
   standalone: true,
-  imports: [RouterModule, CommonModule, HttpClientModule],
+  imports: [RouterModule, CommonModule, HttpClientModule, FormsModule],
   templateUrl: './vista-principal.html',
   styleUrls: ['./vista-principal.css'],
 })
 export class VistaPrincipal implements OnDestroy {
   constructor(private router: Router, private servicios: TicketService) {}
 
-  // UI placeholders
   placeholderText = 'Buscar...';
   mensajes = ['Equipos', 'Peticiones', 'Solicitudes', 'Solucionado'];
   mensajeIndex = 0;
+
+  // Búsqueda - Agregar estas propiedades
+  terminoBusqueda: string = '';
+  datosOriginalesPendientes: Ticket[] = [];
+  datosOriginalesResueltos: Ticket[] = [];
 
   // Datos
   datosFiltrados: Ticket[] = [];
@@ -30,7 +35,6 @@ export class VistaPrincipal implements OnDestroy {
   temporizadorPlaceholder: any;
   temporizadoresPorPeticion = new Map<number, any>();
 
-  // Ciclo de vida
   ngOnInit(): void {
     this.servicios.getAll().subscribe((tickets) => {
       this.datosFiltrados = tickets.map((p: Ticket) => ({
@@ -39,6 +43,8 @@ export class VistaPrincipal implements OnDestroy {
       }));
 
       this.actualizarListas();
+      this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
+      this.datosOriginalesResueltos = [...this.datosResueltos];
 
       this.datosFiltradosPendientes.forEach((p) => {
         if (p.id_ticket !== undefined && p.id_ticket !== null) {
@@ -59,6 +65,44 @@ export class VistaPrincipal implements OnDestroy {
     this.temporizadoresPorPeticion.clear();
   }
 
+  // Métodos de búsqueda - Agregar estos métodos
+  filtrarDatos(): void {
+    if (!this.terminoBusqueda || this.terminoBusqueda.trim() === '') {
+      this.datosFiltradosPendientes = [...this.datosOriginalesPendientes];
+      this.datosResueltos = [...this.datosOriginalesResueltos];
+      return;
+    }
+
+    const termino = this.terminoBusqueda.toLowerCase().trim();
+
+    // Filtrar tickets pendientes
+    this.datosFiltradosPendientes = this.datosOriginalesPendientes.filter(item => 
+      this.contieneTermino(item, termino)
+    );
+
+    this.datosResueltos = this.datosOriginalesResueltos.filter(item => 
+      this.contieneTermino(item, termino)
+    );
+  }
+
+  private contieneTermino(item: Ticket, termino: string): boolean {
+    return (
+      item.descripcion?.toLowerCase().includes(termino) ||
+      item.usuario_asignado?.nombre?.toLowerCase().includes(termino) ||
+      item.equipoAfectado?.product?.name?.toLowerCase().includes(termino) ||
+      item.usuario_creador?.nombre?.toLowerCase().includes(termino) ||
+      item.priority?.nombre?.toLowerCase().includes(termino) ||
+      item.status?.nombre?.toLowerCase().includes(termino)
+    );
+  }
+
+  limpiarBusqueda(): void {
+    this.terminoBusqueda = '';
+    this.filtrarDatos();
+  }
+
+  // ...existing code... (mantén todos los métodos existentes)
+  
   // Temporizadores por petición
   iniciarTemporizador(id: number): void {
     if (this.temporizadoresPorPeticion.has(id)) return;
@@ -134,6 +178,8 @@ export class VistaPrincipal implements OnDestroy {
         );
 
         this.actualizarListas();
+        this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
+        this.datosOriginalesResueltos = [...this.datosResueltos];
       }
     });
   }
@@ -158,6 +204,8 @@ export class VistaPrincipal implements OnDestroy {
 
         this.datosFiltrados = [];
         this.actualizarListas();
+        this.datosOriginalesPendientes = [];
+        this.datosOriginalesResueltos = [];
       }
     });
   }
@@ -172,6 +220,8 @@ export class VistaPrincipal implements OnDestroy {
     }
 
     this.actualizarListas();
+    this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
+    this.datosOriginalesResueltos = [...this.datosResueltos];
   }
 
   // Utilidades
