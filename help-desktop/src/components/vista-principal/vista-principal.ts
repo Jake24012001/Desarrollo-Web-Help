@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core'; // Agregar OnInit
 import { Router, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms'; // Agregar esta importación
+import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { TicketService } from '../../app/services/ticket.service';
 import { HttpClientModule } from '@angular/common/http';
@@ -14,14 +14,14 @@ import { Ticket } from '../../interface/Ticket';
   templateUrl: './vista-principal.html',
   styleUrls: ['./vista-principal.css'],
 })
-export class VistaPrincipal implements OnDestroy {
+export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
   constructor(private router: Router, private servicios: TicketService) {}
 
   placeholderText = 'Buscar...';
   mensajes = ['Equipos', 'Peticiones', 'Solicitudes', 'Solucionado'];
   mensajeIndex = 0;
 
-  // Búsqueda - Agregar estas propiedades
+  // Búsqueda
   terminoBusqueda: string = '';
   datosOriginalesPendientes: Ticket[] = [];
   datosOriginalesResueltos: Ticket[] = [];
@@ -36,36 +36,35 @@ export class VistaPrincipal implements OnDestroy {
   temporizadoresPorPeticion = new Map<number, any>();
 
   ngOnInit(): void {
-    this.servicios.getAll().subscribe((tickets) => {
-      this.datosFiltrados = tickets.map((p: Ticket) => ({
-        ...p,
-        fechaEntrega: this.isValidDate(p.fecha_creacion) ? new Date(p.fecha_creacion!) : null,
-      }));
+  this.servicios.getAll().subscribe((tickets) => {
+    this.datosFiltrados = tickets.map((p: Ticket) => ({
+      ...p,
+      fechaEntrega: this.isValidDate(p.fecha_creacion) ? new Date(p.fecha_creacion!) : undefined, // <-- Cambiar null por undefined
+    }));
 
-      this.actualizarListas();
-      this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
-      this.datosOriginalesResueltos = [...this.datosResueltos];
+    this.actualizarListas();
+    this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
+    this.datosOriginalesResueltos = [...this.datosResueltos];
 
-      this.datosFiltradosPendientes.forEach((p) => {
-        if (p.id_ticket !== undefined && p.id_ticket !== null) {
-          this.iniciarTemporizador(p.id_ticket);
-        }
-      });
+    this.datosFiltradosPendientes.forEach((p) => {
+      if (p.id_ticket !== undefined && p.id_ticket !== null) {
+        this.iniciarTemporizador(p.id_ticket);
+      }
     });
+  });
 
-    this.temporizadorPlaceholder = setInterval(() => {
-      this.placeholderText = `Buscar ${this.mensajes[this.mensajeIndex]}`;
-      this.mensajeIndex = (this.mensajeIndex + 1) % this.mensajes.length;
-    }, 5000);
-  }
-
+  this.temporizadorPlaceholder = setInterval(() => {
+    this.placeholderText = `Buscar ${this.mensajes[this.mensajeIndex]}`;
+    this.mensajeIndex = (this.mensajeIndex + 1) % this.mensajes.length;
+  }, 5000);
+}
   ngOnDestroy(): void {
     clearInterval(this.temporizadorPlaceholder);
     this.temporizadoresPorPeticion.forEach((t) => clearInterval(t));
     this.temporizadoresPorPeticion.clear();
   }
 
-  // Métodos de búsqueda - Agregar estos métodos
+  // Métodos de búsqueda
   filtrarDatos(): void {
     if (!this.terminoBusqueda || this.terminoBusqueda.trim() === '') {
       this.datosFiltradosPendientes = [...this.datosOriginalesPendientes];
@@ -92,7 +91,8 @@ export class VistaPrincipal implements OnDestroy {
       item.equipoAfectado?.product?.name?.toLowerCase().includes(termino) ||
       item.usuario_creador?.nombre?.toLowerCase().includes(termino) ||
       item.priority?.nombre?.toLowerCase().includes(termino) ||
-      item.status?.nombre?.toLowerCase().includes(termino)
+      item.status?.nombre?.toLowerCase().includes(termino) ||
+      false
     );
   }
 
@@ -101,8 +101,6 @@ export class VistaPrincipal implements OnDestroy {
     this.filtrarDatos();
   }
 
-  // ...existing code... (mantén todos los métodos existentes)
-  
   // Temporizadores por petición
   iniciarTemporizador(id: number): void {
     if (this.temporizadoresPorPeticion.has(id)) return;
@@ -168,18 +166,31 @@ export class VistaPrincipal implements OnDestroy {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        const id = this.datosFiltradosPendientes[index].id_ticket;
-        if (id !== undefined && id !== null) {
-          this.detenerTemporizador(id);
-        }
+        const ticket = this.datosFiltradosPendientes[index];
+        if (!ticket?.id_ticket) return;
 
-        this.datosFiltrados = this.datosFiltrados.filter(
-          (p) => !(p.id_ticket === id && p.status?.nombre === 'Pendiente')
-        );
+        // Eliminar del backend
+        this.servicios.delete(ticket.id_ticket).subscribe({
+          next: () => {
+            // Detener temporizador
+            this.detenerTemporizador(ticket.id_ticket!);
 
-        this.actualizarListas();
-        this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
-        this.datosOriginalesResueltos = [...this.datosResueltos];
+            // Remover de arrays locales
+            this.datosFiltrados = this.datosFiltrados.filter(
+              (p) => p.id_ticket !== ticket.id_ticket
+            );
+
+            this.actualizarListas();
+            this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
+            this.datosOriginalesResueltos = [...this.datosResueltos];
+
+            Swal.fire('Eliminado', 'La petición ha sido eliminada.', 'success');
+          },
+          error: (error) => {
+            console.error('Error al eliminar ticket:', error);
+            Swal.fire('Error', 'No se pudo eliminar la petición.', 'error');
+          }
+        });
       }
     });
   }
@@ -194,8 +205,7 @@ export class VistaPrincipal implements OnDestroy {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        localStorage.removeItem('peticiones');
-
+        // Detener todos los temporizadores
         this.datosFiltrados.forEach((p) => {
           if (p.id_ticket !== undefined && p.id_ticket !== null) {
             this.detenerTemporizador(p.id_ticket);
@@ -206,22 +216,47 @@ export class VistaPrincipal implements OnDestroy {
         this.actualizarListas();
         this.datosOriginalesPendientes = [];
         this.datosOriginalesResueltos = [];
+
+        Swal.fire('Eliminadas', 'Todas las peticiones han sido eliminadas.', 'success');
       }
     });
   }
 
   marcarComoResuelta(item: Ticket): void {
-    if (item.status?.nombre !== 'Resuelto') {
-      item.status.nombre = 'Resuelto';
-    }
+    if (!item.id_ticket || !item.status) return;
 
-    if (item.id_ticket !== undefined) {
-      this.detenerTemporizador(item.id_ticket);
-    }
+    // Actualizar el status
+    const ticketActualizado: Ticket = {
+      ...item,
+      status: {
+        id_status: 3, // ID para "Resuelto" - ajusta según tu BD
+        nombre: 'Resuelto'
+      }
+    };
 
-    this.actualizarListas();
-    this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
-    this.datosOriginalesResueltos = [...this.datosResueltos];
+    // Actualizar en el backend
+    this.servicios.update(item.id_ticket, ticketActualizado).subscribe({
+      next: (ticketResuelto) => {
+        // Actualizar en el array local
+        const index = this.datosFiltrados.findIndex(p => p.id_ticket === item.id_ticket);
+        if (index !== -1) {
+          this.datosFiltrados[index] = ticketResuelto;
+        }
+
+        // Detener temporizador
+        this.detenerTemporizador(item.id_ticket!);
+
+        this.actualizarListas();
+        this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
+        this.datosOriginalesResueltos = [...this.datosResueltos];
+
+        Swal.fire('Resuelto', 'El ticket ha sido marcado como resuelto.', 'success');
+      },
+      error: (error) => {
+        console.error('Error al resolver ticket:', error);
+        Swal.fire('Error', 'No se pudo marcar como resuelto.', 'error');
+      }
+    });
   }
 
   // Utilidades
@@ -231,12 +266,11 @@ export class VistaPrincipal implements OnDestroy {
     );
 
     this.datosResueltos = this.datosFiltrados.filter((p) => p.status?.nombre === 'Resuelto');
-
-    this.actualizarLocalStorage();
   }
 
   actualizarLocalStorage(): void {
-    localStorage.setItem('peticiones', JSON.stringify(this.datosFiltrados));
+    // Ya no es necesario si trabajas con backend
+    // localStorage.setItem('peticiones', JSON.stringify(this.datosFiltrados));
   }
 
   calcularTiempoRestante(fechaCierre: string): string {

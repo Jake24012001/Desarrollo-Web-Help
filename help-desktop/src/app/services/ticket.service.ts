@@ -31,8 +31,38 @@ export class TicketService {
   delete(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
+  createFromPeticion(ticketData: {
+    title: string;
+    descripcion: string;
+    usuarioCreadorId: number;
+    usuarioAsignadoId: number;
+    equipoAfectadoId: number;
+    statusId?: number;
+    priorityId?: number;
+  }): Observable<Ticket> {
+    const ticket: Ticket = {
+      title: ticketData.title,
+      descripcion: ticketData.descripcion,
+      status: {
+        id_status: ticketData.statusId || 1 // Por defecto "Pendiente"
+      },
+      priority: {
+        id_priority: ticketData.priorityId || 2 // Por defecto "Media"
+      },
+      usuario_creador: {
+        id_usuario: ticketData.usuarioCreadorId
+      },
+      usuario_asignado: {
+        id_usuario: ticketData.usuarioAsignadoId
+      },
+      equipoAfectado: {
+        id: ticketData.equipoAfectadoId
+      }
+    };
 
-  // Si esta parte es solo para pruebas locales, puedes dejarla o eliminarla
+    return this.create(ticket);
+  }
+
   private ticket: Ticket[] = [];
 
   getTicket() {
