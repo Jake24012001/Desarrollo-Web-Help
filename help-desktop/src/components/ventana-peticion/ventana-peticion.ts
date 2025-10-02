@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { UsuarioService } from '../../app/services/usuario.service';
-import { EquipoService} from '../../app/services/equipos.service';
+import { EquipoService } from '../../app/services/equipos.service';
 import { Usuario } from '../../interface/Usuario';
 import { TicketService } from '../../app/services/ticket.service';
-import { InventoryUnit} from '../../interface/InventoryUnit'
+import { InventoryUnit } from '../../interface/InventoryUnit';
+import { Title } from '@angular/platform-browser';
 @Component({
   selector: 'app-ventana-peticion',
   standalone: true,
@@ -18,15 +19,15 @@ import { InventoryUnit} from '../../interface/InventoryUnit'
 export class VentanaPeticion implements OnInit {
   usuarios: Usuario[] = [];
   equiposInventario: InventoryUnit[] = [];
-  
+
   usuarioSeleccionado = '';
   equipoSeleccionado = '';
   tipoPeticion = '';
   detallePeticion = '';
-  
+
   // Para crear nuevo equipo - ACTUALIZADO con campos correctos
   mostrarFormularioEquipo = false;
-  
+
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
@@ -58,7 +59,6 @@ export class VentanaPeticion implements OnInit {
     this.mostrarFormularioEquipo = false;
   }
 
-
   cancelarAccion(): void {
     Swal.fire({
       title: '¿Cancelar petición?',
@@ -76,7 +76,9 @@ export class VentanaPeticion implements OnInit {
 
   enviarPeticion(): void {
     const tipo = (document.getElementById('tipoPeticion') as HTMLInputElement)?.value.trim();
-    const detalle = (document.getElementById('detallePeticion') as HTMLTextAreaElement)?.value.trim();
+    const detalle = (
+      document.getElementById('detallePeticion') as HTMLTextAreaElement
+    )?.value.trim();
 
     if (!tipo || !this.usuarioSeleccionado || !this.equipoSeleccionado || !detalle) {
       Swal.fire({
@@ -88,7 +90,9 @@ export class VentanaPeticion implements OnInit {
       return;
     }
 
-    const equipoSeleccionadoObj = this.equiposInventario.find(e => e.id?.toString() === this.equipoSeleccionado);
+    const equipoSeleccionadoObj = this.equiposInventario.find(
+      (e) => e.id?.toString() === this.equipoSeleccionado
+    );
 
     const nuevaPeticion = {
       fechaEntrega: new Date().toISOString(),
@@ -157,7 +161,64 @@ export class VentanaPeticion implements OnInit {
     }
   }
 
-  crearTicket(){
+  crearTicket(): void {
+    const tipo = this.tipoPeticion.trim();
+    const detalle = this.detallePeticion.trim();
 
+    if (!tipo || !this.usuarioSeleccionado || !this.equipoSeleccionado || !detalle) {
+      Swal.fire({
+        title: 'Campos incompletos',
+        text: 'Por favor llena todos los campos antes de crear el ticket.',
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+      });
+      return;
+    }
+
+    const usuarioCreadorId = Number(this.usuarioSeleccionado); // Asegúrate que sea un número
+    const usuarioAsignadoId = Number(this.usuarioSeleccionado); // Puedes cambiar esto si hay lógica distinta
+    const equipo = this.equiposInventario.find((e) => e.id?.toString() === this.equipoSeleccionado);
+
+    if (!equipo) {
+      Swal.fire({
+        title: 'Equipo no encontrado',
+        text: 'El equipo seleccionado no existe en el inventario.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar',
+      });
+      return;
+    }
+
+    const ticketData = {
+      title: tipo,
+      descripcion: detalle,
+      usuarioCreadorId,
+      usuarioAsignadoId,
+      equipoAfectadoId: equipo.id!,
+      statusId: 1, // "Pendiente"
+      priorityId: 2, // "Media"
+    };
+
+    this.ticketService.createFromPeticion(ticketData).subscribe({
+      next: (ticketCreado) => {
+        Swal.fire({
+          title: 'Ticket creado',
+          text: `Se ha registrado correctamente el ticket #${ticketCreado.id_ticket}`,
+          icon: 'success',
+          confirmButtonText: 'Aceptar',
+        }).then(() => {
+          this.router.navigate(['/help-menu']);
+        });
+      },
+      error: (err) => {
+        console.error('Error al crear el ticket:', err);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo crear el ticket. Intenta nuevamente.',
+          icon: 'error',
+          confirmButtonText: 'Aceptar',
+        });
+      },
+    });
   }
 }
