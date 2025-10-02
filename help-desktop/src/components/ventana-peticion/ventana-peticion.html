@@ -20,7 +20,7 @@
     <select name="producto" id="producto" class="form-select" [(ngModel)]="productoSeleccionado" required>
       <option value="" disabled selected>-- Selecciona --</option>
       <option *ngFor="let producto of productosUnicos" [value]="producto.name">
-        {{ producto.type }}
+        {{ producto.type }} - {{ producto.name }}
       </option>
     </select>
   </div>
