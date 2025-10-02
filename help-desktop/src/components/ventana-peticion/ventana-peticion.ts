@@ -4,10 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { UsuarioService } from '../../app/services/usuario.service';
-import { EquipoService } from '../../app/services/equipos.service';
+import { EquipoService, InventoryUnit } from '../../app/services/equipos.service';
 import { Usuario } from '../../interface/Usuario';
 import { TicketService } from '../../app/services/ticket.service';
-import { InventoryUnit } from '../../interface/InventoryUnit';
 
 @Component({
   selector: 'app-ventana-peticion',
@@ -19,14 +18,22 @@ import { InventoryUnit } from '../../interface/InventoryUnit';
 export class VentanaPeticion implements OnInit {
   usuarios: Usuario[] = [];
   equiposInventario: InventoryUnit[] = [];
-
+  
   usuarioSeleccionado = '';
   equipoSeleccionado = '';
   tipoPeticion = '';
   detallePeticion = '';
-
+  
   // Para crear nuevo equipo - ACTUALIZADO con campos correctos
   mostrarFormularioEquipo = false;
+  nuevoEquipo: InventoryUnit = {
+    stock: 1,
+    serial: '',
+    status: 'DISPONIBLE',
+    municipalCode: '',
+    maxStock: 10,
+    minStock: 1
+  };
 
   constructor(
     private router: Router,
@@ -57,6 +64,66 @@ export class VentanaPeticion implements OnInit {
 
   ocultarFormEquipo(): void {
     this.mostrarFormularioEquipo = false;
+    this.nuevoEquipo = {
+      stock: 1,
+      serial: '',
+      status: 'DISPONIBLE',
+      municipalCode: '',
+      maxStock: 10,
+      minStock: 1
+    };
+  }
+
+  crearEquipo(): void {
+    if (!this.nuevoEquipo.serial?.trim()) {
+      Swal.fire({
+        title: 'Campo requerido',
+        text: 'El número de serie es obligatorio.',
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+      });
+      return;
+    }
+
+    const equipoParaCrear: InventoryUnit = {
+      stock: this.nuevoEquipo.stock || 1,
+      serial: this.nuevoEquipo.serial?.trim(),
+      status: this.nuevoEquipo.status || 'DISPONIBLE',
+      municipalCode: this.nuevoEquipo.municipalCode?.trim(),
+      maxStock: this.nuevoEquipo.maxStock || 10,
+      minStock: this.nuevoEquipo.minStock || 1
+    };
+
+    console.log('Enviando equipo:', equipoParaCrear);
+
+    this.equipoService.create(equipoParaCrear).subscribe({
+      next: (equipoCreado) => {
+        Swal.fire({
+          title: 'Equipo creado',
+          text: 'El equipo se ha creado correctamente.',
+          icon: 'success',
+          confirmButtonText: 'Aceptar',
+        });
+        
+        // Recargar la lista de equipos
+        this.cargarEquipos();
+        
+        // Seleccionar automáticamente el equipo recién creado
+        this.equipoSeleccionado = equipoCreado.id?.toString() || '';
+        
+        // Ocultar formulario
+        this.ocultarFormEquipo();
+      },
+      error: (error) => {
+        console.error('Error al crear equipo:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo crear el equipo. Verifica que el número de serie sea único.',
+          icon: 'error',
+          confirmButtonText: 'Aceptar',
+        });
+      }
+    });
   }
 
   cancelarAccion(): void {
@@ -76,9 +143,7 @@ export class VentanaPeticion implements OnInit {
 
   enviarPeticion(): void {
     const tipo = (document.getElementById('tipoPeticion') as HTMLInputElement)?.value.trim();
-    const detalle = (
-      document.getElementById('detallePeticion') as HTMLTextAreaElement
-    )?.value.trim();
+    const detalle = (document.getElementById('detallePeticion') as HTMLTextAreaElement)?.value.trim();
 
     if (!tipo || !this.usuarioSeleccionado || !this.equipoSeleccionado || !detalle) {
       Swal.fire({
@@ -90,9 +155,7 @@ export class VentanaPeticion implements OnInit {
       return;
     }
 
-    const equipoSeleccionadoObj = this.equiposInventario.find(
-      (e) => e.id?.toString() === this.equipoSeleccionado
-    );
+    const equipoSeleccionadoObj = this.equiposInventario.find(e => e.id?.toString() === this.equipoSeleccionado);
 
     const nuevaPeticion = {
       fechaEntrega: new Date().toISOString(),
@@ -161,5 +224,7 @@ export class VentanaPeticion implements OnInit {
     }
   }
 
-  crearTicket() {}
+  crearTicket(){
+
+  }
 }
