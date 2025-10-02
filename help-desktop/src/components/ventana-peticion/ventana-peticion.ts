@@ -6,6 +6,7 @@ import Swal from 'sweetalert2';
 import { UsuarioService } from '../../app/services/usuario.service';
 import { EquipoService, InventoryUnit } from '../../app/services/equipos.service';
 import { Usuario } from '../../interface/Usuario';
+import { TicketService } from '../../app/services/ticket.service';
 
 @Component({
   selector: 'app-ventana-peticion',
@@ -37,7 +38,8 @@ export class VentanaPeticion implements OnInit {
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
-    private equipoService: EquipoService
+    private equipoService: EquipoService,
+    private ticketService: TicketService
   ) {}
 
   ngOnInit(): void {
@@ -51,8 +53,8 @@ export class VentanaPeticion implements OnInit {
   }
 
   cargarEquipos(): void {
-    this.equipoService.getAll().subscribe((equipos) => {
-      this.equiposInventario = equipos;
+    this.equipoService.getAll().subscribe((municipalCode) => {
+      this.equiposInventario = municipalCode;
     });
   }
 
@@ -220,5 +222,9 @@ export class VentanaPeticion implements OnInit {
       default:
         return '';
     }
+  }
+
+  crearTicket(){
+
   }
 }

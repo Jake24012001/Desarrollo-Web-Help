@@ -5,6 +5,17 @@
   </div>
 
   <div class="form-group mb-3">
+    <label for="statusTicket">Estado de Ticket</label>
+    <select id="statusTicket" class="form-select" [(ngModel)]="nuevoEquipo.status" name="statusEquipo">
+      <option value="DISPONIBLE">Disponible</option>
+      <option value="EN_USO">En uso</option>
+      <option value="MANTENIMIENTO">Mantenimiento</option>
+      <option value="FUERA_DE_SERVICIO">Fuera de servicio</option>
+    </select>
+
+  </div>
+
+  <div class="form-group mb-3">
     <label for="usuario">Selecciona un usuario:</label>
     <select id="usuario" class="form-select mb-3" [(ngModel)]="usuarioSeleccionado" name="usuario" required>
       <option value="" disabled selected>-- Selecciona --</option>
@@ -20,7 +31,7 @@
       <select id="equipo" class="form-select" [(ngModel)]="equipoSeleccionado" name="equipo" required>
         <option value="" disabled selected>-- Selecciona --</option>
         <option *ngFor="let equipo of equiposInventario" [value]="equipo.id">
-          {{ equipo.serial }} - {{ equipo.product?.name || 'Sin producto' }} ({{ equipo.status }})
+          {{ equipo.municipalCode }} -{{equipo.serial}}
         </option>
       </select>
       <button type="button" class="btn btn-outline-primary" (click)="mostrarFormEquipo()">
@@ -30,53 +41,48 @@
 
     <div *ngIf="mostrarFormularioEquipo" class="card p-3 mt-3">
       <h6>Crear Nuevo Equipo</h6>
-      
+
       <div class="mb-2">
         <label for="serialEquipo">Número de Serie:</label>
-        <input type="text" id="serialEquipo" class="form-control" 
-               [(ngModel)]="nuevoEquipo.serial" name="serialEquipo" 
-               placeholder="Ej: HP001234" required>
+        <input type="text" id="serialEquipo" class="form-control" [(ngModel)]="nuevoEquipo.serial" name="serialEquipo"
+          placeholder="Ej: HP001234" required>
       </div>
-      
+
       <div class="mb-2">
         <label for="stockEquipo">Stock:</label>
-        <input type="number" id="stockEquipo" class="form-control" 
-               [(ngModel)]="nuevoEquipo.stock" name="stockEquipo" 
-               placeholder="1" min="1">
+        <input type="number" id="stockEquipo" class="form-control" [(ngModel)]="nuevoEquipo.stock" name="stockEquipo"
+          placeholder="1" min="1">
       </div>
-      
+
       <div class="mb-2">
         <label for="municipalCodeEquipo">Código Municipal:</label>
-        <input type="text" id="municipalCodeEquipo" class="form-control" 
-               [(ngModel)]="nuevoEquipo.municipalCode" name="municipalCodeEquipo" 
-               placeholder="Ej: MUN001">
+        <input type="text" id="municipalCodeEquipo" class="form-control" [(ngModel)]="nuevoEquipo.municipalCode"
+          name="municipalCodeEquipo" placeholder="Ej: MUN001">
       </div>
-      
+
       <div class="mb-2">
         <label for="maxStockEquipo">Stock Máximo:</label>
-        <input type="number" id="maxStockEquipo" class="form-control" 
-               [(ngModel)]="nuevoEquipo.maxStock" name="maxStockEquipo" 
-               placeholder="10" min="1">
+        <input type="number" id="maxStockEquipo" class="form-control" [(ngModel)]="nuevoEquipo.maxStock"
+          name="maxStockEquipo" placeholder="10" min="1">
       </div>
-      
+
       <div class="mb-2">
         <label for="minStockEquipo">Stock Mínimo:</label>
-        <input type="number" id="minStockEquipo" class="form-control" 
-               [(ngModel)]="nuevoEquipo.minStock" name="minStockEquipo" 
-               placeholder="1" min="1">
+        <input type="number" id="minStockEquipo" class="form-control" [(ngModel)]="nuevoEquipo.minStock"
+          name="minStockEquipo" placeholder="1" min="1">
       </div>
-      
+
+      // esto es para status
       <div class="mb-3">
         <label for="statusEquipo">Estado:</label>
-        <select id="statusEquipo" class="form-select" 
-                [(ngModel)]="nuevoEquipo.status" name="statusEquipo">
+        <select id="statusEquipo" class="form-select" [(ngModel)]="nuevoEquipo.status" name="statusEquipo">
           <option value="DISPONIBLE">Disponible</option>
           <option value="EN_USO">En uso</option>
           <option value="MANTENIMIENTO">Mantenimiento</option>
           <option value="FUERA_DE_SERVICIO">Fuera de servicio</option>
         </select>
       </div>
-      
+
       <div class="d-flex gap-2">
         <button type="button" class="btn btn-success btn-sm" (click)="crearEquipo()">Crear</button>
         <button type="button" class="btn btn-secondary btn-sm" (click)="ocultarFormEquipo()">Cancelar</button>
@@ -86,11 +92,12 @@
 
   <div class="form-group mb-3">
     <label for="detallePeticion">Detalle de petición:</label>
-    <textarea id="detallePeticion" class="form-control" rows="4" placeholder="Describa su problemática" required></textarea>
+    <textarea id="detallePeticion" class="form-control" rows="4" placeholder="Describa su problemática"
+      required></textarea>
   </div>
 
   <div class="d-flex gap-2">
-    <button type="submit" class="btn btn-danger">Enviar</button>
+    <button type="submit" class="btn btn-danger" (click)="crearTicket()">Enviar</button>
     <button type="button" class="btn btn-secondary" (click)="cancelarAccion()">Cancelar</button>
   </div>
 
