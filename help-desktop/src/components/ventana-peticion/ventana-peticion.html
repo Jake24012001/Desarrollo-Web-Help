@@ -17,10 +17,11 @@
 
   <div class="form-group mb-3">
     <label for="producto">Categoría de equipo</label>
-    <select name="producto" id="producto" class="form-select" [(ngModel)]="productoSeleccionado" required>
+    <select name="producto" id="producto" class="form-select" [(ngModel)]="productoSeleccionado"
+      (change)="filtrarEquiposPorTipo()" required>
       <option value="" disabled>-- Selecciona --</option>
       <option *ngFor="let producto of productosUnicos" [value]="producto.type">
-        {{ producto.type }}
+        {{ producto.type }} - {{ producto.name }}
       </option>
     </select>
   </div>
@@ -29,8 +30,8 @@
     <label for="equipo">Equipos disponibles:</label>
     <div class="d-flex gap-2 mb-2">
       <select id="equipo" class="form-select" [(ngModel)]="equipoSeleccionado" name="equipo" required>
-        <option value="" disabled selected>-- Selecciona --</option>
-        <option *ngFor="let equipo of equiposInventario" [value]="equipo.id">
+        <option value="" disabled>-- Selecciona --</option>
+        <option *ngFor="let equipo of equiposFiltrados" [value]="equipo.id">
           {{ equipo.serial }} - {{ equipo.municipalCode }}
         </option>
       </select>
@@ -39,7 +40,6 @@
       </button>
     </div>
   </div>
-
   <div class="form-group mb-3">
     <label for="detallePeticion">Detalle de petición:</label>
     <textarea id="detallePeticion" class="form-control" rows="4" placeholder="Describa su problemática"

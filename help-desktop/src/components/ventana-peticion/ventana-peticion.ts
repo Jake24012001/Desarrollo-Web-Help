@@ -19,6 +19,7 @@ import { Product } from '../../interface/Product';
 export class VentanaPeticion implements OnInit {
   usuarios: Usuario[] = [];
   equiposInventario: InventoryUnit[] = [];
+  equiposFiltrados: InventoryUnit[] = [];
 
   usuarioSeleccionado = '';
   equipoSeleccionado = '';
@@ -234,4 +235,10 @@ export class VentanaPeticion implements OnInit {
       },
     });
   }
+
+  filtrarEquiposPorTipo(): void {
+  this.equiposFiltrados = this.equiposInventario.filter(
+    (equipo) => equipo.product?.type === this.productoSeleccionado
+  );
+}
 }
