@@ -2,7 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+<<<<<<< HEAD
+import { InventoryUnit } from '../../interface/InventoryUnit'
+=======
 import { InventoryUnit } from '../../interface/InventoryUnit';
+>>>>>>> 165aebe6519877b589b70b2b2fbf73c307b9cdf9
 
 @Injectable({
   providedIn: 'root',
@@ -10,7 +14,7 @@ import { InventoryUnit } from '../../interface/InventoryUnit';
 export class EquipoService {
   private apiUrl = `${environment.apiUrl}/inventoryunit`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAll(): Observable<InventoryUnit[]> {
     return this.http.get<InventoryUnit[]>(this.apiUrl);
