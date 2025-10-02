@@ -4,13 +4,12 @@ import { Observable } from 'rxjs';
 import { Ticket } from '../../interface/Ticket';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ticket {
-
-  private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8090/api/ticket';
 
+  constructor(private http: HttpClient) {}
 
   getAll(): Observable<Ticket[]> {
     return this.http.get<Ticket[]>(this.apiUrl);
