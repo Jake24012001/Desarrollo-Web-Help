@@ -11,22 +11,26 @@ import { Ticket } from '../../interface/Ticket';
   standalone: true,
   imports: [RouterModule, CommonModule, HttpClientModule],
   templateUrl: './vista-principal.html',
-  styleUrl: './vista-principal.css',
+  styleUrls: ['./vista-principal.css'],
 })
 export class VistaPrincipal implements OnDestroy {
   constructor(private router: Router, private servicios: TicketService) {}
 
+  // UI placeholders
   placeholderText = 'Buscar...';
   mensajes = ['Equipos', 'Peticiones', 'Solicitudes', 'Solucionado'];
   mensajeIndex = 0;
 
+  // Datos
   datosFiltrados: Ticket[] = [];
   datosFiltradosPendientes: Ticket[] = [];
   datosResueltos: Ticket[] = [];
 
+  // Temporizadores
   temporizadorPlaceholder: any;
   temporizadoresPorPeticion = new Map<number, any>();
 
+  // Ciclo de vida
   ngOnInit(): void {
     this.servicios.getAll().subscribe((tickets) => {
       this.datosFiltrados = tickets.map((p: Ticket) => ({
@@ -35,6 +39,7 @@ export class VistaPrincipal implements OnDestroy {
       }));
 
       this.actualizarListas();
+
       this.datosFiltradosPendientes.forEach((p) => {
         if (p.id_ticket !== undefined && p.id_ticket !== null) {
           this.iniciarTemporizador(p.id_ticket);
@@ -48,16 +53,13 @@ export class VistaPrincipal implements OnDestroy {
     }, 5000);
   }
 
-  isValidDate(date: any): boolean {
-    return date && !isNaN(new Date(date).getTime());
-  }
-
   ngOnDestroy(): void {
     clearInterval(this.temporizadorPlaceholder);
     this.temporizadoresPorPeticion.forEach((t) => clearInterval(t));
     this.temporizadoresPorPeticion.clear();
   }
 
+  // Temporizadores por petición
   iniciarTemporizador(id: number): void {
     if (this.temporizadoresPorPeticion.has(id)) return;
 
@@ -79,20 +81,7 @@ export class VistaPrincipal implements OnDestroy {
     }
   }
 
-  actualizarListas(): void {
-    this.datosFiltradosPendientes = this.datosFiltrados.filter(
-      (p) => p.status?.nombre !== 'Resuelto'
-    );
-
-    this.datosResueltos = this.datosFiltrados.filter((p) => p.status?.nombre === 'Resuelto');
-
-    this.actualizarLocalStorage();
-  }
-
-  actualizarLocalStorage(): void {
-    localStorage.setItem('peticiones', JSON.stringify(this.datosFiltrados));
-  }
-
+  // Gestión de peticiones
   crearPeticion(): void {
     Swal.fire({
       title: '¿Deseas crear la petición?',
@@ -140,7 +129,6 @@ export class VistaPrincipal implements OnDestroy {
           this.detenerTemporizador(id);
         }
 
-        // Eliminar solo si está en estado Pendiente
         this.datosFiltrados = this.datosFiltrados.filter(
           (p) => !(p.id_ticket === id && p.status?.nombre === 'Pendiente')
         );
@@ -174,6 +162,33 @@ export class VistaPrincipal implements OnDestroy {
     });
   }
 
+  marcarComoResuelta(item: Ticket): void {
+    if (item.status?.nombre !== 'Resuelto') {
+      item.status.nombre = 'Resuelto';
+    }
+
+    if (item.id_ticket !== undefined) {
+      this.detenerTemporizador(item.id_ticket);
+    }
+
+    this.actualizarListas();
+  }
+
+  // Utilidades
+  actualizarListas(): void {
+    this.datosFiltradosPendientes = this.datosFiltrados.filter(
+      (p) => p.status?.nombre !== 'Resuelto'
+    );
+
+    this.datosResueltos = this.datosFiltrados.filter((p) => p.status?.nombre === 'Resuelto');
+
+    this.actualizarLocalStorage();
+  }
+
+  actualizarLocalStorage(): void {
+    localStorage.setItem('peticiones', JSON.stringify(this.datosFiltrados));
+  }
+
   calcularTiempoRestante(fechaCierre: string): string {
     if (!fechaCierre || isNaN(new Date(fechaCierre).getTime())) return '—';
 
@@ -204,19 +219,11 @@ export class VistaPrincipal implements OnDestroy {
       case 'Resuelto':
         return 'resuelto';
       default:
-        return 'estado-desconocido'; // clase opcional para estilos neutros
+        return 'estado-desconocido';
     }
   }
 
-  marcarComoResuelta(item: Ticket): void {
-    if (item.status?.nombre !== 'Resuelto') {
-      item.status.nombre = 'Resuelto';
-    }
-
-    if (item.id_ticket !== undefined) {
-      this.detenerTemporizador(item.id_ticket);
-    }
-
-    this.actualizarListas();
+  isValidDate(date: any): boolean {
+    return date && !isNaN(new Date(date).getTime());
   }
 }
