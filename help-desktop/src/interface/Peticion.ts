@@ -8,4 +8,5 @@ export interface Peticion {
   tipo: string;
   estado: 'Pendiente' | 'Resuelto' | 'En proceso' | 'Terminado' | 'No disponible';
   tiempoFinalizado?: string;
+  tiempoLimite: number;
 }

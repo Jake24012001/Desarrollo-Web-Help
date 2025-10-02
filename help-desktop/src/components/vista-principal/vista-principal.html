@@ -30,7 +30,11 @@
           <td>{{ item.departamento }}</td>
           <td>{{ item.elaboradoPor }}</td>
           <td>{{ item.tipo }}</td>
-          <td>{{ calcularTiempo(item.fechaEntrega) }}</td>
+          <td>
+            <span [ngClass]="{ 'tiempo-rojo': calcularTiempo(item.fechaEntrega, item.tiempoLimite).vencido }">
+              {{ calcularTiempo(item.fechaEntrega, item.tiempoLimite).texto }}
+            </span>
+          </td>
           <td>
             <div class="d-flex justify-content-center gap-2">
               <button class="btn btn-outline-primary btn-sm" (click)="modificarPeticion(item)">Editar</button>

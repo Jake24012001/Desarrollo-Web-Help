@@ -150,8 +150,8 @@ export class VistaPrincipal implements OnDestroy {
     });
   }
 
-  calcularTiempo(fecha: Date): string {
-    if (!fecha || isNaN(new Date(fecha).getTime())) return '—';
+  calcularTiempo(fecha: Date, limiteMs?: number): { texto: string; vencido: boolean } {
+    if (!fecha || isNaN(new Date(fecha).getTime())) return { texto: '—', vencido: false };
 
     const ahora = new Date().getTime();
     const ingreso = new Date(fecha).getTime();
@@ -162,7 +162,12 @@ export class VistaPrincipal implements OnDestroy {
     const horas = Math.floor(diferencia / (1000 * 60 * 60)) % 24;
     const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
 
-    return `${dias}d ${horas}h ${minutos}m ${segundos}s`;
+    const vencido = limiteMs !== undefined && diferencia > limiteMs;
+
+    return {
+      texto: `${dias}d ${horas}h ${minutos}m ${segundos}s`,
+      vencido,
+    };
   }
 
   getClaseEstado(estado: string): string {
@@ -184,7 +189,10 @@ export class VistaPrincipal implements OnDestroy {
 
   marcarComoResuelta(item: Peticion): void {
     item.estado = 'Resuelto';
-    item.tiempoFinalizado = this.calcularTiempo(item.fechaEntrega);
+
+    const resultadoTiempo = this.calcularTiempo(item.fechaEntrega, item.tiempoLimite);
+    item.tiempoFinalizado = resultadoTiempo.texto;
+
     this.detenerTemporizador(item.id);
     this.actualizarListas();
   }
