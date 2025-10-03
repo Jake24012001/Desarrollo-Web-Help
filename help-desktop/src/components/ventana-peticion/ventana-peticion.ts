@@ -18,17 +18,15 @@ import { Product } from '../../interface/Product';
 })
 export class VentanaPeticion implements OnInit {
   usuarios: Usuario[] = [];
-  equiposInventario: InventoryUnit[] = [];
-
-  usuarioSeleccionado = '';
-  equipoSeleccionado = '';
-  tipoPeticion = '';
-  detallePeticion = '';
-
   productosUnicos: Product[] = [];
-  productoSeleccionado: string = '';
+  productoSeleccionado: string = ''; 
+  equiposFiltrados: InventoryUnit[] = []; 
+  equiposInventario: InventoryUnit[] = [];
+  usuarioSeleccionado: string = '';
+  equipoSeleccionado: string = '';
+  tipoPeticion: string = '';
+  detallePeticion: string = '';
 
-  // Para crear nuevo equipo - ACTUALIZADO con campos correctos
   mostrarFormularioEquipo = false;
 
   constructor(
@@ -36,7 +34,7 @@ export class VentanaPeticion implements OnInit {
     private usuarioService: UsuarioService,
     private equipoService: EquipoService,
     private ticketService: TicketService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.usuarioService.getAll().subscribe((usuarios) => {
@@ -44,7 +42,7 @@ export class VentanaPeticion implements OnInit {
     });
 
     this.equipoService.getAll().subscribe((equipos) => {
-      this.equiposInventario = equipos;
+      this.equiposInventario = equipos; 
 
       // Extraer productos únicos por type
       const tiposSet = new Set<string>();
@@ -55,22 +53,12 @@ export class VentanaPeticion implements OnInit {
           tiposSet.add(p.type);
           return true;
         });
+
+      this.equiposFiltrados = []; 
     });
   }
 
-  cargarEquipos(): void {
-    this.equipoService.getAll().subscribe((municipalCode) => {
-      this.equiposInventario = municipalCode;
-    });
-  }
 
-  mostrarFormEquipo(): void {
-    this.mostrarFormularioEquipo = true;
-  }
-
-  ocultarFormEquipo(): void {
-    this.mostrarFormularioEquipo = false;
-  }
 
   cancelarAccion(): void {
     Swal.fire({
@@ -103,7 +91,7 @@ export class VentanaPeticion implements OnInit {
       return;
     }
 
-    const equipoSeleccionadoObj = this.equiposInventario.find(
+    const equipoSeleccionadoObj = this.equiposFiltrados.find(
       (e) => e.id?.toString() === this.equipoSeleccionado
     );
 
@@ -190,7 +178,7 @@ export class VentanaPeticion implements OnInit {
 
     const usuarioCreadorId = Number(this.usuarioSeleccionado); // Asegúrate que sea un número
     const usuarioAsignadoId = Number(this.usuarioSeleccionado); // Puedes cambiar esto si hay lógica distinta
-    const equipo = this.equiposInventario.find((e) => e.id?.toString() === this.equipoSeleccionado);
+    const equipo = this.equiposFiltrados.find((e) => e.id?.toString() === this.equipoSeleccionado);
 
     if (!equipo) {
       Swal.fire({
@@ -234,4 +222,23 @@ export class VentanaPeticion implements OnInit {
       },
     });
   }
+
+  filtrarEquiposPorTipo(): void {
+    if (!this.productoSeleccionado) {
+      this.equiposFiltrados = [];
+      return;
+    }
+
+    this.equiposFiltrados = this.equiposInventario.filter(
+      (equipo) => equipo.product?.type === this.productoSeleccionado
+    );
+  }
+
+  mostrarFormEquipo(): void {
+    this.mostrarFormularioEquipo = true;
+  }
+
+
+
+
 }

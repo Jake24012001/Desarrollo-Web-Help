@@ -1,12 +1,12 @@
 <div class="container">
-  <!-- 🔍 Buscador -->
+  <!-- Buscador -->
   <div class="d-flex align-items-center gap-2 my-3">
     <input type="text" class="form-control form-control-sm w-25" [placeholder]="placeholderText"
       [(ngModel)]="terminoBusqueda" (input)="filtrarDatos()" />
     <button class="btn btn-dark btn-sm" (click)="limpiarBusqueda()">Limpiar</button>
   </div>
 
-  <!-- 📌 Tabla de tickets pendientes -->
+  <!--Tabla de tickets pendientes -->
   <div class="glass-card p-3 rounded shadow-sm mb-4">
     <h5 class="fw-bold mb-3">📌 Tickets Pendientes</h5>
     <table class="table table-hover table-bordered align-middle text-center">
@@ -99,7 +99,7 @@
     </table>
   </div>
 
-  <!-- ➕ Botones principales -->
+  <!--Botones principales -->
   <div class="d-flex gap-3 justify-content-end my-3">
     <button class="btn btn-success btn-sm" (click)="crearPeticion()">
       <i class="bi bi-plus-circle"></i> CREAR

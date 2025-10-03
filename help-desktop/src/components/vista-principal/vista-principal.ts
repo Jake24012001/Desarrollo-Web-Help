@@ -107,7 +107,7 @@ export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
 
     const intervalo = setInterval(() => {
       const peticion = this.datosFiltrados.find((p) => p.id_ticket === id);
-      if (peticion && peticion.status?.nombre !== 'Resuelto') {
+      if (peticion && peticion.status?.nombre !== 'CERRADO') {
         this.datosFiltrados = [...this.datosFiltrados];
       }
     }, 1000);

@@ -5,6 +5,7 @@
       [(ngModel)]="tipoPeticion" name="tipoPeticion" required />
   </div>
 
+  <!-- Seleccion de usuario -->
   <div class="form-group mb-3">
     <label for="usuario">Selecciona un usuario:</label>
     <select id="usuario" class="form-select mb-3" [(ngModel)]="usuarioSeleccionado" name="usuario" required>
@@ -15,28 +16,28 @@
     </select>
   </div>
 
+  <!-- Categoría de equipo -->
   <div class="form-group mb-3">
     <label for="producto">Categoría de equipo</label>
-    <select name="producto" id="producto" class="form-select" [(ngModel)]="productoSeleccionado" required>
+    <select name="producto" id="producto" class="form-select" [(ngModel)]="productoSeleccionado"
+      (change)="filtrarEquiposPorTipo()" required>
       <option value="" disabled>-- Selecciona --</option>
       <option *ngFor="let producto of productosUnicos" [value]="producto.type">
-        {{ producto.type }} - {{ producto.name }}
+        {{ producto.type }}
       </option>
     </select>
   </div>
 
+  <!-- Equipos disponibles filtrados -->
   <div class="form-group mb-3">
     <label for="equipo">Equipos disponibles:</label>
     <div class="d-flex gap-2 mb-2">
       <select id="equipo" class="form-select" [(ngModel)]="equipoSeleccionado" name="equipo" required>
-        <option value="" disabled selected>-- Selecciona --</option>
-        <option *ngFor="let equipo of equiposInventario" [value]="equipo.id">
-          {{ equipo.serial }} - {{ equipo.municipalCode }}
+        <option value="" disabled>-- Selecciona --</option>
+        <option *ngFor="let equipo of equiposFiltrados" [value]="equipo.id">
+          {{ equipo.serial }} - {{equipo.product.name}}
         </option>
       </select>
-      <button type="button" class="btn btn-outline-primary" (click)="mostrarFormEquipo()">
-        + Crear Equipo
-      </button>
     </div>
   </div>
 
@@ -53,8 +54,15 @@
     </button>
   </div>
 
+  <!--Estado respectivo del ticket al momento de crearlo-->
   <div class="mt-3">
     <label>Estado:</label>
-    <span id="estado-actual" class="badge bg-warning">Pendiente</span>
+    <span class="badge" [ngClass]="{
+      'bg-warning': ticket?.status?.nombre === 'Pendiente',
+      'bg-success': ticket?.status?.nombre === 'Aprobado',
+      'bg-danger': ticket?.status?.nombre === 'Rechazado'
+    }">
+      {{ ticket?.status?.nombre || 'Sin estado' }}
+    </span>
   </div>
 </form>
