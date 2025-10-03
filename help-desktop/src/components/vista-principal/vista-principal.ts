@@ -93,7 +93,7 @@ export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
       item.usuario_asignado?.nombre?.toLowerCase().includes(termino) ||
       item.equipoAfectado?.product?.name?.toLowerCase().includes(termino) ||
       item.usuario_creador?.nombre?.toLowerCase().includes(termino) ||
-      item.priority?.nombre?.toLowerCase().includes(termino) ||
+      item.priority?.name?.toLowerCase().includes(termino) ||
       item.status?.nombre?.toLowerCase().includes(termino) ||
       false
     );

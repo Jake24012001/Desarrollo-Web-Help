@@ -37,7 +37,7 @@
           <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
           <td>{{ item.equipoAfectado?.product?.name || '—' }}</td>
           <td>{{ item.usuario_creador?.nombre || '—' }}</td>
-          <td>{{ item.priority?.nombre || '—' }}</td>
+          <td>{{ item.priority?.name || '—' }}</td>
           <td>
             <span *ngIf="item.tiempoRestante">{{ item.tiempoRestante }}</span>
             <span *ngIf="!item.tiempoRestante">—</span>
@@ -86,7 +86,7 @@
           <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
           <td>{{ item.equipoAfectado?.product?.name || '—' }}</td>
           <td>{{ item.usuario_creador?.nombre || '—' }}</td>
-          <td>{{ item.priority?.nombre || '—' }}</td>
+          <td>{{ item.priority?.name || '—' }}</td>
           <td>
             <span *ngIf="item.fecha_cierre">
               {{ calcularTiempoRestante(item.fecha_cierre) }}

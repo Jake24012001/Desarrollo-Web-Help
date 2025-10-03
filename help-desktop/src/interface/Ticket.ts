@@ -8,7 +8,7 @@ export interface Ticket {
   };
   priority?: {
     id_priority?: number;
-    nombre?: string;
+    name?: string;
   };
   usuario_creador?: {
     id_usuario?: number;
