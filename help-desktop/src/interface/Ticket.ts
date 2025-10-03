@@ -30,4 +30,6 @@ export interface Ticket {
   fecha_actualizacion?: string;
   fecha_cierre?: string;
 
+  tiempoRestante?: string;
+
 }

@@ -34,20 +34,23 @@ export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
   // Temporizadores
   temporizadorPlaceholder: any;
   temporizadoresPorPeticion = new Map<number, any>();
+  
 
   ngOnInit(): void {
   this.servicios.getAll().subscribe((tickets) => {
     this.datosFiltrados = tickets.map((p: Ticket) => ({
-      ...p,
-      fechaEntrega: this.isValidDate(p.fecha_creacion) ? new Date(p.fecha_creacion!) : undefined, // <-- Cambiar null por undefined
-    }));
-
+  ...p,
+  fechaEntrega: this.isValidDate(p.fecha_creacion) ? new Date(p.fecha_creacion!) : undefined,
+      tiempoRestante: p.status?.nombre === 'ABIERTO' && p.fecha_creacion
+  ? this.calcularTiempoTranscurrido(p.fecha_creacion)
+  : '—'
+}));
     this.actualizarListas();
     this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
     this.datosOriginalesResueltos = [...this.datosResueltos];
 
     this.datosFiltradosPendientes.forEach((p) => {
-      if (p.id_ticket !== undefined && p.id_ticket !== null) {
+      if (typeof p.id_ticket === 'number' && p.status?.nombre === 'ABIERTO') {
         this.iniciarTemporizador(p.id_ticket);
       }
     });
@@ -103,18 +106,31 @@ export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
 
   // Temporizadores por petición
   iniciarTemporizador(id: number): void {
-    if (this.temporizadoresPorPeticion.has(id)) return;
+  if (this.temporizadoresPorPeticion.has(id)) return;
 
-    const intervalo = setInterval(() => {
-      const peticion = this.datosFiltrados.find((p) => p.id_ticket === id);
-      if (peticion && peticion.status?.nombre !== 'CERRADO') {
-        this.datosFiltrados = [...this.datosFiltrados];
-      }
-    }, 1000);
+  const item = this.datosFiltrados.find(p => p.id_ticket === id);
+  if (!item || item.status?.nombre !== 'ABIERTO') return;
 
-    this.temporizadoresPorPeticion.set(id, intervalo);
-  }
+  const inicio = new Date(item.fecha_creacion || Date.now()).getTime();
 
+  const intervalo = setInterval(() => {
+    const ahora = Date.now();
+    const transcurrido = ahora - inicio;
+
+    const segundos = Math.floor(transcurrido / 1000) % 60;
+    const minutos = Math.floor(transcurrido / (1000 * 60)) % 60;
+    const horas = Math.floor(transcurrido / (1000 * 60 * 60)) % 24;
+    const dias = Math.floor(transcurrido / (1000 * 60 * 60 * 24));
+
+    item.tiempoRestante = `${dias}d ${horas}h ${minutos}m ${segundos}s transcurridos`;
+
+    if (item.status?.nombre !== 'ABIERTO') {
+      this.detenerTemporizador(id);
+    }
+  }, 1000);
+
+  this.temporizadoresPorPeticion.set(id, intervalo);
+}
   detenerTemporizador(id: number): void {
     const temporizador = this.temporizadoresPorPeticion.get(id);
     if (temporizador) {
@@ -160,45 +176,44 @@ export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
     });
   }
   // si funcion
-  borrarPeticion(index: number): void {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'Esta acción eliminará la petición pendiente permanentemente.',
-      icon: 'error',
-      showCancelButton: true,
-      confirmButtonText: 'Eliminar',
-      cancelButtonText: 'Cancelar',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const ticket = this.datosFiltradosPendientes[index];
-        if (!ticket?.id_ticket) return;
+ borrarPeticion(index: number, tipo: 'pendiente' | 'resuelto'): void {
+  const fuente = tipo === 'pendiente' ? this.datosFiltradosPendientes : this.datosResueltos;
+  const ticket = fuente[index];
+  const id = ticket?.id_ticket;
 
-        // Eliminar del backend
-        this.servicios.delete(ticket.id_ticket).subscribe({
-          next: () => {
-            // Detener temporizador
-            this.detenerTemporizador(ticket.id_ticket!);
+  if (typeof id !== 'number') return;
 
-            // Remover de arrays locales
-            this.datosFiltrados = this.datosFiltrados.filter(
-              (p) => p.id_ticket !== ticket.id_ticket
-            );
+  Swal.fire({
+    title: '¿Estás seguro?',
+    text: 'Esta acción eliminará la petición permanentemente.',
+    icon: 'error',
+    showCancelButton: true,
+    confirmButtonText: 'Eliminar',
+    cancelButtonText: 'Cancelar',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.servicios.delete(id).subscribe({
+        next: () => {
+          this.detenerTemporizador(id);
 
-            this.actualizarListas();
-            this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
-            this.datosOriginalesResueltos = [...this.datosResueltos];
+          // Eliminar del array principal
+          this.datosFiltrados = this.datosFiltrados.filter(p => p.id_ticket !== id);
 
-            Swal.fire('Eliminado', 'La petición ha sido eliminada.', 'success');
-          },
-          error: (error) => {
-            console.error('Error al eliminar ticket:', error);
-            Swal.fire('Error', 'No se pudo eliminar la petición.', 'error');
-          }
-        });
-      }
-    });
-  }
+          // Actualizar listas derivadas
+          this.actualizarListas();
+          this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
+          this.datosOriginalesResueltos = [...this.datosResueltos];
 
+          Swal.fire('Eliminado', 'La petición ha sido eliminada.', 'success');
+        },
+        error: (error) => {
+          console.error('Error al eliminar ticket:', error);
+          Swal.fire('Error', 'No se pudo eliminar la petición.', 'error');
+        }
+      });
+    }
+  });
+}
 
   marcarComoResuelta(item: Ticket): void {
     if (item.id_ticket == null || !item.status) return;
@@ -248,21 +263,36 @@ export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
 
 
   calcularTiempoRestante(fechaCierre: string): string {
-    if (!fechaCierre || isNaN(new Date(fechaCierre).getTime())) return '—';
+  const cierre = new Date(fechaCierre);
+  if (!fechaCierre || isNaN(cierre.getTime())) return '—';
 
-    const ahora = new Date().getTime();
-    const cierre = new Date(fechaCierre).getTime();
-    const diferencia = cierre - ahora;
+  const ahora = Date.now();
+  const diferencia = cierre.getTime() - ahora;
 
-    if (diferencia <= 0) return 'Expirado';
+  if (diferencia <= 0) return 'Expirado';
 
-    const segundos = Math.floor(diferencia / 1000) % 60;
-    const minutos = Math.floor(diferencia / (1000 * 60)) % 60;
-    const horas = Math.floor(diferencia / (1000 * 60 * 60)) % 24;
-    const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+  const segundos = Math.floor(diferencia / 1000) % 60;
+  const minutos = Math.floor(diferencia / (1000 * 60)) % 60;
+  const horas = Math.floor(diferencia / (1000 * 60 * 60)) % 24;
+  const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
 
-    return `${dias}d ${horas}h ${minutos}m ${segundos}s restantes`;
-  }
+  return `${dias}d ${horas}h ${minutos}m ${segundos}s restantes`;
+}
+
+calcularTiempoTranscurrido(fechaInicio: string): string {
+  const inicio = new Date(fechaInicio);
+  if (!fechaInicio || isNaN(inicio.getTime())) return '—';
+
+  const ahora = Date.now();
+  const diferencia = ahora - inicio.getTime();
+
+  const segundos = Math.floor(diferencia / 1000) % 60;
+  const minutos = Math.floor(diferencia / (1000 * 60)) % 60;
+  const horas = Math.floor(diferencia / (1000 * 60 * 60)) % 24;
+  const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+
+  return `${dias}d ${horas}h ${minutos}m ${segundos}s transcurridos`;
+}
 
   getClaseEstado(estado: string): string {
     switch (estado) {
