@@ -18,6 +18,17 @@ import { Product } from '../../interface/Product';
 })
 export class VentanaPeticion implements OnInit {
   usuarios: Usuario[] = [];
+<<<<<<< HEAD
+=======
+  equiposInventario: InventoryUnit[] = [];
+  equiposFiltrados: InventoryUnit[] = [];
+
+  usuarioSeleccionado = '';
+  equipoSeleccionado = '';
+  tipoPeticion = '';
+  detallePeticion = '';
+
+>>>>>>> 3e63c2e3517e2be0a8c07dabad1c56a2f9a0f029
   productosUnicos: Product[] = [];
   productoSeleccionado: string = ''; 
   equiposFiltrados: InventoryUnit[] = []; 
@@ -224,15 +235,19 @@ export class VentanaPeticion implements OnInit {
   }
 
   filtrarEquiposPorTipo(): void {
+<<<<<<< HEAD
     if (!this.productoSeleccionado) {
       this.equiposFiltrados = [];
       return;
     }
 
+=======
+>>>>>>> 3e63c2e3517e2be0a8c07dabad1c56a2f9a0f029
     this.equiposFiltrados = this.equiposInventario.filter(
       (equipo) => equipo.product?.type === this.productoSeleccionado
     );
   }
+<<<<<<< HEAD
 
   mostrarFormEquipo(): void {
     this.mostrarFormularioEquipo = true;
@@ -241,4 +256,6 @@ export class VentanaPeticion implements OnInit {
 
 
 
+=======
+>>>>>>> 3e63c2e3517e2be0a8c07dabad1c56a2f9a0f029
 }

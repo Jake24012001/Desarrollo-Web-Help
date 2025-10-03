@@ -35,12 +35,15 @@
       <select id="equipo" class="form-select" [(ngModel)]="equipoSeleccionado" name="equipo" required>
         <option value="" disabled>-- Selecciona --</option>
         <option *ngFor="let equipo of equiposFiltrados" [value]="equipo.id">
+<<<<<<< HEAD
           {{ equipo.serial }} - {{equipo.product.name}}
+=======
+          {{ equipo.serial }} - {{ equipo.municipalCode }}
+>>>>>>> 3e63c2e3517e2be0a8c07dabad1c56a2f9a0f029
         </option>
       </select>
     </div>
   </div>
-
   <div class="form-group mb-3">
     <label for="detallePeticion">Detalle de petición:</label>
     <textarea id="detallePeticion" class="form-control" rows="4" placeholder="Describa su problemática"
