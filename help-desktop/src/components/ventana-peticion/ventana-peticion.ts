@@ -14,6 +14,8 @@ import { UsuarioRol } from '../../interface/UsuarioRol';
 import { UsuarioRolService } from '../../app/services/usuariorol.service';
 import { TicketPriorityService } from '../../app/services/ticket-priority.service';
 import { TicketPriority } from '../../interface/TicketPriority';
+import { Rol } from '../../interface/Rol';
+import { Persona } from '../../interface/Persona';
 @Component({
   selector: 'app-ventana-peticion',
   standalone: true,
@@ -27,17 +29,31 @@ export class VentanaPeticion implements OnInit {
   rolesus: UsuarioRol[] = []; 
   equiposInventario: InventoryUnit[] = [];
   equiposFiltrados: InventoryUnit[] = [];
-  usuarioSeleccionado = '';
-  equipoSeleccionado = '';
+  usuarioSeleccionado: { id_usuario: number; nombre: string } | null = null;  
+  
+  equipoSeleccionado: {
+  id: number;
+  serial: string;
+  product: {
+    id: number;
+    name: string;
+  };
+} | null = null;
   tipoPeticion = '';
   detallePeticion = '';
 
-  usuarioAdmin = ''; 
-
+  usuarioSeleccionados: { id: UsuarioRol; usuario: Usuario; rol: Rol } | null = null;
   productosUnicos: Product[] = [];
   productoSeleccionado: string = '';
   mostrarFormularioEquipo = false;
   prioridadSeleccionada: TicketPriority | null = null;
+
+  personas: Persona[] = [];
+  personasFiltradas: Persona[] = [];
+
+  datosResueltos: any[] = [];
+datosFiltradosPendientes: any[] = [];
+
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
@@ -48,41 +64,42 @@ export class VentanaPeticion implements OnInit {
   ) { }
 
   ngOnInit(): void {
+  // Cargar todos los usuarios
+  this.usuarioService.getAll().subscribe((usuarios) => {
+    this.usuarios = usuarios;
+  });
 
- 
-    //se carguen todos los usuarios de la backend
-    this.usuarioService.getAll().subscribe((usuarios) => {
-      this.usuarios = usuarios;
-    });
+  // Cargar todos los equipos
+  this.equipoService.getAll().subscribe((equipos) => {
+    this.equiposInventario = equipos;
 
-    // se carguen todos los equipos del usuario seleccionado
-    this.equipoService.getAll().subscribe((equipos) => {
-      this.equiposInventario = equipos;
+    // Filtrar equipos por usuario (ej. por cedula)
+    this.filtrarPorUsuario(); // ← reemplaza con cedula dinámica si aplica
 
-    // se cargan los roles de los usuarios y su cedula
-    this.usuarioservicesR.getAll().subscribe((roles) => {
-      this.rolesus = roles;
-    });
+    // Extraer productos únicos por type
+    const tiposSet = new Set<string>();
+    this.productosUnicos = equipos
+      .map((e) => e.product)
+      .filter((p) => {
+        if (!p?.type || tiposSet.has(p.type)) return false;
+        tiposSet.add(p.type);
+        return true;
+      });
 
-     // Cargar prioridades de ticket
-    this.ticketPriority.getAll().subscribe((name) => {
-      console.log('Prioridades cargadas:', name); // ← revisa en consola
+    this.equiposFiltrados = [];
+  });
+
+  // Cargar roles de usuarios
+  this.usuarioservicesR.getAll().subscribe((roles) => {
+    this.rolesus = roles;
+  });
+
+  // Cargar prioridades de ticket
+  this.ticketPriority.getAll().subscribe((name) => {
+    console.log('Prioridades cargadas:', name);
     this.ticketPrioridades = name;
-    });
-  
-      // Extraer productos únicos por type
-      const tiposSet = new Set<string>();
-      this.productosUnicos = equipos
-        .map((e) => e.product)
-        .filter((p) => {
-          if (!p?.type || tiposSet.has(p.type)) return false;
-          tiposSet.add(p.type);
-          return true;
-        });
-
-      this.equiposFiltrados = [];
-    });
-  }
+  });
+}
 
 
 
@@ -101,50 +118,6 @@ export class VentanaPeticion implements OnInit {
     });
   }
 
-  enviarPeticion(): void {
-    const tipo = (document.getElementById('tipoPeticion') as HTMLInputElement)?.value.trim();
-    const detalle = (
-      document.getElementById('detallePeticion') as HTMLTextAreaElement
-    )?.value.trim();
-
-    if (!tipo || !this.usuarioSeleccionado || !this.equipoSeleccionado || !detalle) {
-      Swal.fire({
-        title: 'Campos incompletos',
-        text: 'Por favor llena todos los campos antes de enviar.',
-        icon: 'warning',
-        confirmButtonText: 'Entendido',
-      });
-      return;
-    }
-
-    const equipoSeleccionadoObj = this.equiposFiltrados.find(
-      (e) => e.id?.toString() === this.equipoSeleccionado
-    );
-
-    const nuevaPeticion = {
-      fechaEntrega: new Date().toISOString(),
-      tipo,
-      descripcion: detalle,
-      recibidoPor: this.usuarioSeleccionado,
-      departamento: 'TI',
-      elaboradoPor: 'Admin',
-      equipo: equipoSeleccionadoObj?.serial || '', // CAMBIADO: usar serial en lugar de nombre
-      estado: 'Pendiente',
-    };
-
-    const peticiones = JSON.parse(localStorage.getItem('peticiones') || '[]');
-    peticiones.push(nuevaPeticion);
-    localStorage.setItem('peticiones', JSON.stringify(peticiones));
-
-    Swal.fire({
-      title: 'Petición registrada',
-      text: 'Tu solicitud ha sido guardada correctamente.',
-      icon: 'success',
-      confirmButtonText: 'Aceptar',
-    }).then(() => {
-      this.router.navigate(['/help-menu']);
-    });
-  }
 
   // Métodos existentes...
   actualizarEstado(nuevoEstado: string): void {
@@ -173,23 +146,27 @@ export class VentanaPeticion implements OnInit {
     }
   }
 
-  getClaseEstado(estado: string): string {
-    switch (estado) {
-      case 'Pendiente':
-        return 'pendiente';
-      case 'En proceso':
-        return 'en-proceso';
-      case 'Terminado':
-        return 'terminado';
-      case 'No disponible':
-        return 'no-disponible';
-      default:
-        return '';
-    }
-  }
-
   crearTicket(): void {
+    const nuevoTicket:Ticket={
+      title:this.tipoPeticion,
+      descripcion:this.detallePeticion,
+      status:this.getEstadoPendiente(),
+      priority:this.prioridadSeleccionada ?? undefined,
+      usuario_creador:this.usuarioSeleccionado ?? undefined,
+      usuario_asignado:this.usuarioSeleccionados?.usuario ?? undefined,
+      equipoAfectado:this.equipoSeleccionado ?? undefined
+    }
 
+    this.ticketService.create(nuevoTicket).subscribe({
+      next: (ticketCreado) => {
+      console.log('Ticket creado:', ticketCreado);
+      this.router.navigate(['/help-menu'])
+      // Aquí podrías redirigir, mostrar mensaje, etc.
+    },
+    error: (err) => {
+      console.error('Error al crear ticket:', err);
+    }
+    })
   }
 
   filtrarEquiposPorTipo(): void {
@@ -209,14 +186,26 @@ export class VentanaPeticion implements OnInit {
 
   getEstadoPendiente(): Ticket['status'] {
     return {
-      id_status: 1,
-      nombre: 'Abierto',
+      id_status: 2,
+      nombre: 'ABIERTO',
     };
   }
 
+  filtrarPorUsuario(): void {
+  const coincidencias: { usuario: Usuario; persona: Persona }[] = [];
 
-  filtrarporusuario():void{
+  this.usuarios.forEach(usuario => {
+    const personaCoincidente = this.personas.find(persona =>
+      persona.cedula?.trim() === usuario.cedula?.trim()
+    );
 
-  }
+    if (personaCoincidente) {
+      coincidencias.push({ usuario, persona: personaCoincidente });
+    }
+  });
 
+  console.log('Coincidencias encontradas:', coincidencias);
+}
+
+  
 }

@@ -65,39 +65,43 @@
     <h5 class="fw-bold mb-3">✅ Tickets Resueltos</h5>
     <table class="table table-hover table-bordered align-middle text-center">
       <thead class="table-success">
-        <tr>
-          <th>Fecha de Creación</th>
-          <th>Descripción</th>
-          <th>Asignado a</th>
-          <th>Equipo Afectado</th>
-          <th>Creado por</th>
-          <th>Prioridad</th>
-          <th>Tiempo Transcurrido</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let item of datosResueltos">
-          <td>
-            <span *ngIf="item.fecha_creacion">
-              {{ item.fecha_creacion | date:'short' }}
-            </span>
-            <span *ngIf="!item.fecha_creacion">—</span>
-          </td>
-          <td>{{ item.descripcion || '—' }}</td>
-          <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
-          <td>{{ item.equipoAfectado?.product?.name || '—' }}</td>
-          <td>{{ item.usuario_creador?.nombre || '—' }}</td>
-          <td>{{ item.priority?.nombre || '—' }}</td>
-          <td>{{ item.usuario_creador?.nombre || '—' }}</td>
-          <td>{{ item.priority?.nombre }}</td>
-          <td>
-            <span *ngIf="item.fecha_cierre">
-              {{ calcularTiempoRestante(item.fecha_cierre) }}
-            </span>
-            <span *ngIf="!item.fecha_cierre">—</span>
-          </td>
-        </tr>
-      </tbody>
+  <tr>
+    <th>Fecha de Creación</th>
+    <th>Descripción</th>
+    <th>Asignado a</th>
+    <th>Equipo Afectado</th>
+    <th>Creado por</th>
+    <th>Prioridad</th>
+    <th>Tiempo Transcurrido</th>
+    <th>Eliminar</th> <!-- Nueva columna -->
+  </tr>
+</thead>
+<tbody>
+  <tr *ngFor="let item of datosResueltos; let i = index">
+    <td>
+      <span *ngIf="item.fecha_creacion">
+        {{ item.fecha_creacion | date:'short' }}
+      </span>
+      <span *ngIf="!item.fecha_creacion">—</span>
+    </td>
+    <td>{{ item.descripcion || '—' }}</td>
+    <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
+    <td>{{ item.equipoAfectado?.product?.name || '—' }}</td>
+    <td>{{ item.usuario_creador?.nombre || '—' }}</td>
+    <td>{{ item.priority?.nombre || '—' }}</td>
+    <td>
+      <span *ngIf="item.fecha_cierre">
+        {{ calcularTiempoRestante(item.fecha_cierre) }}
+      </span>
+      <span *ngIf="!item.fecha_cierre">—</span>
+    </td>
+    <td>
+      <button class="btn btn-sm btn-danger" (click)="borrarPeticion(i)">
+        🗑️
+      </button>
+    </td>
+  </tr>
+</tbody>
     </table>
   </div>
 
@@ -108,9 +112,6 @@
     </button>
     <button class="btn btn-warning btn-sm" [disabled]="true">
       <i class="bi bi-pencil"></i> MODIFICAR
-    </button>
-    <button class="btn btn-danger btn-sm" (click)="borrarTodas()">
-      <i class="bi bi-trash"></i> ELIMINAR TODAS
     </button>
   </div>
 </div>

@@ -123,6 +123,8 @@ export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
     }
   }
 
+    // si funcion
+
   // Gestión de peticiones
   crearPeticion(): void {
     Swal.fire({
@@ -138,6 +140,8 @@ export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
       }
     });
   }
+
+    // si funcion
 
   modificarPeticion(item?: Ticket): void {
     if (!item?.id_ticket) return;
@@ -155,7 +159,7 @@ export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
       }
     });
   }
-
+  // si funcion
   borrarPeticion(index: number): void {
     Swal.fire({
       title: '¿Estás seguro?',
@@ -195,42 +199,16 @@ export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
     });
   }
 
-  borrarTodas(): void {
-    Swal.fire({
-      title: '¿Eliminar todas?',
-      text: 'Se eliminarán todas las peticiones guardadas.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Eliminar todo',
-      cancelButtonText: 'Cancelar',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Detener todos los temporizadores
-        this.datosFiltrados.forEach((p) => {
-          if (p.id_ticket !== undefined && p.id_ticket !== null) {
-            this.detenerTemporizador(p.id_ticket);
-          }
-        });
-
-        this.datosFiltrados = [];
-        this.actualizarListas();
-        this.datosOriginalesPendientes = [];
-        this.datosOriginalesResueltos = [];
-
-        Swal.fire('Eliminadas', 'Todas las peticiones han sido eliminadas.', 'success');
-      }
-    });
-  }
 
   marcarComoResuelta(item: Ticket): void {
-    if (!item.id_ticket || !item.status) return;
+    if (item.id_ticket == null || !item.status) return;
 
     // Actualizar el status
     const ticketActualizado: Ticket = {
       ...item,
       status: {
-        id_status: 3, // ID para "Resuelto" - ajusta según tu BD
-        nombre: 'Resuelto'
+        id_status: 1, // ID para "Resuelto" - ajusta según tu BD
+        nombre: 'CERRADO'
       }
     };
 
@@ -262,16 +240,12 @@ export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
   // Utilidades
   actualizarListas(): void {
     this.datosFiltradosPendientes = this.datosFiltrados.filter(
-      (p) => p.status?.nombre !== 'Resuelto'
+      (p) => p.status?.nombre !== 'CERRADO'
     );
 
-    this.datosResueltos = this.datosFiltrados.filter((p) => p.status?.nombre === 'Resuelto');
+    this.datosResueltos = this.datosFiltrados.filter((p) => p.status?.nombre === 'CERRADO');
   }
 
-  actualizarLocalStorage(): void {
-    // Ya no es necesario si trabajas con backend
-    // localStorage.setItem('peticiones', JSON.stringify(this.datosFiltrados));
-  }
 
   calcularTiempoRestante(fechaCierre: string): string {
     if (!fechaCierre || isNaN(new Date(fechaCierre).getTime())) return '—';
@@ -294,14 +268,14 @@ export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
     switch (estado) {
       case 'Pendiente':
         return 'pendiente';
-      case 'En proceso':
-        return 'en-proceso';
+      case 'ABIERTO':
+        return 'AB';
       case 'Terminado':
         return 'terminado';
       case 'No disponible':
         return 'no-disponible';
-      case 'Resuelto':
-        return 'resuelto';
+      case 'CERRADO':
+        return 'CERRADO';
       default:
         return 'estado-desconocido';
     }
@@ -310,4 +284,6 @@ export class VistaPrincipal implements OnInit, OnDestroy { // Implementar OnInit
   isValidDate(date: any): boolean {
     return date && !isNaN(new Date(date).getTime());
   }
+
+  
 }
