@@ -8,10 +8,22 @@
   <!-- Seleccion de usuario -->
   <div class="form-group mb-3">
     <label for="usuario">Selecciona un usuario:</label>
-    <select id="usuario" class="form-select mb-3" [(ngModel)]="usuarioSeleccionado" name="usuario" required>
+    <select id="usuario" class="form-select mb-3" [(ngModel)]="usuarioSeleccionado" name="usuario"
+      (change)="filtrarporusuario()" required>
       <option value="" disabled selected>-- Selecciona --</option>
       <option *ngFor="let usuario of usuarios" [value]="usuario.idUsuario">
         {{ usuario.nombre }}
+      </option>
+    </select>
+  </div>
+
+  <!--Esta parte trae los trabajadores asignados con sus respectivos roles-->
+  <div class="form-group mb-3">
+    <label for="usuario">Asignar Trabajo</label>
+    <select id="usuario" class="form-select mb-3" [(ngModel)]="usuarioAdmin" name="usuario" required>
+      <option value="" disabled selected>-- Selecciona --</option>
+      <option *ngFor="let rolesu of rolesus" [value]="rolesu.usuario.idUsuario">
+        {{ rolesu.rol.nombre }} - {{ rolesu.usuario.nombre }}
       </option>
     </select>
   </div>
@@ -35,15 +47,23 @@
       <select id="equipo" class="form-select" [(ngModel)]="equipoSeleccionado" name="equipo" required>
         <option value="" disabled>-- Selecciona --</option>
         <option *ngFor="let equipo of equiposFiltrados" [value]="equipo.id">
-<<<<<<< HEAD
           {{ equipo.serial }} - {{equipo.product.name}}
-=======
-          {{ equipo.serial }} - {{ equipo.municipalCode }}
->>>>>>> 3e63c2e3517e2be0a8c07dabad1c56a2f9a0f029
+
         </option>
       </select>
     </div>
   </div>
+
+  <div class="form-group mb-3">
+    <label for="prioridad">Prioridad del ticket:</label>
+    <select id="prioridad" class="form-select" [(ngModel)]="prioridadSeleccionada" name="prioridad" required>
+      <option value="" disabled>-- Selecciona --</option>
+      <option *ngFor="let prioridad of ticketPrioridades" [ngValue]="prioridad.name">
+        {{ prioridad.name }}
+      </option>
+    </select>
+  </div>
+
   <div class="form-group mb-3">
     <label for="detallePeticion">Detalle de petición:</label>
     <textarea id="detallePeticion" class="form-control" rows="4" placeholder="Describa su problemática"
@@ -58,14 +78,8 @@
   </div>
 
   <!--Estado respectivo del ticket al momento de crearlo-->
-  <div class="mt-3">
-    <label>Estado:</label>
-    <span class="badge" [ngClass]="{
-      'bg-warning': ticket?.status?.nombre === 'Pendiente',
-      'bg-success': ticket?.status?.nombre === 'Aprobado',
-      'bg-danger': ticket?.status?.nombre === 'Rechazado'
-    }">
-      {{ ticket?.status?.nombre || 'Sin estado' }}
-    </span>
+  <div class="form-group mb-3">
+    <label>Estado inicial del ticket:</label>
+    <input type="text" class="form-control" [value]="getEstadoPendiente()?.nombre" disabled />
   </div>
 </form>

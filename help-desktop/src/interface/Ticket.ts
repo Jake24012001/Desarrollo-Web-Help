@@ -29,5 +29,5 @@ export interface Ticket {
   fecha_creacion?: string;
   fecha_actualizacion?: string;
   fecha_cierre?: string;
-  fechaEntrega?: Date;
+
 }

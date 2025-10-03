@@ -1,5 +1,6 @@
 export interface TicketPriority {
   id_priority?: number;
-  nombre: string;
-  descripcion?: string;
+  name: string;
+  description?: string;
+  resolutionTimeHours:number;
 }

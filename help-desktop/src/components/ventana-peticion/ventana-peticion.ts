@@ -1,14 +1,19 @@
+import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import Swal from 'sweetalert2';
 import { UsuarioService } from '../../app/services/usuario.service';
 import { EquipoService } from '../../app/services/equipos.service';
 import { Usuario } from '../../interface/Usuario';
 import { TicketService } from '../../app/services/ticket.service';
 import { InventoryUnit } from '../../interface/InventoryUnit';
 import { Product } from '../../interface/Product';
+import { Ticket } from '../../interface/Ticket';
+import { UsuarioRol } from '../../interface/UsuarioRol';
+import { UsuarioRolService } from '../../app/services/usuariorol.service';
+import { TicketPriorityService } from '../../app/services/ticket-priority.service';
+import { TicketPriority } from '../../interface/TicketPriority';
 @Component({
   selector: 'app-ventana-peticion',
   standalone: true,
@@ -17,34 +22,54 @@ import { Product } from '../../interface/Product';
   styleUrl: './ventana-peticion.css',
 })
 export class VentanaPeticion implements OnInit {
+  ticketPrioridades: TicketPriority[] = [];
   usuarios: Usuario[] = [];
+  rolesus: UsuarioRol[] = []; 
   equiposInventario: InventoryUnit[] = [];
   equiposFiltrados: InventoryUnit[] = [];
-
   usuarioSeleccionado = '';
   equipoSeleccionado = '';
   tipoPeticion = '';
   detallePeticion = '';
 
-  productosUnicos: Product[] = [];
-  productoSeleccionado: string = ''; 
-  mostrarFormularioEquipo = false;
+  usuarioAdmin = ''; 
 
+  productosUnicos: Product[] = [];
+  productoSeleccionado: string = '';
+  mostrarFormularioEquipo = false;
+  prioridadSeleccionada: TicketPriority | null = null;
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
     private equipoService: EquipoService,
-    private ticketService: TicketService
+    private ticketService: TicketService,
+    private usuarioservicesR:UsuarioRolService,
+    private ticketPriority:TicketPriorityService
   ) { }
 
   ngOnInit(): void {
+
+ 
+    //se carguen todos los usuarios de la backend
     this.usuarioService.getAll().subscribe((usuarios) => {
       this.usuarios = usuarios;
     });
 
+    // se carguen todos los equipos del usuario seleccionado
     this.equipoService.getAll().subscribe((equipos) => {
-      this.equiposInventario = equipos; 
+      this.equiposInventario = equipos;
 
+    // se cargan los roles de los usuarios y su cedula
+    this.usuarioservicesR.getAll().subscribe((roles) => {
+      this.rolesus = roles;
+    });
+
+     // Cargar prioridades de ticket
+    this.ticketPriority.getAll().subscribe((name) => {
+      console.log('Prioridades cargadas:', name); // ← revisa en consola
+    this.ticketPrioridades = name;
+    });
+  
       // Extraer productos únicos por type
       const tiposSet = new Set<string>();
       this.productosUnicos = equipos
@@ -55,7 +80,7 @@ export class VentanaPeticion implements OnInit {
           return true;
         });
 
-      this.equiposFiltrados = []; 
+      this.equiposFiltrados = [];
     });
   }
 
@@ -164,64 +189,7 @@ export class VentanaPeticion implements OnInit {
   }
 
   crearTicket(): void {
-    const tipo = this.tipoPeticion.trim();
-    const detalle = this.detallePeticion.trim();
 
-    if (!tipo || !this.usuarioSeleccionado || !this.equipoSeleccionado || !detalle) {
-      Swal.fire({
-        title: 'Campos incompletos',
-        text: 'Por favor llena todos los campos antes de crear el ticket.',
-        icon: 'warning',
-        confirmButtonText: 'Entendido',
-      });
-      return;
-    }
-
-    const usuarioCreadorId = Number(this.usuarioSeleccionado); // Asegúrate que sea un número
-    const usuarioAsignadoId = Number(this.usuarioSeleccionado); // Puedes cambiar esto si hay lógica distinta
-    const equipo = this.equiposFiltrados.find((e) => e.id?.toString() === this.equipoSeleccionado);
-
-    if (!equipo) {
-      Swal.fire({
-        title: 'Equipo no encontrado',
-        text: 'El equipo seleccionado no existe en el inventario.',
-        icon: 'error',
-        confirmButtonText: 'Aceptar',
-      });
-      return;
-    }
-
-    const ticketData = {
-      title: tipo,
-      descripcion: detalle,
-      usuarioCreadorId,
-      usuarioAsignadoId,
-      equipoAfectadoId: equipo.id!,
-      statusId: 1, // "Pendiente"
-      priorityId: 2, // "Media"
-    };
-
-    this.ticketService.createFromPeticion(ticketData).subscribe({
-      next: (ticketCreado) => {
-        Swal.fire({
-          title: 'Ticket creado',
-          text: `Se ha registrado correctamente el ticket #${ticketCreado.id_ticket}`,
-          icon: 'success',
-          confirmButtonText: 'Aceptar',
-        }).then(() => {
-          this.router.navigate(['/help-menu']);
-        });
-      },
-      error: (err) => {
-        console.error('Error al crear el ticket:', err);
-        Swal.fire({
-          title: 'Error',
-          text: 'No se pudo crear el ticket. Intenta nuevamente.',
-          icon: 'error',
-          confirmButtonText: 'Aceptar',
-        });
-      },
-    });
   }
 
   filtrarEquiposPorTipo(): void {
@@ -237,6 +205,18 @@ export class VentanaPeticion implements OnInit {
 
   mostrarFormEquipo(): void {
     this.mostrarFormularioEquipo = true;
+  }
+
+  getEstadoPendiente(): Ticket['status'] {
+    return {
+      id_status: 1,
+      nombre: 'Abierto',
+    };
+  }
+
+
+  filtrarporusuario():void{
+
   }
 
 }

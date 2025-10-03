@@ -13,6 +13,7 @@
       <thead class="table-dark">
         <tr>
           <th>Fecha de Creación</th>
+          <th>title</th>
           <th>Descripción</th>
           <th>Asignado a</th>
           <th>Equipo Afectado</th>
@@ -31,6 +32,7 @@
             </span>
             <span *ngIf="!item.fecha_creacion">—</span>
           </td>
+          <td>{{ item.title || '—' }}</td>
           <td>{{ item.descripcion || '—' }}</td>
           <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
           <td>{{ item.equipoAfectado?.product?.name || '—' }}</td>
@@ -46,7 +48,7 @@
             <div class="d-flex justify-content-center gap-2">
               <button class="btn btn-outline-primary btn-sm" (click)="modificarPeticion(item)">Editar</button>
               <button class="btn btn-outline-danger btn-sm" (click)="borrarPeticion(i)">Eliminar</button>
-              <button class="btn btn-outline-success btn-sm" (click)="marcarComoResuelta(item)">✔️ Resuelta</button>
+              <button class="btn btn-outline-success btn-sm" (click)="marcarComoResuelta(item)"> Resuelta</button>
             </div>
           </td>
           <td>
