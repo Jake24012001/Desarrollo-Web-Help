@@ -31,6 +31,7 @@ export class TicketService {
   delete(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
+
   createFromPeticion(ticketData: {
     title: string;
     descripcion: string;
@@ -61,11 +62,5 @@ export class TicketService {
     };
 
     return this.create(ticket);
-  }
-
-  private ticket: Ticket[] = [];
-
-  getTicket() {
-    return this.ticket;
   }
 }
