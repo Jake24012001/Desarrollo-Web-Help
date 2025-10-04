@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { TicketService } from '../../app/services/ticket.service';
 import { Ticket } from '../../interface/Ticket';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-actualizar-peticion',
   standalone: true,
-  imports: [],
+  imports: [FormsModule,CommonModule],
   templateUrl: './actualizar-peticion.html',
   styleUrl: './actualizar-peticion.css',
 })
@@ -28,6 +30,6 @@ export class ActualizarPeticion implements OnInit {
   }
 
   actualizarTicket(){
-
+    
   }
 }
