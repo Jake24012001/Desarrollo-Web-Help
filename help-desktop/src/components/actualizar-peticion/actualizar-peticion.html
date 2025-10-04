@@ -1,53 +1,101 @@
-<form class="formulario-actualizar">
+<form class="formulario-actualizar" (ngSubmit)="guardarCambios()" #actualizarForm="ngForm">
 
     <div class="campo-contenedor">
         <label for="titulo">Modificar Título</label>
-        <input type="text" id="titulo" class="campo-editable" [(ngModel)]="datosticket.title" name="title">
+        <input 
+            type="text" 
+            id="titulo" 
+            class="campo-editable" 
+            [(ngModel)]="datosticket.title" 
+            name="title" 
+            required>
     </div>
 
     <div class="campo-contenedor">
         <label for="descripcion">Modificar Descripción</label>
-        <textarea id="descripcion" class="campo-editable" [(ngModel)]="datosticket.descripcion"
-            name="descripcion"></textarea>
+        <textarea 
+            id="descripcion" 
+            class="campo-editable" 
+            [(ngModel)]="datosticket.descripcion" 
+            name="descripcion" 
+            required>
+        </textarea>
     </div>
 
-    <!-- Estado -->
-    <select [(ngModel)]="selectedStatusId" (change)="actualizarEstado()" name="statusId">
-        <option *ngFor="let estado of estadosDisponibles" [value]="estado.id_status">
-            {{ estado.nombre }}
-        </option>
-    </select>
-
-    <!-- Prioridad -->
-    <select [(ngModel)]="selectedPriorityId" (change)="actualizarPrioridad()" name="priorityId">
-        <option *ngFor="let prioridad of prioridadesDisponibles" [value]="prioridad.id_priority">
-            {{ prioridad.name }}
-        </option>
-    </select>
-
-    <!-- Usuario asignado -->
-    <select [(ngModel)]="selectedUsuarioId" (change)="actualizarUsuarioAsignado()" name="usuarioAsignadoId">
-        <option *ngFor="let usuario of usuariosDisponibles" [value]="usuario.id_usuario">
-            {{ usuario.nombre }}
-        </option>
-    </select>
-
-    <!-- Equipo -->
-    <select [(ngModel)]="selectedEquipoId" (change)="actualizarEquipoAfectado()" name="equipoId">
-        <option *ngFor="let equipo of equiposDisponibles" [value]="equipo.id">
-            {{ equipo.serial }}
-        </option>
-    </select>
+    <div class="campo-contenedor">
+        <label for="select-status">Estado</label>
+        <select 
+            id="select-status"
+            [(ngModel)]="selectedStatusId" 
+            (change)="actualizarEstado()" 
+            name="statusId"
+            required>
+            <option [value]="0" disabled>-- Seleccione un Estado --</option>
+            <option *ngFor="let estado of estadosDisponibles" [value]="estado.id_status">
+                {{ estado.nombre }}
+            </option>
+        </select>
+    </div>
 
     <div class="campo-contenedor">
+        <label for="select-priority">Prioridad</label>
+        <select 
+            id="select-priority"
+            [(ngModel)]="selectedPriorityId" 
+            (change)="actualizarPrioridad()" 
+            name="priorityId"
+            required>
+            <option [value]="0" disabled>-- Seleccione una Prioridad --</option>
+            <option *ngFor="let prioridad of prioridadesDisponibles" [value]="prioridad.id_priority">
+                {{ prioridad.name }}
+            </option>
+        </select>
+    </div>
+
+    <div class="campo-contenedor">
+        <label for="select-usuario">Usuario Asignado</label>
+        <select 
+            id="select-usuario"
+            [(ngModel)]="selectedUsuarioId" 
+            (change)="actualizarUsuarioAsignado()" 
+            name="usuarioAsignadoId"
+            required>
+            <option [value]="0" disabled>-- Seleccione un Usuario --</option>
+            <option *ngFor="let usuario of usuariosDisponibles" [value]="usuario.id_usuario">
+                {{ usuario.nombre }}
+            </option>
+        </select>
+    </div>
+
+    <div class="campo-contenedor">
+        <label for="select-equipo">Equipo Afectado</label>
+        <select 
+            id="select-equipo"
+            [(ngModel)]="selectedEquipoId" 
+            (change)="actualizarEquipoAfectado()" 
+            name="equipoId"
+            required>
+            <option [value]="0">N/A - Sin Equipo Afectado</option> 
+            <option *ngFor="let equipo of equiposDisponibles" [value]="equipo.id">
+                {{ equipo.serial }} ({{ equipo.product.name }})
+            </option>
+        </select>
+    </div>
+
+    <div class="campo-contenedor">
+        <div class="encabezados campo-bloqueado">Creador</div>
+        <input type="text" class="campo-bloqueado-valor" [value]="datosticket.usuario_creador?.nombre" readonly>
+    </div>
+    
+    <div class="campo-contenedor">
         <div class="encabezados campo-bloqueado">Fecha de Creación</div>
-        <input type="text" class="campo-bloqueado-valor" [value]="datosticket.fecha_creacion" readonly>
+        <input type="text" class="campo-bloqueado-valor" [value]="datosticket.fecha_creacion | date: 'medium'" readonly>
     </div>
 
     <div class="campo-contenedor">
         <div class="encabezados campo-bloqueado">Fecha de Actualización</div>
-        <input type="text" class="campo-bloqueado-valor" [value]="datosticket.fecha_actualizacion" readonly>
+        <input type="text" class="campo-bloqueado-valor" [value]="datosticket.fecha_actualizacion | date: 'medium'" readonly>
     </div>
 
-    <button type="submit" class="btn-primary">Guardar Cambios del Ticket</button>
+    <button type="submit" class="btn-primary" [disabled]="!actualizarForm.valid">Guardar Cambios del Ticket</button>
 </form>

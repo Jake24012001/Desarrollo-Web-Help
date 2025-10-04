@@ -2,24 +2,38 @@ import { Component, OnInit } from '@angular/core';
 import { TicketService } from '../../app/services/ticket.service';
 import { Ticket } from '../../interface/Ticket';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common'; // Añadido DatePipe para el template
 import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-actualizar-peticion',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  // Añadido DatePipe a imports para usarlo en el template (si es necesario)
+  imports: [FormsModule, CommonModule, DatePipe], 
   templateUrl: './actualizar-peticion.html',
   styleUrls: ['./actualizar-peticion.css'],
 })
 export class ActualizarPeticion implements OnInit {
-  datosticket!: Ticket;
+  // ✅ CORRECCIÓN: Inicialización Segura para evitar el operador '!'
+  datosticket: Ticket = {
+    id_ticket: 0,
+    title: '',
+    descripcion: '',
+    fecha_creacion: new Date().toISOString(),
+    fecha_actualizacion: new Date().toISOString(),
+    status: { id_status: 0, nombre: '' },
+    priority: { id_priority: 0, name: '' },
+    usuario_creador: { id_usuario: 0, nombre: '' },
+    usuario_asignado: { id_usuario: 0, nombre: '' },
+    equipoAfectado: { id: 0, serial: '', product: { id: 0, name: '' } },
+  };
+  
   datosimportados: Ticket[] = [];
-  idtick!: number;
-  selectedStatusId!: number;
-  selectedPriorityId!: number;
-  selectedUsuarioId!: number;
-  selectedEquipoId!: number;
+  idtick: number = 0; // ✅ Inicialización Segura
+  selectedStatusId: number = 0; // ✅ Inicialización Segura
+  selectedPriorityId: number = 0; // ✅ Inicialización Segura
+  selectedUsuarioId: number = 0; // ✅ Inicialización Segura
+  selectedEquipoId: number = 0; // ✅ Inicialización Segura
 
   // ✅ Listas únicas para combos
   estadosDisponibles: { id_status: number; nombre: string }[] = [];
@@ -39,30 +53,8 @@ export class ActualizarPeticion implements OnInit {
 
   ngOnInit(): void {
     this.idtick = Number(this.route.snapshot.paramMap.get('id'));
-    this.selectedStatusId = this.datosticket.status?.id_status ?? 0;
-    this.selectedPriorityId = this.datosticket.priority?.id_priority ?? 0;
-    this.selectedUsuarioId = this.datosticket.usuario_asignado?.id_usuario ?? 0;
-    this.selectedEquipoId = this.datosticket.equipoAfectado?.id ?? 0;
-    // Cargar el ticket seleccionado
-    if (this.idtick) {
-      this.servicesticket.getById(this.idtick).subscribe((ticket) => {
-        this.datosticket = {
-          ...ticket,
-          status: ticket.status ?? { id_status: 0, nombre: '' },
-          priority: ticket.priority ?? { id_priority: 0, name: '' },
-          usuario_creador: ticket.usuario_creador ?? { id_usuario: 0, nombre: '' },
-          usuario_asignado: ticket.usuario_asignado ?? { id_usuario: 0, nombre: '' },
-          equipoAfectado: ticket.equipoAfectado ?? {
-            id: 0,
-            serial: '',
-            product: { id: 0, name: '' },
-          },
-        };
-        console.log('✅ Ticket seleccionado:', this.datosticket);
-      });
-    }
 
-    // Cargar todos los tickets y extraer listas únicas
+    // Cargar todos los tickets y extraer listas únicas PRIMERO
     this.servicesticket.getAll().subscribe((tickets) => {
       this.datosimportados = tickets;
       console.log('📦 Todos los tickets importados:', this.datosimportados);
@@ -71,10 +63,39 @@ export class ActualizarPeticion implements OnInit {
       this.prioridadesDisponibles = this.extraerPrioridadesUnicas();
       this.usuariosDisponibles = this.extraerUsuariosUnicos();
       this.equiposDisponibles = this.extraerEquiposUnicos();
+
+      // 🚀 UNA VEZ QUE LAS LISTAS Y LOS DATOS BASE ESTÁN CARGADOS:
+      // Cargar el ticket seleccionado si el ID existe.
+      if (this.idtick) {
+        this.servicesticket.getById(this.idtick).subscribe((ticket) => {
+          // Asignar los datos del ticket con valores por defecto si son nulos
+          this.datosticket = {
+            ...ticket,
+            // Aseguramos que todas las sub-propiedades existan o tengan un valor por defecto seguro
+            status: ticket.status ?? { id_status: 0, nombre: '' },
+            priority: ticket.priority ?? { id_priority: 0, name: '' },
+            usuario_creador: ticket.usuario_creador ?? { id_usuario: 0, nombre: '' },
+            usuario_asignado: ticket.usuario_asignado ?? { id_usuario: 0, nombre: '' },
+            equipoAfectado: ticket.equipoAfectado ?? {
+              id: 0,
+              serial: '',
+              product: { id: 0, name: '' },
+            },
+          };
+
+          // ✅ Inicializar los IDs seleccionados *después* de que this.datosticket se ha cargado.
+          this.selectedStatusId = this.datosticket.status?.id_status ?? 0;
+          this.selectedPriorityId = this.datosticket.priority?.id_priority ?? 0;
+          this.selectedUsuarioId = this.datosticket.usuario_asignado?.id_usuario ?? 0;
+          this.selectedEquipoId = this.datosticket.equipoAfectado?.id ?? 0;
+
+          console.log('✅ Ticket seleccionado:', this.datosticket);
+        });
+      }
     });
   }
 
-  // ✅ Métodos para extraer listas únicas
+  // Métodos de extracción (sin cambios, se conservan)
   extraerEstadosUnicos(): { id_status: number; nombre: string }[] {
     return this.datosimportados
       .map((t) => t.status)
@@ -150,6 +171,7 @@ export class ActualizarPeticion implements OnInit {
       );
   }
 
+  // Métodos de actualización de objeto (sin cambios, se conservan)
   actualizarEstado(): void {
     const estadoSeleccionado = this.estadosDisponibles.find(
       (e) => e.id_status === this.selectedStatusId
@@ -182,5 +204,24 @@ export class ActualizarPeticion implements OnInit {
     if (equipoSeleccionado) {
       this.datosticket.equipoAfectado = equipoSeleccionado;
     }
+  }
+
+  // Método guardarCambios (se conserva)
+  guardarCambios(): void {
+    // 1. Actualizar el campo de fecha_actualizacion antes de enviar
+    this.datosticket.fecha_actualizacion = new Date().toISOString();
+
+    // 2. Llamar al servicio de actualización
+    this.servicesticket.update(this.datosticket.id_ticket!, this.datosticket).subscribe({
+      next: (response) => {
+        console.log('Ticket actualizado con éxito:', response);
+        // Navegar a la vista de tickets después de guardar
+        this.router.navigate(['/ruta-a-la-lista-de-tickets']); 
+      },
+      error: (err) => {
+        console.error('Error al actualizar el ticket:', err);
+        // Opcional: Implementar lógica de modal o toast para informar al usuario
+      }
+    });
   }
 }
