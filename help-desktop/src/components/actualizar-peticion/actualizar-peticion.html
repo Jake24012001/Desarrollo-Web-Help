@@ -1,54 +1,59 @@
 <div style="background-color: #f4f7f6; padding: 40px;">
     <form class="formulario-actualizar" (ngSubmit)="actualizarTicket()">
-        
+
         <div class="campo-contenedor">
             <label class="encabezados" for="titulo">Modificar Título</label>
-            <input type="text" id="titulo" class="campo-editable" value="Titulo del ticket">
+            <input type="text" id="titulo" class="campo-editable" [(ngModel)]="datosticket.title" name="titulo">
         </div>
 
         <div class="campo-contenedor">
             <label class="encabezados" for="descripcion">Modificar Descripción</label>
-            <textarea id="descripcion" class="campo-editable">Descripcion del ticket</textarea>
+            <textarea id="descripcion" class="campo-editable" [(ngModel)]="datosticket.descripcion"
+                name="descripcion"></textarea>
         </div>
 
         <div class="campo-contenedor">
             <label class="encabezados" for="estado">Modificar Estado</label>
-            <input type="text" id="estado" class="campo-editable" value="Estados disponibles"> 
+            <input type="text" id="estado" class="campo-editable" [(ngModel)]="datosticket.status" name="estado">
         </div>
 
         <div class="campo-contenedor">
             <label class="encabezados" for="prioridad">Modificar Prioridad</label>
-            <input type="text" id="prioridad" class="campo-editable" value="Pioridad">
+            <input type="text" id="prioridad" class="campo-editable" [(ngModel)]="datosticket.priority"
+                name="prioridad">
         </div>
 
         <div class="campo-contenedor">
             <label class="encabezados" for="usuario-asignado">Modificar Usuario Asignado</label>
-            <input type="text" id="usuario-asignado" class="campo-editable" value="Nombre de usuario asignado">
+            <input type="text" id="usuario-asignado" class="campo-editable" [(ngModel)]="datosticket.usuario_asignado"
+                name="usuarioAsignado">
         </div>
 
         <div class="campo-contenedor">
             <label class="encabezados" for="equipo">Modificar Equipo Afectado</label>
-            <input type="text" id="equipo" class="campo-editable" value="Equipo Afectado">
+            <input type="text" id="equipo" class="campo-editable" [(ngModel)]="datosticket.equipoAfectado"
+                name="equipo">
         </div>
 
         <div class="campo-contenedor">
             <label class="encabezados" for="fecha-cierre">Modificar Fecha de Cierre</label>
-            <input type="date" id="fecha-cierre" class="campo-editable" value="Fecha de cierre">
+            <input type="date" id="fecha-cierre" class="campo-editable" [(ngModel)]="datosticket.fecha_cierre"
+                name="fechaCierre">
         </div>
 
         <div class="campo-contenedor">
             <div class="encabezados campo-bloqueado">Usuario Creador</div>
-            <input type="text" class="campo-bloqueado-valor" value="Usuario Creador" readonly>
+            <input type="text" class="campo-bloqueado-valor" [value]="datosticket.usuario_creador" readonly>
         </div>
-        
+
         <div class="campo-contenedor">
             <div class="encabezados campo-bloqueado">Fecha de Creación</div>
-            <input type="text" class="campo-bloqueado-valor" value="Fecha de creacion" readonly>
+            <input type="text" class="campo-bloqueado-valor" [value]="datosticket.fecha_creacion" readonly>
         </div>
 
         <div class="campo-contenedor">
             <div class="encabezados campo-bloqueado">Fecha de Actualización</div>
-            <input type="text" class="campo-bloqueado-valor" value="Fecha de actualizacion" readonly>
+            <input type="text" class="campo-bloqueado-valor" [value]="datosticket.fecha_actualizacion" readonly>
         </div>
 
         <button type="submit" class="btn-primary">Guardar Cambios del Ticket</button>
