@@ -35,11 +35,22 @@ export class VentanaPeticion implements OnInit {
   ticketPrioridades: TicketPriority[] = [];
   usuarios: Usuario[] = [];
   rolesus: UsuarioRol[] = [];
+  personas: Persona[] = [];
+  personasFiltradas: Persona[] = [];
 
   equiposInventario: InventoryUnit[] = [];
   equiposFiltrados: InventoryUnit[] = [];
-  
+  productosUnicos: Product[] = [];
+
+  datosResueltos: any[] = [];
+  datosFiltradosPendientes: any[] = [];
+
+  // ----------------------
+  // Selecciones / Form
+  // ----------------------
   usuarioSeleccionado: { id_usuario: number; nombre: string } | null = null;
+
+  usuarioSeleccionados: { id: UsuarioRol; usuario: Usuario; rol: Rol } | null = null;
 
   equipoSeleccionado: {
     id: number;
@@ -49,21 +60,17 @@ export class VentanaPeticion implements OnInit {
       name: string;
     };
   } | null = null;
-  tipoPeticion = '';
-  detallePeticion = '';
 
-  usuarioSeleccionados: { id: UsuarioRol; usuario: Usuario; rol: Rol } | null = null;
-  productosUnicos: Product[] = [];
   productoSeleccionado: string = '';
   mostrarFormularioEquipo = false;
+
+  tipoPeticion = '';
+  detallePeticion = '';
   prioridadSeleccionada: TicketPriority | null = null;
 
-  personas: Persona[] = [];
-  personasFiltradas: Persona[] = [];
-
-  datosResueltos: any[] = [];
-  datosFiltradosPendientes: any[] = [];
-
+  // ----------------------
+  // Constructor / servicios
+  // ----------------------
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
@@ -73,13 +80,16 @@ export class VentanaPeticion implements OnInit {
     private ticketPriority: TicketPriorityService
   ) {}
 
+  // ----------------------
+  // Lifecycle
+  // ----------------------
   ngOnInit(): void {
-    // Cargar todos los usuarios
+    // Cargar usuarios
     this.usuarioService.getAll().subscribe((usuarios) => {
       this.usuarios = usuarios;
     });
 
-    // Cargar todos los equipos
+    // Cargar equipos (inventario)
     this.equipoService.getAll().subscribe((equipos) => {
       this.equiposInventario = equipos;
 
@@ -110,7 +120,9 @@ export class VentanaPeticion implements OnInit {
       this.ticketPrioridades = name;
     });
   }
-
+  // ----------------------
+  // Acciones / CRUD
+  // ----------------------
   cancelarAccion(): void {
     Swal.fire({
       title: '¿Cancelar petición?',
@@ -124,33 +136,6 @@ export class VentanaPeticion implements OnInit {
         this.router.navigate(['/help-menu']);
       }
     });
-  }
-
-  // Métodos existentes...
-  actualizarEstado(nuevoEstado: string): void {
-    const estadoElemento = document.getElementById('estado-actual');
-    if (!estadoElemento) return;
-
-    estadoElemento.classList.remove('pendiente', 'en-proceso', 'terminado', 'no-disponible');
-    estadoElemento.textContent = nuevoEstado;
-
-    switch (nuevoEstado) {
-      case 'Pendiente':
-        estadoElemento.classList.add('pendiente');
-        break;
-      case 'En proceso':
-        estadoElemento.classList.add('en-proceso');
-        break;
-      case 'Terminado':
-        estadoElemento.classList.add('terminado');
-        break;
-      case 'No disponible':
-        estadoElemento.classList.add('no-disponible');
-        break;
-      default:
-        estadoElemento.style.backgroundColor = 'transparent';
-        estadoElemento.style.color = '#333';
-    }
   }
 
   crearTicket(): void {
@@ -176,6 +161,9 @@ export class VentanaPeticion implements OnInit {
     });
   }
 
+  // ----------------------
+  // Filtrado / UI helpers
+  // ----------------------
   filtrarEquiposPorTipo(): void {
     if (!this.productoSeleccionado) {
       this.equiposFiltrados = [];
@@ -196,6 +184,32 @@ export class VentanaPeticion implements OnInit {
       id_status: Environment.ID_STATUS_ABIERTO,
       nombre: Environment.NOMBRE_STATUS_ABIERTO,
     };
+  }
+
+  actualizarEstado(nuevoEstado: string): void {
+    const estadoElemento = document.getElementById('estado-actual');
+    if (!estadoElemento) return;
+
+    estadoElemento.classList.remove('pendiente', 'en-proceso', 'terminado', 'no-disponible');
+    estadoElemento.textContent = nuevoEstado;
+
+    switch (nuevoEstado) {
+      case 'Pendiente':
+        estadoElemento.classList.add('pendiente');
+        break;
+      case 'En proceso':
+        estadoElemento.classList.add('en-proceso');
+        break;
+      case 'Terminado':
+        estadoElemento.classList.add('terminado');
+        break;
+      case 'No disponible':
+        estadoElemento.classList.add('no-disponible');
+        break;
+      default:
+        estadoElemento.style.backgroundColor = 'transparent';
+        estadoElemento.style.color = '#333';
+    }
   }
 
   filtrarPorUsuario(): void {
