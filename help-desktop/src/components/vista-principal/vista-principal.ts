@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core'; // Agregar OnInit
+import { Component, OnInit, OnDestroy} from '@angular/core'; // Agregar OnInit
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -7,7 +7,7 @@ import Swal from 'sweetalert2';
 
 import { TicketService } from '../../app/services/ticket.service';
 import { Ticket } from '../../interface/Ticket';
-import { environment } from '../../environments/environment'; // agregado como variable global
+import { Environment } from '../../environments/environment'; // agregado como variable global
 
 @Component({
   selector: 'app-vista-principal',
@@ -68,7 +68,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
         ...p,
         fechaEntrega: this.isValidDate(p.fecha_creacion) ? new Date(p.fecha_creacion!) : undefined,
         tiempoRestante:
-          p.status?.nombre === environment.NOMBRE_STATUS_ABIERTO && p.fecha_creacion
+          p.status?.nombre === Environment.NOMBRE_STATUS_ABIERTO && p.fecha_creacion
             ? this.calcularTiempoTranscurrido(p.fecha_creacion)
             : '—',
       }));
@@ -79,7 +79,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
       this.datosFiltradosPendientes.forEach((p) => {
         if (
           typeof p.id_ticket === 'number' &&
-          p.status?.nombre === environment.NOMBRE_STATUS_ABIERTO
+          p.status?.nombre === Environment.NOMBRE_STATUS_ABIERTO
         ) {
           this.iniciarTemporizador(p.id_ticket);
         }
@@ -150,7 +150,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     if (this.temporizadoresPorPeticion.has(id)) return;
 
     const item = this.datosFiltrados.find((p) => p.id_ticket === id);
-    if (!item || item.status?.nombre !== environment.NOMBRE_STATUS_ABIERTO) return;
+    if (!item || item.status?.nombre !== Environment.NOMBRE_STATUS_ABIERTO) return;
 
     const inicio = new Date(item.fecha_creacion || Date.now()).getTime();
 
@@ -165,7 +165,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
 
       item.tiempoRestante = `${dias}d ${horas}h ${minutos}m ${segundos}s transcurridos`;
 
-      if (item.status?.nombre !== environment.NOMBRE_STATUS_ABIERTO) {
+      if (item.status?.nombre !== Environment.NOMBRE_STATUS_ABIERTO) {
         this.detenerTemporizador(id);
       }
     }, 1000);
@@ -262,8 +262,8 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     const ticketActualizado: Ticket = {
       ...item,
       status: {
-        id_status: environment.ID_STATUS_CERRADO, // ID para "Resuelto" - ajusta según tu BD
-        nombre: environment.NOMBRE_STATUS_CERRADO,
+        id_status: Environment.ID_STATUS_CERRADO, // ID para "Resuelto" - ajusta según tu BD
+        nombre: Environment.NOMBRE_STATUS_CERRADO,
       },
     };
 
@@ -297,11 +297,11 @@ export class VistaPrincipal implements OnInit, OnDestroy {
   // -----------------------
   actualizarListas(): void {
     this.datosFiltradosPendientes = this.datosFiltrados.filter(
-      (p) => p.status?.nombre !== environment.NOMBRE_STATUS_CERRADO
+      (p) => p.status?.nombre !== Environment.NOMBRE_STATUS_CERRADO
     );
 
     this.datosResueltos = this.datosFiltrados.filter(
-      (p) => p.status?.nombre === environment.NOMBRE_STATUS_CERRADO
+      (p) => p.status?.nombre === Environment.NOMBRE_STATUS_CERRADO
     );
   }
 
@@ -341,14 +341,14 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     switch (estado) {
       case 'Pendiente':
         return 'pendiente';
-      case environment.NOMBRE_STATUS_ABIERTO:
-        return environment.NOMBRE_STATUS_ABIERTO;
+      case Environment.NOMBRE_STATUS_ABIERTO:
+        return Environment.NOMBRE_STATUS_ABIERTO;
       case 'Terminado':
         return 'terminado';
       case 'No disponible':
         return 'no-disponible';
-      case environment.NOMBRE_STATUS_CERRADO:
-        return environment.NOMBRE_STATUS_CERRADO;
+      case Environment.NOMBRE_STATUS_CERRADO:
+        return Environment.NOMBRE_STATUS_CERRADO;
       default:
         return 'estado-desconocido';
     }
