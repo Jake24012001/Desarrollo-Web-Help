@@ -59,6 +59,9 @@ export class VistaPrincipal implements OnInit, OnDestroy {
   // -----------------------
   constructor(private router: Router, private servicios: TicketService) {}
 
+  // -----------------------
+  // Lifecycle
+  // -----------------------
   ngOnInit(): void {
     this.servicios.getAll().subscribe((tickets) => {
       this.datosFiltrados = tickets.map((p: Ticket) => ({
@@ -88,13 +91,16 @@ export class VistaPrincipal implements OnInit, OnDestroy {
       this.mensajeIndex = (this.mensajeIndex + 1) % this.mensajes.length;
     }, 5000);
   }
+
   ngOnDestroy(): void {
     clearInterval(this.temporizadorPlaceholder);
     this.temporizadoresPorPeticion.forEach((t) => clearInterval(t));
     this.temporizadoresPorPeticion.clear();
   }
 
-  // Métodos de búsqueda
+  // -----------------------
+  // Búsqueda y filtrado
+  // -----------------------
   filtrarDatos(): void {
     if (!this.terminoBusqueda || this.terminoBusqueda.trim() === '') {
       this.datosFiltradosPendientes = [...this.datosOriginalesPendientes];
@@ -113,7 +119,12 @@ export class VistaPrincipal implements OnInit, OnDestroy {
       this.contieneTermino(item, termino)
     );
   }
-  // variables que se permiten modificar dependiendo del item
+
+  limpiarBusqueda(): void {
+    this.terminoBusqueda = '';
+    this.filtrarDatos();
+  }
+
   private contieneTermino(item: Ticket, termino: string): boolean {
     return (
       item.title?.toLowerCase().includes(termino) ||
@@ -132,12 +143,9 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     );
   }
 
-  limpiarBusqueda(): void {
-    this.terminoBusqueda = '';
-    this.filtrarDatos();
-  }
-
+  // -----------------------
   // Temporizadores por petición
+  // -----------------------
   iniciarTemporizador(id: number): void {
     if (this.temporizadoresPorPeticion.has(id)) return;
 
@@ -164,6 +172,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
 
     this.temporizadoresPorPeticion.set(id, intervalo);
   }
+
   detenerTemporizador(id: number): void {
     const temporizador = this.temporizadoresPorPeticion.get(id);
     if (temporizador) {
@@ -172,7 +181,9 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     }
   }
 
-  // Gestión de peticiones
+  // -----------------------
+  // CRUD / Acciones
+  // -----------------------
   crearPeticion(): void {
     Swal.fire({
       title: '¿Deseas crear la petición?',
@@ -188,7 +199,6 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     });
   }
 
-  // Metodo de modificar
   modificarPeticion(item?: Ticket): void {
     if (!item?.id_ticket) return;
 
@@ -205,7 +215,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
       }
     });
   }
-  //Metodo de borrar
+
   borrarPeticion(index: number, tipo: 'pendiente' | 'resuelto'): void {
     const fuente = tipo === 'pendiente' ? this.datosFiltradosPendientes : this.datosResueltos;
     const ticket = fuente[index];
@@ -282,7 +292,9 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     });
   }
 
+  // -----------------------
   // Utilidades
+  // -----------------------
   actualizarListas(): void {
     this.datosFiltradosPendientes = this.datosFiltrados.filter(
       (p) => p.status?.nombre !== environment.NOMBRE_STATUS_CERRADO
