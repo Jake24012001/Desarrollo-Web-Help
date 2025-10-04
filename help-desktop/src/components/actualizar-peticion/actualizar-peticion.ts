@@ -26,4 +26,8 @@ export class ActualizarPeticion implements OnInit {
       this.datosticket = datos;
     });
   }
+
+  actualizarTicket(){
+
+  }
 }
