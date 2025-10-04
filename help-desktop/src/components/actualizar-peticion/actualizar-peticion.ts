@@ -216,7 +216,7 @@ export class ActualizarPeticion implements OnInit {
       next: (response) => {
         console.log('Ticket actualizado con éxito:', response);
         // Navegar a la vista de tickets después de guardar
-        this.router.navigate(['/ruta-a-la-lista-de-tickets']); 
+        this.router.navigate(['/help-menu']); 
       },
       error: (err) => {
         console.error('Error al actualizar el ticket:', err);
