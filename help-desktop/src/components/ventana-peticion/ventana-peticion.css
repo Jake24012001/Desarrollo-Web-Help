@@ -1,26 +1,20 @@
-.formulario-peticion {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
+/* -------------------------------------- */
+/* ESTILOS DE PERSONALIZACIÓN DEL FORMULARIO */
+/* -------------------------------------- */
+
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary:focus,
+.bg-primary {
+  background-color: #004a97 !important;
+  border-color: #004a97 !important;
+  color: white !important;
 }
 
-.input-custom {
-  width: 100%;
-  padding: 10px;
-  border: 2px solid #004a97;
-  border-radius: 8px;
-  margin-top: 5px;
-  margin-bottom: 10px;
-}
-
-.btn-custom {
-  background-color: #004a97;
-  color: white;
-  border-radius: 15px;
-  padding: 8px 16px;
-  border: none;
-  cursor: pointer;
-}
+/* -------------------------------------- */
+/* ESTILOS DE ESTADOS */
+/* -------------------------------------- */
 
 .estado-texto {
   font-weight: bold;

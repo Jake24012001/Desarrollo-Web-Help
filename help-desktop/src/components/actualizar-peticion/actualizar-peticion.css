@@ -1,0 +1,125 @@
+/* -------------------------------------- */
+/* ESTILOS DE PERSONALIZACIÓN DEL FORMULARIO */
+/* -------------------------------------- */
+
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary:focus,
+.bg-primary {
+  background-color: #004a97 !important;
+  border-color: #004a97 !important;
+  color: white !important;
+  /* Estilos adicionales para un mejor botón */
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* -------------------------------------- */
+/* ESTILOS DE ESTADOS */
+/* -------------------------------------- */
+
+.estado-texto {
+  font-weight: bold;
+  font-size: 16px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: inline-block;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.disponible {
+  background-color: #28a745;
+  color: white;
+  border: 1px solid #1e7e34;
+}
+
+.en-proceso {
+  background-color: #ffc107;
+  color: #212529;
+  border: 1px solid #e0a800;
+}
+
+.terminado {
+  background-color: #17a2b8;
+  color: white;
+  border: 1px solid #117a8b;
+}
+
+.no-disponible {
+  background-color: #6c757d;
+  color: white;
+  border: 1px solid #545b62;
+}
+
+/* -------------------------------------- */
+/* ESTILOS ESPECÍFICOS DEL FORMULARIO DE ACTUALIZACIÓN */
+/* -------------------------------------- */
+
+.formulario-actualizar {
+  max-width: 600px;
+  margin: 80px auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.campo-contenedor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* Espacio entre el encabezado/label y el campo de input */
+}
+
+.encabezados {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #007bff;
+  background-color: #f0f4ff;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.3s ease;
+}
+
+/* Estilo para campos de entrada editables */
+.campo-editable,
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box; /* Asegura que el padding no cambie el ancho */
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* -------------------------------------- */
+/* ESTILOS PARA BLOQUEAR/DESHABILITAR CAMPOS */
+/* -------------------------------------- */
+
+
+/* Estilo para los campos de input/textarea de solo lectura */
+.campo-bloqueado-valor {
+  background-color: #f8f9fa; /* Fondo muy claro para indicar inactividad */
+  color: #495057; /* Un poco más claro que el texto normal */
+  border: 1px dashed #ced4da; /* Borde punteado o discontinuo para indicar que es informativo */
+  cursor: not-allowed;
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}

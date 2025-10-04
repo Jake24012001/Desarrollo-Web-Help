@@ -45,7 +45,7 @@
           <td>
             <div class="d-flex justify-content-center gap-2">
               <button class="btn btn-outline-primary btn-sm" (click)="modificarPeticion(item)">Editar</button>
-              <button class="btn btn-outline-danger btn-sm" (click)="borrarPeticion(i, 'resuelto')">Eliminar</button>
+              <button class="btn btn-outline-danger btn-sm" (click)="borrarPeticion(i, 'pendiente')">Eliminar</button>
               <button class="btn btn-outline-success btn-sm" (click)="marcarComoResuelta(item)"> Resuelta</button>
             </div>
           </td>
@@ -58,7 +58,7 @@
       </tbody>
     </table>
   </div>
-
+  <!--Tabla de tickets resueltos -->
   <div class="glass-card p-3 rounded shadow-sm">
     <h5 class="fw-bold mb-3">Tickets Resueltos</h5>
     <table class="table table-hover table-bordered align-middle text-center">
@@ -108,7 +108,7 @@
     <button class="btn btn-success btn-sm" (click)="crearPeticion()">
       <i class="bi bi-plus-circle"></i> CREAR
     </button>
-    <button class="btn btn-warning btn-sm" [disabled]="true">
+    <button class="btn btn-warning btn-sm" (click)="modificarPeticion()">
       <i class="bi bi-pencil"></i> MODIFICAR
     </button>
   </div>
