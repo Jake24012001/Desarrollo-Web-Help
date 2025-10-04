@@ -14,9 +14,9 @@ import { ActivatedRoute, Router } from '@angular/router';
   styleUrls: ['./actualizar-peticion.css'],
 })
 export class ActualizarPeticion implements OnInit {
-  // ✅ CORRECCIÓN: Inicialización Segura para evitar el operador '!'
+  // ✅ Inicialización Segura y uso de 'id_ticket'
   datosticket: Ticket = {
-    id_ticket: 0,
+    id_ticket: 0, 
     title: '',
     descripcion: '',
     fecha_creacion: new Date().toISOString(),
@@ -81,6 +81,8 @@ export class ActualizarPeticion implements OnInit {
               serial: '',
               product: { id: 0, name: '' },
             },
+            // Aseguramos que id_ticket se mapee correctamente
+            id_ticket: ticket.id_ticket ?? this.idtick,
           };
 
           // ✅ Inicializar los IDs seleccionados *después* de que this.datosticket se ha cargado.
@@ -171,7 +173,7 @@ export class ActualizarPeticion implements OnInit {
       );
   }
 
-  // Métodos de actualización de objeto (sin cambios, se conservan)
+  // Métodos que actualizan el objeto datosticket al cambiar un select
   actualizarEstado(): void {
     const estadoSeleccionado = this.estadosDisponibles.find(
       (e) => e.id_status === this.selectedStatusId
@@ -206,12 +208,14 @@ export class ActualizarPeticion implements OnInit {
     }
   }
 
-  // Método guardarCambios (se conserva)
+  // ✅ Método guardarCambios corregido
   guardarCambios(): void {
     // 1. Actualizar el campo de fecha_actualizacion antes de enviar
     this.datosticket.fecha_actualizacion = new Date().toISOString();
 
     // 2. Llamar al servicio de actualización
+    // Usamos '!' aquí porque el ID está garantizado de ser un número (0 inicial o ID real) 
+    // después de ngOnInit y es un argumento requerido por el servicio.
     this.servicesticket.update(this.datosticket.id_ticket!, this.datosticket).subscribe({
       next: (response) => {
         console.log('Ticket actualizado con éxito:', response);
