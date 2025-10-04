@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TicketPriority } from '../../interface/TicketPriority';
+import { Environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,7 @@ import { TicketPriority } from '../../interface/TicketPriority';
 export class TicketPriorityService {
 
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8090/api/ticketpriority';
+  private apiUrl = `${Environment.apiUrl}/ticketpriority`;
 
   getAll(): Observable<TicketPriority[]> {
     return this.http.get<TicketPriority[]>(this.apiUrl);

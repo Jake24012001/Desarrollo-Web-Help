@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { Environment } from '../../environments/environment';
 
 export interface Equipo {
   id?: number;
@@ -14,7 +14,7 @@ export interface Equipo {
   providedIn: 'root',
 })
 export class EquipoService {
-  private apiUrl = `${environment.apiUrl}/equipo`;
+  private apiUrl = `${Environment.apiUrl}/equipo`;
 
   constructor(private http: HttpClient) {}
 

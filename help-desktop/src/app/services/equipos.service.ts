@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { Environment } from '../../environments/environment';
 import { InventoryUnit } from '../../interface/InventoryUnit';
 
 @Injectable({
   providedIn: 'root',
 })
 export class EquipoService {
-  private apiUrl = `${environment.apiUrl}/inventoryunit`;
+  private apiUrl = `${Environment.apiUrl}/inventoryunit`;
 
   constructor(private http: HttpClient) { }
 

@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TicketStatus } from '../../interface/TicketStatus';
+import { Environment } from '../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -9,7 +10,7 @@ import { TicketStatus } from '../../interface/TicketStatus';
 export class TicketStatusService {
 
     private http = inject(HttpClient);
-    private apiUrl = 'http://localhost:8090/api/ticketstatus';
+    private apiUrl = `${Environment.apiUrl}/ticketstatus`;
 
     getAll(): Observable<TicketStatus[]> {
         return this.http.get<TicketStatus[]>(this.apiUrl);

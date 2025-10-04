@@ -2,21 +2,24 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+
 import Swal from 'sweetalert2';
+
 import { UsuarioService } from '../../app/services/usuario.service';
 import { EquipoService } from '../../app/services/equipos.service';
-import { Usuario } from '../../interface/Usuario';
 import { TicketService } from '../../app/services/ticket.service';
+import { UsuarioRolService } from '../../app/services/usuariorol.service';
+import { TicketPriorityService } from '../../app/services/ticket-priority.service';
+
+import { Usuario } from '../../interface/Usuario';
 import { InventoryUnit } from '../../interface/InventoryUnit';
 import { Product } from '../../interface/Product';
 import { Ticket } from '../../interface/Ticket';
 import { UsuarioRol } from '../../interface/UsuarioRol';
-import { UsuarioRolService } from '../../app/services/usuariorol.service';
-import { TicketPriorityService } from '../../app/services/ticket-priority.service';
 import { TicketPriority } from '../../interface/TicketPriority';
 import { Rol } from '../../interface/Rol';
 import { Persona } from '../../interface/Persona';
-import { environment } from '../../environments/environment'; // agregado como variable global
+import { Environment } from '../../environments/environment'; // agregado como variable global
 
 @Component({
   selector: 'app-ventana-peticion',
@@ -26,11 +29,16 @@ import { environment } from '../../environments/environment'; // agregado como v
   styleUrl: './ventana-peticion.css',
 })
 export class VentanaPeticion implements OnInit {
+  // ----------------------
+  // Estado / Datos UI
+  // ----------------------
   ticketPrioridades: TicketPriority[] = [];
   usuarios: Usuario[] = [];
   rolesus: UsuarioRol[] = [];
+
   equiposInventario: InventoryUnit[] = [];
   equiposFiltrados: InventoryUnit[] = [];
+  
   usuarioSeleccionado: { id_usuario: number; nombre: string } | null = null;
 
   equipoSeleccionado: {
@@ -185,8 +193,8 @@ export class VentanaPeticion implements OnInit {
 
   getEstadoPendiente(): Ticket['status'] {
     return {
-      id_status: environment.ID_STATUS_ABIERTO,
-      nombre: environment.NOMBRE_STATUS_ABIERTO,
+      id_status: Environment.ID_STATUS_ABIERTO,
+      nombre: Environment.NOMBRE_STATUS_ABIERTO,
     };
   }
 
