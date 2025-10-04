@@ -49,15 +49,15 @@ export class VistaPrincipal implements OnInit, OnDestroy {
   datosResueltos: Ticket[] = [];
 
   // -----------------------
-  // Temporizadores y subscripciones
-  // -----------------------
-  
-  // Implementar OnInit
-  constructor(private router: Router, private servicios: TicketService) {}
-
   // Temporizadores
+  // -----------------------
   temporizadorPlaceholder: any;
   temporizadoresPorPeticion = new Map<number, any>();
+
+  // -----------------------
+  // Implementar OnInit
+  // -----------------------
+  constructor(private router: Router, private servicios: TicketService) {}
 
   ngOnInit(): void {
     this.servicios.getAll().subscribe((tickets) => {
