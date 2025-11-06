@@ -1,59 +1,130 @@
-# HelpDesktop
+# Help Desk - Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.2.1.
+Sistema web de gestión de tickets de soporte técnico desarrollado con Angular.
 
-## Development server
+## Descripción
 
-To start a local development server, run:
+Aplicación frontend para la gestión integral de solicitudes de asistencia técnica. Permite a los usuarios crear, visualizar y gestionar tickets de soporte, facilitando la comunicación entre usuarios finales y el equipo de soporte técnico.
 
+## Tecnologías
+
+- Angular 20.2.0
+- TypeScript 5.9.2
+- RxJS 7.8.0
+- SweetAlert2 11.23.0
+- Bootstrap (para estilos)
+
+## Componentes Principales
+
+### Vista Principal
+Pantalla principal del sistema que muestra el listado completo de tickets con funcionalidades de:
+- Visualización de todos los tickets registrados
+- Filtrado y búsqueda de tickets
+- Navegación hacia la creación y actualización de tickets
+- Actualización automática de datos
+
+### Ventana de Petición
+Formulario para la creación de nuevos tickets que incluye:
+- Selección de usuario solicitante
+- Asignación de prioridad
+- Selección de equipo/inventario relacionado
+- Descripción detallada del problema
+
+### Actualizar Petición
+Interfaz para la gestión y actualización de tickets existentes que permite:
+- Modificación de estado del ticket
+- Reasignación de técnicos
+- Actualización de prioridad
+- Registro de soluciones y comentarios
+
+## Servicios
+
+- **TicketService**: Gestión de tickets (CRUD completo)
+- **UsuarioService**: Administración de usuarios
+- **EquipoService**: Gestión de inventario de equipos
+- **UsuarioRolService**: Manejo de roles y permisos
+- **TicketPriorityService**: Gestión de prioridades de tickets
+
+## Rutas de Navegación
+
+- `/help-menu`: Vista principal con listado de tickets
+- `/peticion`: Formulario de creación de tickets
+- `/actualizar/:id`: Actualización de ticket específico
+
+## Requisitos Previos
+
+- Node.js (versión 18 o superior)
+- npm o yarn
+- Angular CLI 20.2.1
+
+## Instalación
+
+1. Clonar el repositorio
+```bash
+git clone https://github.com/Jake24012001/Desarrollo-Web-Help.git
+cd Desarrollo-Web-Help
+```
+
+2. Instalar dependencias
+```bash
+npm install
+```
+
+3. Configurar variables de entorno
+Editar el archivo de configuración en `src/app/environments/environment.ts` con la URL del backend.
+
+## Ejecución
+
+### Servidor de Desarrollo
 ```bash
 ng serve
 ```
+Navegar a `http://localhost:4200/`
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
+### Compilación para Producción
 ```bash
 ng build
 ```
+Los archivos compilados se almacenarán en el directorio `dist/`
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Pruebas
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
+### Pruebas Unitarias
 ```bash
 ng test
 ```
 
-## Running end-to-end tests
+## Estructura del Proyecto
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
+```
+src/
+├── app/
+│   ├── components/
+│   │   ├── vista-principal/
+│   │   ├── ventana-peticion/
+│   │   └── actualizar-peticion/
+│   ├── services/
+│   ├── interface/
+│   ├── environments/
+│   └── app.routes.ts
+└── ...
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Funcionalidades
 
-## Additional Resources
+- Autenticación de usuarios
+- Creación de tickets de soporte
+- Asignación de tickets a técnicos
+- Seguimiento de estado de tickets
+- Gestión de prioridades
+- Historial de tickets
+- Notificaciones mediante alertas (SweetAlert2)
+- Interfaz responsive
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Configuración del Backend
+
+Esta aplicación requiere conexión con el backend desarrollado en Spring Boot. Configurar la URL base del API en el archivo de entorno correspondiente.
+
+## Licencia
+
+Este proyecto pertenece para uso acádemico para el GAD Municipal de Machala
