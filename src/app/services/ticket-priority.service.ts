@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { TicketPriority } from '../../interface/TicketPriority';
-import { Environment } from '../../environments/environment';
+import { TicketPriority } from '../../app/interface/TicketPriority';
+import { Environment } from '../../app/environments/environment';
 
 @Injectable({
   providedIn: 'root'

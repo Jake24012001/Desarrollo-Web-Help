@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Environment } from '../../environments/environment';
+import { Environment } from '../../app/environments/environment';
 
 export interface Equipo {
   id?: number;

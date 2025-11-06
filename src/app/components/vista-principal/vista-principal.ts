@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 
 import Swal from 'sweetalert2';
 
-import { TicketService } from '../../app/services/ticket.service';
+import { TicketService } from '../../services/ticket.service';
 import { Ticket } from '../../interface/Ticket';
 import { Environment } from '../../environments/environment'; // agregado como variable global
 

@@ -5,11 +5,11 @@ import { Router } from '@angular/router';
 
 import Swal from 'sweetalert2';
 
-import { UsuarioService } from '../../app/services/usuario.service';
-import { EquipoService } from '../../app/services/equipos.service';
-import { TicketService } from '../../app/services/ticket.service';
-import { UsuarioRolService } from '../../app/services/usuariorol.service';
-import { TicketPriorityService } from '../../app/services/ticket-priority.service';
+import { UsuarioService } from '../../services/usuario.service';
+import { EquipoService } from '../../services/equipos.service';
+import { TicketService } from '../../services/ticket.service';
+import { UsuarioRolService } from '../../services/usuariorol.service';
+import { TicketPriorityService } from '../../services/ticket-priority.service';
 
 import { Usuario } from '../../interface/Usuario';
 import { InventoryUnit } from '../../interface/InventoryUnit';

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { TicketService } from '../../app/services/ticket.service';
+import { TicketService } from '../../services/ticket.service';
 import { Ticket } from '../../interface/Ticket';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common'; // Añadido DatePipe para el template
