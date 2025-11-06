@@ -208,7 +208,7 @@ export class ActualizarPeticion implements OnInit {
     }
   }
 
-  // ✅ Método guardarCambios corregido
+  //Método guardarCambios corregido
   guardarCambios(): void {
     // 1. Actualizar el campo de fecha_actualizacion antes de enviar
     this.datosticket.fecha_actualizacion = new Date().toISOString();
