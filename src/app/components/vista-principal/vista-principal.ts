@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy} from '@angular/core'; // Agregar OnInit
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -17,9 +17,7 @@ import { Environment } from '../../environments/environment'; // agregado como v
   styleUrls: ['./vista-principal.css'],
 })
 export class VistaPrincipal implements OnInit, OnDestroy {
-  // -----------------------
-  // Constantes / UI state
-  // -----------------------
+  // Constantes y estado UI
   placeholderText = 'Buscar...';
   mensajes = [
     'Equipo Afectado',
@@ -34,34 +32,24 @@ export class VistaPrincipal implements OnInit, OnDestroy {
   ];
   mensajeIndex = 0;
 
-  // -----------------------
-  // Búsqueda / filtros
-  // -----------------------
+  // Búsqueda y filtros
   terminoBusqueda: string = '';
   datosOriginalesPendientes: Ticket[] = [];
   datosOriginalesResueltos: Ticket[] = [];
 
-  // -----------------------
-  // Datos mostrados
-  // -----------------------
+  // Datos mostrados en tablas
   datosFiltrados: Ticket[] = [];
   datosFiltradosPendientes: Ticket[] = [];
   datosResueltos: Ticket[] = [];
 
-  // -----------------------
-  // Temporizadores
-  // -----------------------
+  // Temporizadores y control por petición
   temporizadorPlaceholder: any;
   temporizadoresPorPeticion = new Map<number, any>();
 
-  // -----------------------
-  // Implementar OnInit
-  // -----------------------
+  // Constructor
   constructor(private router: Router, private servicios: TicketService) {}
 
-  // -----------------------
-  // Lifecycle
-  // -----------------------
+  // Lifecycle: carga inicial y limpieza
   ngOnInit(): void {
     this.servicios.getAll().subscribe((tickets) => {
       this.datosFiltrados = tickets.map((p: Ticket) => ({
@@ -98,9 +86,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     this.temporizadoresPorPeticion.clear();
   }
 
-  // -----------------------
   // Búsqueda y filtrado
-  // -----------------------
   filtrarDatos(): void {
     if (!this.terminoBusqueda || this.terminoBusqueda.trim() === '') {
       this.datosFiltradosPendientes = [...this.datosOriginalesPendientes];
@@ -143,9 +129,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     );
   }
 
-  // -----------------------
   // Temporizadores por petición
-  // -----------------------
   iniciarTemporizador(id: number): void {
     if (this.temporizadoresPorPeticion.has(id)) return;
 
@@ -181,9 +165,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     }
   }
 
-  // -----------------------
-  // CRUD / Acciones
-  // -----------------------
+  // Acciones CRUD y confirmaciones
   crearPeticion(): void {
     Swal.fire({
       title: '¿Deseas crear la petición?',
@@ -292,9 +274,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     });
   }
 
-  // -----------------------
-  // Utilidades
-  // -----------------------
+  // Funciones utilitarias
   actualizarListas(): void {
     this.datosFiltradosPendientes = this.datosFiltrados.filter(
       (p) => p.status?.nombre !== Environment.NOMBRE_STATUS_CERRADO

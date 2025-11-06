@@ -1,60 +1,9 @@
-.glass-card {
-  background: rgba(0, 74, 151, 0.4);
-  padding: 10px;
-  margin: 20px;
-  border-radius: 10px;
-}
-
-.btn-custom {
-  color: white;
-  background: #004a97;
-  border-radius: 15px;
-  margin: 5px;
-}
-
-.btn-custom1 {
-  color: white;
-  background: green;
-  border-radius: 15px;
-  margin: 5px;
-}
-
-.btn-custom2 {
-  color: white;
-  background: brown;
-  border-radius: 15px;
-  margin: 5px;
-}
-
-.estado-label {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  display: inline-block;
-  min-width: 100px;
-}
-
-
-.pendiente {
-  background-color: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeeba;
-}
-
-.terminado {
-  background-color: #d1ecf1;
-  color: #0c5460;
-  border: 1px solid #bee5eb;
-}
-
-.no-disponible {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-
-.tiempo-rojo {
-  color: red;
-  font-weight: bold;
-}
+.glass-card { background: rgba(0, 74, 151, 0.4); padding: 10px; margin: 20px; border-radius: 10px; }
+.btn-custom { color: white; background: #004a97; border-radius: 15px; margin: 5px; }
+.btn-custom1 { color: white; background: green; border-radius: 15px; margin: 5px; }
+.btn-custom2 { color: white; background: brown; border-radius: 15px; margin: 5px; }
+.estado-label { padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; display: inline-block; min-width: 100px; }
+.pendiente { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+.terminado { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+.no-disponible { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.tiempo-rojo { color: red; font-weight: bold; }

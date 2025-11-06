@@ -8,7 +8,7 @@ import { Environment } from '../../app/environments/environment';
     providedIn: 'root'
 })
 export class TicketStatusService {
-
+    // Servicio para estados de ticket (lista / CRUD)
     private http = inject(HttpClient);
     private apiUrl = `${Environment.apiUrl}/ticketstatus`;
 

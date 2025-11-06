@@ -8,6 +8,7 @@ import { Environment } from '../../app/environments/environment';
   providedIn: 'root',
 })
 export class UsuarioRolService {
+  // Servicio para mapeos usuario<->rol
   private apiUrl = `${Environment.apiUrl}/usuariorol`; // Ajusta la URL según tu backend
 
   constructor(private http: HttpClient) {}

@@ -3,43 +3,42 @@
     <h5 class="mb-0">Creación de Ticket de Soporte</h5>
   </div>
   <div class="card-body">
+    <!-- Formulario para crear ticket -->
     <form class="formulario-peticion" (ngSubmit)="crearTicket()">
-      
+
+      <!-- Tipo de petición -->
       <div class="form-group mb-3">
         <label for="tipoPeticion" class="form-label">Tipo de petición:</label>
         <input type="text" id="tipoPeticion" class="form-control" placeholder="Ingrese su petición"
           [(ngModel)]="tipoPeticion" name="tipoPeticion" required />
       </div>
 
+      <!-- Selección de usuario -->
       <div class="form-group mb-3">
         <label for="usuario" class="form-label">Selecciona un usuario:</label>
         <select id="usuario" class="form-select" [(ngModel)]="usuarioSeleccionado" name="usuario"
           (change)="filtrarPorUsuario()" required>
           <option value="" disabled selected>-- Selecciona --</option>
-          <option *ngFor="let usuario of usuarios" [ngValue]="usuario">
-            {{ usuario.nombre }}
-          </option>
+          <option *ngFor="let usuario of usuarios" [ngValue]="usuario">{{ usuario.nombre }}</option>
         </select>
       </div>
 
+      <!-- Asignar trabajo (usuario+rol) -->
       <div class="form-group mb-3">
         <label for="asignarTrabajo" class="form-label">Asignar Trabajo</label>
         <select id="asignarTrabajo" class="form-select" [(ngModel)]="usuarioSeleccionados" name="usuario" required>
           <option value="" disabled selected>-- Selecciona --</option>
-          <option *ngFor="let item of rolesus" [ngValue]="item">
-            {{ item.rol.nombre }} - {{ item.usuario.nombre }}
-          </option>
+          <option *ngFor="let item of rolesus" [ngValue]="item">{{ item.rol.nombre }} - {{ item.usuario.nombre }}</option>
         </select>
       </div>
 
+      <!-- Categoría de equipo y equipos disponibles -->
       <div class="form-group mb-3">
         <label for="producto" class="form-label">Categoría de equipo</label>
         <select name="producto" id="producto" class="form-select" [(ngModel)]="productoSeleccionado"
           (change)="filtrarEquiposPorTipo()" required>
           <option value="" disabled selected>-- Selecciona --</option>
-          <option *ngFor="let producto of productosUnicos" [value]="producto.type">
-            {{ producto.type }}
-          </option>
+          <option *ngFor="let producto of productosUnicos" [value]="producto.type">{{ producto.type }}</option>
         </select>
       </div>
 
@@ -47,21 +46,18 @@
         <label for="equipo" class="form-label">Equipos disponibles:</label>
         <div class="d-flex gap-2">
           <select id="equipo" class="form-select" [(ngModel)]="equipoSeleccionado" name="equipo" required>
-            <option value="" disabled selected *ngIf="!equiposFiltrados || equiposFiltrados.length === 0">-- Selecciona una categoría --</option> 
-            <option *ngFor="let equipo of equiposFiltrados" [ngValue]="equipo">
-              {{ equipo.serial }} - {{ equipo.product.name }}
-            </option>
+            <option value="" disabled selected *ngIf="!equiposFiltrados || equiposFiltrados.length === 0">-- Selecciona una categoría --</option>
+            <option *ngFor="let equipo of equiposFiltrados" [ngValue]="equipo">{{ equipo.serial }} - {{ equipo.product.name }}</option>
           </select>
         </div>
       </div>
 
+      <!-- Prioridad y detalle -->
       <div class="form-group mb-3">
         <label for="prioridad" class="form-label">Prioridad del ticket:</label>
         <select id="prioridad" class="form-select" [(ngModel)]="prioridadSeleccionada" name="prioridad" required>
           <option value="" disabled selected>-- Selecciona --</option>
-          <option *ngFor="let prioridad of ticketPrioridades" [ngValue]="prioridad">
-            {{ prioridad.name }}
-          </option>
+          <option *ngFor="let prioridad of ticketPrioridades" [ngValue]="prioridad">{{ prioridad.name }}</option>
         </select>
       </div>
 
@@ -71,19 +67,18 @@
           [(ngModel)]="detallePeticion" name="detallePeticion" required></textarea>
       </div>
 
+      <!-- Acciones -->
       <div class="d-flex gap-2 pt-3">
         <button type="submit" class="btn btn-primary btn-lg">Enviar</button>
-        <button type="button" class="btn btn-outline-secondary btn-lg" (click)="cancelarAccion()">
-          Cancelar
-        </button>
+        <button type="button" class="btn btn-outline-secondary btn-lg" (click)="cancelarAccion()">Cancelar</button>
       </div>
 
+      <!-- Estado inicial -->
       <div class="form-group mt-4 pt-3 border-top">
         <label class="form-label">Estado inicial del ticket:</label>
-        <div class="alert alert-success fw-bold p-2 mb-0" role="alert">
-          {{ getEstadoPendiente()?.nombre || 'ABIERTO' }}
-        </div>
+        <div class="alert alert-success fw-bold p-2 mb-0" role="alert">{{ getEstadoPendiente()?.nombre || 'ABIERTO' }}</div>
       </div>
+
     </form>
   </div>
 </div>

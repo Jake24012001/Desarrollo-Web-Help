@@ -8,7 +8,7 @@ import { Environment } from '../../app/environments/environment';
   providedIn: 'root'
 })
 export class TicketPriorityService {
-
+  // Servicio para CRUD de prioridades de ticket
   private http = inject(HttpClient);
   private apiUrl = `${Environment.apiUrl}/ticketpriority`;
 

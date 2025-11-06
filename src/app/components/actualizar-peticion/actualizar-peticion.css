@@ -1,125 +1,120 @@
-/* -------------------------------------- */
-/* ESTILOS DE PERSONALIZACIÓN DEL FORMULARIO */
-/* -------------------------------------- */
-
-.btn-primary,
-.btn-primary:hover,
-.btn-primary:active,
-.btn-primary:focus,
-.bg-primary {
-  background-color: #004a97 !important;
-  border-color: #004a97 !important;
-  color: white !important;
-  /* Estilos adicionales para un mejor botón */
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+:root{
+  --primary: #1976D2;
+  --primary-contrast: #ffffff;
+  --muted-bg: #f6f9fc;
+  --border: #d1e6fb;
 }
 
-/* -------------------------------------- */
-/* ESTILOS DE ESTADOS */
-/* -------------------------------------- */
-
-.estado-texto {
-  font-weight: bold;
-  font-size: 16px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  display: inline-block;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.disponible {
-  background-color: #28a745;
-  color: white;
-  border: 1px solid #1e7e34;
-}
-
-.en-proceso {
-  background-color: #ffc107;
-  color: #212529;
-  border: 1px solid #e0a800;
-}
-
-.terminado {
-  background-color: #17a2b8;
-  color: white;
-  border: 1px solid #117a8b;
-}
-
-.no-disponible {
-  background-color: #6c757d;
-  color: white;
-  border: 1px solid #545b62;
-}
-
-/* -------------------------------------- */
-/* ESTILOS ESPECÍFICOS DEL FORMULARIO DE ACTUALIZACIÓN */
-/* -------------------------------------- */
-
-.formulario-actualizar {
-  max-width: 600px;
-  margin: 80px auto;
-  padding: 2rem;
-  background-color: #ffffff;
+/* Contenedor principal del formulario */
+.formulario-actualizar{
+  max-width: 1200px;
+  width: calc(100% - 80px);
+  margin: 18px auto;
+  padding: 20px 28px;
+  background: var(--muted-bg);
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 30px rgba(6,24,72,0.06);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  color: #111827;
+  overflow: visible;
 }
 
-.campo-contenedor {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem; /* Espacio entre el encabezado/label y el campo de input */
+.formulario-actualizar h2{
+  color: var(--primary);
+  margin-bottom: 12px;
 }
 
-.encabezados {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #007bff;
-  background-color: #f0f4ff;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: background-color 0.3s ease;
+/* Etiquetas */
+label{ font-weight:600; color:#334155; font-size:0.95rem }
+
+/* Layout: usar filas/columnas (Bootstrap) pero mantener reglas compactas */
+input[type='text'], textarea, select{
+  width:100%;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:#fff;
+  font-size:0.95rem;
+  transition: border-color .12s ease, box-shadow .12s ease;
 }
 
-/* Estilo para campos de entrada editables */
-.campo-editable,
-textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-  box-sizing: border-box; /* Asegura que el padding no cambie el ancho */
+input[type='text']:focus, textarea:focus, select:focus{
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 6px rgba(25,118,210,0.06);
 }
 
-textarea {
-  resize: vertical;
-  min-height: 100px;
+.campo-bloqueado-valor{
+  background:#f3f6fb;
+  border:1px solid #e6eefc;
+  color:#334155;
 }
 
-/* -------------------------------------- */
-/* ESTILOS PARA BLOQUEAR/DESHABILITAR CAMPOS */
-/* -------------------------------------- */
+/* Botón enviar */
+.submit-btn{
+  width:100%;
+  padding:12px 16px;
+  border-radius:10px;
+  border:none;
+  color:var(--primary-contrast);
+  background:var(--primary);
+  font-weight:700;
+  box-shadow: 0 10px 30px rgba(25,118,210,0.14);
+  transition: transform .06s ease, opacity .12s ease, box-shadow .12s ease;
+}
+.submit-btn:hover{ transform: translateY(-2px); box-shadow: 0 14px 40px rgba(25,118,210,0.16); }
+.submit-btn.disabled{
+  background:#e6f2fb;
+  color:#234055;
+  box-shadow:none;
+  opacity:.85;
+  cursor:not-allowed;
+}
 
+/* Helpers de espaciado */
+.mt-6{ margin-top:1.5rem; }
+.mt-4{ margin-top:1rem; }
+.p-6{ padding:1.5rem; }
 
-/* Estilo para los campos de input/textarea de solo lectura */
-.campo-bloqueado-valor {
-  background-color: #f8f9fa; /* Fondo muy claro para indicar inactividad */
-  color: #495057; /* Un poco más claro que el texto normal */
-  border: 1px dashed #ced4da; /* Borde punteado o discontinuo para indicar que es informativo */
-  cursor: not-allowed;
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 1rem;
-  box-sizing: border-box;
+/* Badges de estado */
+.estado-texto{ font-weight:700; font-size:0.95rem; padding:6px 12px; border-radius:8px; }
+.disponible{ background:#28a745; color:#fff; }
+.en-proceso{ background:#f59e0b; color:#fff; }
+.terminado{ background:#06b6d4; color:#fff; }
+
+/* INPUT: acento celeste suave (ayuda a identificar campos de texto) */
+.formulario-actualizar .form-control,
+.formulario-actualizar input[type='text'],
+.formulario-actualizar textarea{
+  border-color: #cfe8fb;
+  box-shadow: inset 4px 0 0 #cfe8fb, inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* SELECT/COMBOBOX: borde/acento azul (diferenciar visualmente) */
+.formulario-actualizar .form-select,
+.formulario-actualizar select{
+  border-color: var(--primary);
+  box-shadow: inset 4px 0 0 var(--primary), 0 0 0 3px rgba(25,118,210,0.03);
+}
+
+/* Estados focus compactos */
+.formulario-actualizar .form-control:focus,
+.formulario-actualizar textarea:focus{
+  border-color: var(--primary);
+  box-shadow: inset 4px 0 0 var(--primary), 0 0 0 6px rgba(25,118,210,0.06);
+}
+
+.formulario-actualizar .form-select:focus,
+.formulario-actualizar select:focus{
+  border-color: #0b63b8;
+  box-shadow: inset 4px 0 0 #0b63b8, 0 0 0 6px rgba(7,92,153,0.08);
+}
+
+/* Readonly/disabled: aspecto atenuado */
+.formulario-actualizar input[readonly],
+.formulario-actualizar .form-control[readonly],
+.formulario-actualizar .form-select[disabled]{
+  opacity: 0.95;
+  box-shadow: none;
+  border-color: #e6eefc;
 }

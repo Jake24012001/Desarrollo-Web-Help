@@ -19,7 +19,7 @@ import { UsuarioRol } from '../../interface/UsuarioRol';
 import { TicketPriority } from '../../interface/TicketPriority';
 import { Rol } from '../../interface/Rol';
 import { Persona } from '../../interface/Persona';
-import { Environment } from '../../environments/environment'; // agregado como variable global
+import { Environment } from '../../environments/environment'; // constantes de entorno
 
 @Component({
   selector: 'app-ventana-peticion',
@@ -29,9 +29,7 @@ import { Environment } from '../../environments/environment'; // agregado como v
   styleUrl: './ventana-peticion.css',
 })
 export class VentanaPeticion implements OnInit {
-  // ----------------------
-  // Estado / Datos UI
-  // ----------------------
+  // Estado y datos mostrados en la UI
   ticketPrioridades: TicketPriority[] = [];
   usuarios: Usuario[] = [];
   rolesus: UsuarioRol[] = [];
@@ -45,9 +43,7 @@ export class VentanaPeticion implements OnInit {
   datosResueltos: any[] = [];
   datosFiltradosPendientes: any[] = [];
 
-  // ----------------------
-  // Selecciones / Form
-  // ----------------------
+  // Valores de formulario / selecciones
   usuarioSeleccionado: { id_usuario: number; nombre: string } | null = null;
 
   usuarioSeleccionados: { id: UsuarioRol; usuario: Usuario; rol: Rol } | null = null;
@@ -68,9 +64,7 @@ export class VentanaPeticion implements OnInit {
   detallePeticion = '';
   prioridadSeleccionada: TicketPriority | null = null;
 
-  // ----------------------
-  // Constructor / servicios
-  // ----------------------
+  // Constructor e inyección de servicios
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
@@ -80,23 +74,18 @@ export class VentanaPeticion implements OnInit {
     private ticketPriority: TicketPriorityService
   ) {}
 
-  // ----------------------
-  // Lifecycle
-  // ----------------------
+  // Ciclo de vida
   ngOnInit(): void {
-    // Cargar usuarios
+    // Cargar lista de usuarios
     this.usuarioService.getAll().subscribe((usuarios) => {
       this.usuarios = usuarios;
     });
 
-    // Cargar equipos (inventario)
+    // Cargar inventario de equipos
     this.equipoService.getAll().subscribe((equipos) => {
       this.equiposInventario = equipos;
-
-      // Filtrar equipos por usuario (ej. por cedula)
-      this.filtrarPorUsuario(); // ← reemplaza con cedula dinámica si aplica
-
-      // Extraer productos únicos por type
+      // Filtrar por usuario y obtener tipos únicos de producto
+      this.filtrarPorUsuario();
       const tiposSet = new Set<string>();
       this.productosUnicos = equipos
         .map((e) => e.product)
@@ -109,20 +98,17 @@ export class VentanaPeticion implements OnInit {
       this.equiposFiltrados = [];
     });
 
-    // Cargar roles de usuarios
+    // Cargar mapeos usuario-rol
     this.usuarioservicesR.getAll().subscribe((roles) => {
       this.rolesus = roles;
     });
-
     // Cargar prioridades de ticket
     this.ticketPriority.getAll().subscribe((name) => {
       console.log('Prioridades cargadas:', name);
       this.ticketPrioridades = name;
     });
   }
-  // ----------------------
-  // Acciones / CRUD
-  // ----------------------
+  // Acciones (crear/cancelar)
   cancelarAccion(): void {
     Swal.fire({
       title: '¿Cancelar petición?',
@@ -149,7 +135,8 @@ export class VentanaPeticion implements OnInit {
       equipoAfectado: this.equipoSeleccionado ?? undefined,
     };
 
-    this.ticketService.create(nuevoTicket).subscribe({
+  // Enviar creación al backend
+  this.ticketService.create(nuevoTicket).subscribe({
       next: (ticketCreado) => {
         console.log('Ticket creado:', ticketCreado);
         this.router.navigate(['/help-menu']);
@@ -161,9 +148,7 @@ export class VentanaPeticion implements OnInit {
     });
   }
 
-  // ----------------------
-  // Filtrado / UI helpers
-  // ----------------------
+  // Filtrado y utilidades de UI
   filtrarEquiposPorTipo(): void {
     if (!this.productoSeleccionado) {
       this.equiposFiltrados = [];
@@ -225,6 +210,6 @@ export class VentanaPeticion implements OnInit {
       }
     });
 
-    console.log('Coincidencias encontradas:', coincidencias);
+    console.log('Coincidencias por usuario:', coincidencias);
   }
 }

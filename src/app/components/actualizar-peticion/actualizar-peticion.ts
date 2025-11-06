@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { TicketService } from '../../services/ticket.service';
 import { UsuarioService } from '../../services/usuario.service';
+import { UsuarioRolService } from '../../services/usuariorol.service';
 import { forkJoin } from 'rxjs';
 import { Ticket } from '../../interface/Ticket';
 import { FormsModule } from '@angular/forms';
@@ -16,7 +17,7 @@ import { ActivatedRoute, Router } from '@angular/router';
   styleUrls: ['./actualizar-peticion.css'],
 })
 export class ActualizarPeticion implements OnInit {
-  // ✅ Inicialización Segura y uso de 'id_ticket'
+  // Valores por defecto del ticket (evita undefined al renderizar)
   datosticket: Ticket = {
     id_ticket: 0, 
     title: '',
@@ -31,13 +32,14 @@ export class ActualizarPeticion implements OnInit {
   };
   
   datosimportados: Ticket[] = [];
-  idtick: number = 0; // ✅ Inicialización Segura
-  selectedStatusId: number = 0; // ✅ Inicialización Segura
-  selectedPriorityId: number = 0; // ✅ Inicialización Segura
-  selectedUsuarioId: number = 0; // ✅ Inicialización Segura
-  selectedEquipoId: number = 0; // ✅ Inicialización Segura
+  // IDs seleccionados en los selects
+  idtick: number = 0;
+  selectedStatusId: number = 0;
+  selectedPriorityId: number = 0;
+  selectedUsuarioId: number = 0;
+  selectedEquipoId: number = 0;
 
-  // ✅ Listas únicas para combos
+  // Listas usadas por los selects
   estadosDisponibles: { id_status: number; nombre: string }[] = [];
   prioridadesDisponibles: { id_priority: number; name: string }[] = [];
   usuariosDisponibles: { id_usuario: number; nombre: string }[] = [];
@@ -50,6 +52,7 @@ export class ActualizarPeticion implements OnInit {
   constructor(
     private servicesticket: TicketService,
     private usuarioService: UsuarioService,
+    private usuarioRolService: UsuarioRolService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
@@ -57,18 +60,39 @@ export class ActualizarPeticion implements OnInit {
   ngOnInit(): void {
     this.idtick = Number(this.route.snapshot.paramMap.get('id'));
 
-    // Cargar usuarios y tickets en paralelo para evitar sobrescrituras y condiciones de carrera
-    forkJoin({ users: this.usuarioService.getAll(), tickets: this.servicesticket.getAll() }).subscribe(
-      ({ users, tickets }) => {
-        // Mapear usuarios del servicio (defensivo con posibles nombres de campo distintos)
-        this.usuariosDisponibles = (users || []).map((u: any) => ({
+    // Cargar usuarios, roles y tickets en paralelo
+    forkJoin({ users: this.usuarioService.getAll(), tickets: this.servicesticket.getAll(), userRoles: this.usuarioRolService.getAll() }).subscribe(
+      ({ users, tickets, userRoles }) => {
+  // Normalizar usuarios del servicio (soporta varios nombres de campo)
+        const mappedUsers = (users || []).map((u: any) => ({
           id_usuario: u.id_usuario ?? u.idUsuario ?? u.id ?? 0,
           nombre:
             u.nombre ??
             u.nombres ??
             (u.nombres ? `${u.nombres} ${u.apellidos ?? ''}`.trim() : '') ??
+            u.cedula ??
             '',
         }));
+
+  // Detectar usuarios con rol 'Admin' a partir de los mapeos usuario-rol
+        let allowedUserIds = new Set<number>();
+        (userRoles || []).forEach((ur: any) => {
+          const rolObj = ur.rol ?? ur.role ?? {};
+          const rolId = rolObj.idRol ?? rolObj.id ?? rolObj.id_role ?? 0;
+          const rolName = (rolObj.nombre ?? rolObj.name ?? '').toString().toLowerCase();
+          if (rolId === 1 || rolName.includes('admin')) {
+            const usuarioObj = ur.usuario ?? ur.user ?? {};
+            const uId = usuarioObj.id_usuario ?? usuarioObj.idUsuario ?? usuarioObj.id ?? 0;
+            if (uId) allowedUserIds.add(uId);
+          }
+        });
+
+        // Aplicar filtro por rol si hay mapeos
+        if (allowedUserIds.size > 0) {
+          this.usuariosDisponibles = mappedUsers.filter((mu) => allowedUserIds.has(mu.id_usuario));
+        } else {
+          this.usuariosDisponibles = mappedUsers;
+        }
 
         // Tickets
         this.datosimportados = tickets || [];
@@ -77,20 +101,25 @@ export class ActualizarPeticion implements OnInit {
         this.estadosDisponibles = this.extraerEstadosUnicos();
         this.prioridadesDisponibles = this.extraerPrioridadesUnicas();
 
-        // Fusionar usuarios extraídos de tickets con los usuarios obtenidos del servicio
+  // Añadir usuarios encontrados en tickets que no estén en la lista
         const usuariosFromTickets = this.extraerUsuariosUnicos();
         const merged = [...this.usuariosDisponibles];
         usuariosFromTickets.forEach((ut) => {
           if (!merged.some((m) => m.id_usuario === ut.id_usuario)) merged.push(ut);
         });
-        this.usuariosDisponibles = merged;
+        // Si aplicamos filtro por roles, asegurarnos de que merged también respete allowedUserIds
+        if (allowedUserIds.size > 0) {
+          this.usuariosDisponibles = merged.filter((m) => allowedUserIds.has(m.id_usuario));
+        } else {
+          this.usuariosDisponibles = merged;
+        }
 
-        this.equiposDisponibles = this.extraerEquiposUnicos();
+    this.equiposDisponibles = this.extraerEquiposUnicos();
 
-        // Cargar el ticket seleccionado si el ID existe.
+    // Cargar el ticket seleccionado (si hay id en la ruta)
         if (this.idtick) {
           this.servicesticket.getById(this.idtick).subscribe((ticket) => {
-              // Normalizar campos del usuario asignado y creador para soportar varias formas
+      // Normalizar usuario asignado/creador (varias formas según backend)
               const tAny: any = ticket as any;
               const usuarioAsignadoRaw: any = tAny.usuario_asignado ?? tAny.usuarioAsignado ?? tAny.usuarioAsignadoDTO ?? {};
               const usuarioCreadorRaw: any = tAny.usuario_creador ?? tAny.usuarioCreador ?? {};
@@ -122,13 +151,12 @@ export class ActualizarPeticion implements OnInit {
                 id_ticket: ticket.id_ticket ?? this.idtick,
               };
 
-              // Inicializar los IDs seleccionados después de que this.datosticket se ha cargado
+              // Inicializar selects con los valores del ticket
               this.selectedStatusId = this.datosticket.status?.id_status ?? 0;
               this.selectedPriorityId = this.datosticket.priority?.id_priority ?? 0;
               this.selectedEquipoId = this.datosticket.equipoAfectado?.id ?? 0;
 
-              // Intentar preseleccionar el usuario asignado.
-              // Primero usamos el id normalizado; si es 0/undefined, intentamos hacer match por 'cedula' o 'nombre'.
+              // Preseleccionar usuario asignado (por id o por coincidencia de nombre/cedula)
               const asignadoRaw: any = usuarioAsignadoRaw || {};
               let assignedId = this.datosticket.usuario_asignado?.id_usuario ?? 0;
               if (!assignedId || assignedId === 0) {
@@ -146,7 +174,7 @@ export class ActualizarPeticion implements OnInit {
               }
               this.selectedUsuarioId = assignedId ?? 0;
 
-              // Si el usuario asignado (por id) no aparece en la lista, lo añadimos para que el select pueda mostrarlo
+              // Si el usuario asignado no está en la lista, añadirlo para que el select lo muestre
               const asignado = this.datosticket.usuario_asignado;
               if (asignado && asignado.id_usuario) {
                 const exists = this.usuariosDisponibles.some((u) => u.id_usuario === asignado.id_usuario);
@@ -155,14 +183,14 @@ export class ActualizarPeticion implements OnInit {
                 }
               }
 
-              console.log('✅ Ticket seleccionado (normalizado):', this.datosticket);
+              console.log('Ticket cargado:', this.datosticket);
           });
         }
       }
     );
   }
 
-  // Métodos de extracción (sin cambios, se conservan)
+  // MÉTODOS AUXILIARES: extraen listas únicas para selects
   extraerEstadosUnicos(): { id_status: number; nombre: string }[] {
     return this.datosimportados
       .map((t) => t.status)
@@ -238,7 +266,7 @@ export class ActualizarPeticion implements OnInit {
       );
   }
 
-  // Métodos que actualizan el objeto datosticket al cambiar un select
+  // Actualizan datosticket cuando cambia un select
   actualizarEstado(): void {
     const estadoSeleccionado = this.estadosDisponibles.find(
       (e) => e.id_status === this.selectedStatusId
@@ -273,24 +301,66 @@ export class ActualizarPeticion implements OnInit {
     }
   }
 
-  //Método guardarCambios corregido
+  // Enviar actualización: construir payload minimalista para el backend
   guardarCambios(): void {
-    // 1. Actualizar el campo de fecha_actualizacion antes de enviar
+    // actualizar fecha de modificación
     this.datosticket.fecha_actualizacion = new Date().toISOString();
 
-    // 2. Llamar al servicio de actualización
-    // Usamos '!' aquí porque el ID está garantizado de ser un número (0 inicial o ID real) 
-    // después de ngOnInit y es un argumento requerido por el servicio.
-    this.servicesticket.update(this.datosticket.id_ticket!, this.datosticket).subscribe({
+    // construir payload explícito (solo ids para relaciones)
+    const payload: any = {
+      id_ticket: this.datosticket.id_ticket,
+      title: this.datosticket.title,
+      descripcion: this.datosticket.descripcion,
+      fecha_actualizacion: this.datosticket.fecha_actualizacion,
+      // status / priority: enviar solo ids en las posibles formas que el backend acepte
+      status: this.selectedStatusId
+        ? { id_status: this.selectedStatusId, idStatus: this.selectedStatusId, id: this.selectedStatusId }
+        : this.datosticket.status ?? undefined,
+      priority: this.selectedPriorityId
+        ? { id_priority: this.selectedPriorityId, idPriority: this.selectedPriorityId, id: this.selectedPriorityId }
+        : this.datosticket.priority ?? undefined,
+      // usuario_creador: enviar únicamente el id (evitar enviar objeto sin id)
+      usuario_creador: this.datosticket.usuario_creador && (this.datosticket.usuario_creador.id_usuario || (this.datosticket.usuario_creador as any).id)
+        ? {
+            id_usuario: this.datosticket.usuario_creador.id_usuario ?? (this.datosticket.usuario_creador as any).id ?? (this.datosticket.usuario_creador as any).idUsuario,
+            idUsuario: this.datosticket.usuario_creador.id_usuario ?? (this.datosticket.usuario_creador as any).id ?? (this.datosticket.usuario_creador as any).idUsuario,
+          }
+        : undefined,
+      // usuario_asignado: enviar id desde selectedUsuarioId si existe, si no usar el valor normalizado
+      usuario_asignado: this.selectedUsuarioId && this.selectedUsuarioId > 0
+        ? { id_usuario: this.selectedUsuarioId, idUsuario: this.selectedUsuarioId, id: this.selectedUsuarioId }
+        : this.datosticket.usuario_asignado && this.datosticket.usuario_asignado.id_usuario
+        ? { id_usuario: this.datosticket.usuario_asignado.id_usuario }
+        : undefined,
+      // también incluir camelCase por si el backend lo espera
+      usuarioAsignado: this.selectedUsuarioId && this.selectedUsuarioId > 0 ? { id: this.selectedUsuarioId } : undefined,
+      equipoAfectado: this.selectedEquipoId && this.selectedEquipoId > 0 ? { id: this.selectedEquipoId } : undefined,
+    };
+
+  console.log('Enviando payload (obj):', payload);
+    try {
+      console.log('Enviando payload de actualización (json):', JSON.stringify(payload, null, 2));
+    } catch (e) {
+      console.log('No se pudo serializar payload:', e);
+    }
+
+    // llamar servicio de actualización
+    this.servicesticket.update(this.datosticket.id_ticket!, payload).subscribe({
       next: (response) => {
         console.log('Ticket actualizado con éxito:', response);
-        // Navegar a la vista de tickets después de guardar
-        this.router.navigate(['/help-menu']); 
+        this.router.navigate(['/help-menu']);
       },
       error: (err) => {
-        console.error('Error al actualizar el ticket:', err);
-        // Opcional: Implementar lógica de modal o toast para informar al usuario
-      }
+        console.error('Error al actualizar:', err);
+        console.error('Payload enviado:', payload);
+        try {
+          if (err.error) {
+            console.error('err.error:', typeof err.error === 'string' ? err.error : JSON.stringify(err.error, null, 2));
+          }
+        } catch (e) {
+          console.error('No se pudo serializar err.error', e);
+        }
+      },
     });
   }
 }

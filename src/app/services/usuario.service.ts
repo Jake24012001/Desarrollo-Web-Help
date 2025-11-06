@@ -8,6 +8,7 @@ import { Environment } from '../../app/environments/environment';
   providedIn: 'root',
 })
 export class UsuarioService {
+  // Servicio CRUD para usuarios
   private apiUrl = `${Environment.apiUrl}/usuario`;
 
   constructor(private http: HttpClient) {}

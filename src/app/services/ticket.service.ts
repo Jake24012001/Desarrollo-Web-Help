@@ -8,6 +8,7 @@ import { Environment } from '../../app/environments/environment';
   providedIn: 'root',
 })
 export class TicketService {
+  // Servicio principal para tickets: listar, obtener, crear, actualizar y eliminar
   private apiUrl = `${Environment.apiUrl}/ticket`;
 
   constructor(private http: HttpClient) {}

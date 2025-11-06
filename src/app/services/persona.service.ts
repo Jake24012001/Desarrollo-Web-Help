@@ -8,7 +8,7 @@ import { Environment } from '../../app/environments/environment';
   providedIn: 'root'
 })
 export class PersonaService {
-  
+  // Servicio para obtener datos de personas
   private apiUrl = `${Environment.apiUrl}/persona`;
 
   constructor(private http: HttpClient) {}

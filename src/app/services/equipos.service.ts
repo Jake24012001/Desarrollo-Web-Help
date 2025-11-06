@@ -8,6 +8,8 @@ import { InventoryUnit } from '../../app/interface/InventoryUnit';
   providedIn: 'root',
 })
 export class EquipoService {
+  // Servicio CRUD para equipos (InventoryUnit)
+  // Métodos simples que llaman al backend en /inventoryunit
   private apiUrl = `${Environment.apiUrl}/inventoryunit`;
 
   constructor(private http: HttpClient) { }
