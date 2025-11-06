@@ -18,7 +18,6 @@ import { Ticket } from '../../interface/Ticket';
 import { UsuarioRol } from '../../interface/UsuarioRol';
 import { TicketPriority } from '../../interface/TicketPriority';
 import { Rol } from '../../interface/Rol';
-import { Persona } from '../../interface/Persona';
 import { Environment } from '../../environments/environment'; // constantes de entorno
 
 @Component({
@@ -33,8 +32,6 @@ export class VentanaPeticion implements OnInit {
   ticketPrioridades: TicketPriority[] = [];
   usuarios: Usuario[] = [];
   rolesus: UsuarioRol[] = [];
-  personas: Persona[] = [];
-  personasFiltradas: Persona[] = [];
 
   equiposInventario: InventoryUnit[] = [];
   equiposFiltrados: InventoryUnit[] = [];
@@ -85,7 +82,6 @@ export class VentanaPeticion implements OnInit {
     this.equipoService.getAll().subscribe((equipos) => {
       this.equiposInventario = equipos;
       // Filtrar por usuario y obtener tipos únicos de producto
-      this.filtrarPorUsuario();
       const tiposSet = new Set<string>();
       this.productosUnicos = equipos
         .map((e) => e.product)
@@ -195,21 +191,5 @@ export class VentanaPeticion implements OnInit {
         estadoElemento.style.backgroundColor = 'transparent';
         estadoElemento.style.color = '#333';
     }
-  }
-
-  filtrarPorUsuario(): void {
-    const coincidencias: { usuario: Usuario; persona: Persona }[] = [];
-
-    this.usuarios.forEach((usuario) => {
-      const personaCoincidente = this.personas.find(
-        (persona) => persona.cedula?.trim() === usuario.cedula?.trim()
-      );
-
-      if (personaCoincidente) {
-        coincidencias.push({ usuario, persona: personaCoincidente });
-      }
-    });
-
-    console.log('Coincidencias por usuario:', coincidencias);
   }
 }

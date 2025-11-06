@@ -16,8 +16,7 @@
       <!-- Selección de usuario -->
       <div class="form-group mb-3">
         <label for="usuario" class="form-label">Selecciona un usuario:</label>
-        <select id="usuario" class="form-select" [(ngModel)]="usuarioSeleccionado" name="usuario"
-          (change)="filtrarPorUsuario()" required>
+        <select id="usuario" class="form-select" [(ngModel)]="usuarioSeleccionado" name="usuario" required>
           <option value="" disabled selected>-- Selecciona --</option>
           <option *ngFor="let usuario of usuarios" [ngValue]="usuario">{{ usuario.nombre }}</option>
         </select>
