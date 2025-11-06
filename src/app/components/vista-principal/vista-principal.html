@@ -1,115 +1,140 @@
-<div class="container">
+<div class="container-fluid px-4">
   <!-- Buscador (input + limpiar) -->
   <div class="d-flex align-items-center gap-2 my-3">
-    <input type="text" class="form-control form-control-sm w-25" [placeholder]="placeholderText"
+    <input type="text" class="form-control form-control-sm search-input" [placeholder]="placeholderText"
       [(ngModel)]="terminoBusqueda" (input)="filtrarDatos()" />
-    <button class="btn btn-dark btn-sm" (click)="limpiarBusqueda()">Limpiar</button>
+    <button class="btn btn-primary btn-sm" (click)="limpiarBusqueda()">Limpiar</button>
   </div>
 
   <!-- Tickets pendientes -->
-  <div class="glass-card p-3 rounded shadow-sm mb-4">
-    <h5 class="fw-bold mb-3">Tickets Pendientes</h5>
-    <table class="table table-hover table-bordered align-middle text-center">
-      <thead class="table-dark">
-        <tr>
-          <th>Fecha de Creación</th>
-          <th>title</th>
-          <th>Descripción</th>
-          <th>Asignado a</th>
-          <th>Equipo Afectado</th>
-          <th>Creado por</th>
-          <th>Prioridad</th>
-          <th>Tiempo Transcurrido</th>
-          <th>Acciones</th>
-          <th>Estado</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let item of datosFiltradosPendientes; let i = index">
-          <td>
-            <span *ngIf="item.fecha_creacion">
-              {{ item.fecha_creacion | date:'short' }}
-            </span>
-            <span *ngIf="!item.fecha_creacion">—</span>
-          </td>
-          <td>{{ item.title || '—' }}</td>
-          <td>{{ item.descripcion || '—' }}</td>
-          <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
-          <td>{{ item.equipoAfectado?.product?.name || '—' }}</td>
-          <td>{{ item.usuario_creador?.nombre || '—' }}</td>
-          <td>{{ item.priority?.name || '—' }}</td>
-          <td>
-            <span *ngIf="item.tiempoRestante">{{ item.tiempoRestante }}</span>
-            <span *ngIf="!item.tiempoRestante">—</span>
-          </td>
-          <td>
-            <div class="d-flex justify-content-center gap-2">
-              <button class="btn btn-outline-primary btn-sm" (click)="modificarPeticion(item)">Editar</button>
-              <button class="btn btn-outline-danger btn-sm" (click)="borrarPeticion(i, 'pendiente')">Eliminar</button>
-              <button class="btn btn-outline-success btn-sm" (click)="marcarComoResuelta(item)"> Resuelta</button>
-            </div>
-          </td>
-          <td>
-            <span [ngClass]="getClaseEstado(item.status?.nombre || '')" class="estado-label">
-              {{ item.status?.nombre }}
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <!-- Tickets resueltos -->
-  <div class="glass-card p-3 rounded shadow-sm">
-    <h5 class="fw-bold mb-3">Tickets Resueltos</h5>
-    <table class="table table-hover table-bordered align-middle text-center">
-      <thead class="table-success">
-        <tr>
-          <th>Fecha de Creación</th>
-          <th>Descripción</th>
-          <th>Asignado a</th>
-          <th>Equipo Afectado</th>
-          <th>Creado por</th>
-          <th>Prioridad</th>
-          <th>Tiempo Transcurrido</th>
-          <th>Eliminar</th> <!-- Nueva columna -->
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let item of datosResueltos; let i = index">
-          <td>
-            <span *ngIf="item.fecha_creacion">
-              {{ item.fecha_creacion | date:'short' }}
-            </span>
-            <span *ngIf="!item.fecha_creacion">—</span>
-          </td>
-          <td>{{ item.descripcion || '—' }}</td>
-          <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
-          <td>{{ item.equipoAfectado?.product?.name || '—' }}</td>
-          <td>{{ item.usuario_creador?.nombre || '—' }}</td>
-          <td>{{ item.priority?.name || '—' }}</td>
-          <td>
-            <span *ngIf="item.fecha_cierre">
-              {{ calcularTiempoRestante(item.fecha_cierre) }}
-            </span>
-            <span *ngIf="!item.fecha_cierre">—</span>
-          </td>
-          <td>
-            <button class="btn btn-sm btn-danger" (click)="borrarPeticion(i, 'resuelto')">
-              🗑️
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="tickets-card mb-4">
+    <div class="card-header-custom">
+      <h5 class="mb-0 text-white fw-bold"><i class="bi bi-clipboard-check me-2"></i>Tickets Pendientes</h5>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover tabla-tickets mb-0">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Problema</th>
+            <th>Descripción</th>
+            <th>Asignado</th>
+            <th>Equipo</th>
+            <th>Creador</th>
+            <th>Prioridad</th>
+            <th>Tiempo</th>
+            <th>Acciones</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of datosFiltradosPendientes; let i = index">
+            <td class="text-nowrap">
+              <span *ngIf="item.fecha_creacion">{{ item.fecha_creacion | date:'short' }}</span>
+              <span *ngIf="!item.fecha_creacion">—</span>
+            </td>
+            <td class="td-truncate">{{ item.title || '—' }}</td>
+            <td class="td-descripcion">
+              <span class="descripcion-texto">{{ item.descripcion || '—' }}</span>
+              <button *ngIf="item.descripcion" class="btn-ver-mas" (click)="verDescripcionCompleta(item)" title="Ver descripción completa">
+                <i class="bi bi-eye"></i>
+              </button>
+            </td>
+            <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
+            <td class="td-truncate">{{ item.equipoAfectado?.product?.name || '—' }}</td>
+            <td>{{ item.usuario_creador?.nombre || '—' }}</td>
+            <td>
+              <span class="prioridad-text" [class.prioridad-alta]="item.priority?.name === 'ALTA'"
+                [class.prioridad-media]="item.priority?.name === 'MEDIA'"
+                [class.prioridad-baja]="item.priority?.name === 'BAJA'">
+                {{ item.priority?.name || '—' }}
+              </span>
+            </td>
+            <td class="text-nowrap tiempo-cell">{{ item.tiempoRestante || '—' }}</td>
+            <td>
+              <div class="btn-group-actions">
+                <button class="btn-action btn-edit" (click)="modificarPeticion(item)" title="Editar">
+                  <i class="bi bi-pencil-square"></i>
+                </button>
+                <button class="btn-action btn-delete" (click)="borrarPeticion(i, 'pendiente')" title="Eliminar">
+                  <i class="bi bi-trash3"></i>
+                </button>
+                <button class="btn-action btn-resolve" (click)="marcarComoResuelta(item)" title="Marcar como resuelta">
+                  <i class="bi bi-check-circle"></i>
+                </button>
+              </div>
+            </td>
+            <td>
+              <span [ngClass]="getClaseEstado(item.status?.nombre || '')" class="estado-label">
+                {{ item.status?.nombre }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- Botones principales -->
-  <div class="d-flex gap-3 justify-content-end my-3">
-    <button class="btn btn-success btn-sm" (click)="crearPeticion()">
-      <i class="bi bi-plus-circle"></i> CREAR
-    </button>
-    <button class="btn btn-warning btn-sm" (click)="modificarPeticion()">
-      <i class="bi bi-pencil"></i> MODIFICAR
+  <!-- Tickets resueltos -->
+  <div class="tickets-card mb-4">
+    <div class="card-header-success">
+      <h5 class="mb-0 text-white fw-bold"><i class="bi bi-check-circle me-2"></i>Tickets Resueltos</h5>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover tabla-tickets mb-0">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Descripción</th>
+            <th>Asignado</th>
+            <th>Equipo</th>
+            <th>Creador</th>
+            <th>Prioridad</th>
+            <th>Tiempo</th>
+            <th>Eliminar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of datosResueltos; let i = index">
+            <td class="text-nowrap">
+              <span *ngIf="item.fecha_creacion">{{ item.fecha_creacion | date:'short' }}</span>
+              <span *ngIf="!item.fecha_creacion">—</span>
+            </td>
+            <td class="td-descripcion">
+              <span class="descripcion-texto">{{ item.descripcion || '—' }}</span>
+              <button *ngIf="item.descripcion" class="btn-ver-mas" (click)="verDescripcionCompleta(item)" title="Ver descripción completa">
+                <i class="bi bi-eye"></i>
+              </button>
+            </td>
+            <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
+            <td class="td-truncate">{{ item.equipoAfectado?.product?.name || '—' }}</td>
+            <td>{{ item.usuario_creador?.nombre || '—' }}</td>
+            <td>
+              <span class="prioridad-text" [class.prioridad-alta]="item.priority?.name === 'ALTA'"
+                [class.prioridad-media]="item.priority?.name === 'MEDIA'"
+                [class.prioridad-baja]="item.priority?.name === 'BAJA'">
+                {{ item.priority?.name || '—' }}
+              </span>
+            </td>
+            <td class="text-nowrap">
+              <span *ngIf="item.fecha_cierre">{{ calcularTiempoRestante(item.fecha_cierre) }}</span>
+              <span *ngIf="!item.fecha_cierre">—</span>
+            </td>
+            <td>
+              <button class="btn-action btn-delete" (click)="borrarPeticion(i, 'resuelto')" title="Eliminar">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Botón crear -->
+  <div class="d-flex justify-content-end my-3">
+    <button class="btn btn-success btn-crear shadow" (click)="crearPeticion()">
+      <i class="bi bi-plus-circle me-2"></i> Crear Nuevo Ticket
     </button>
   </div>
 </div>

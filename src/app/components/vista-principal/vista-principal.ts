@@ -147,7 +147,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
       const horas = Math.floor(transcurrido / (1000 * 60 * 60)) % 24;
       const dias = Math.floor(transcurrido / (1000 * 60 * 60 * 24));
 
-      item.tiempoRestante = `${dias}d ${horas}h ${minutos}m ${segundos}s transcurridos`;
+      item.tiempoRestante = `${dias}d ${horas}h ${minutos}m ${segundos}s`;
 
       if (item.status?.nombre !== Environment.NOMBRE_STATUS_ABIERTO) {
         this.detenerTemporizador(id);
@@ -314,7 +314,45 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     const horas = Math.floor(diferencia / (1000 * 60 * 60)) % 24;
     const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
 
-    return `${dias}d ${horas}h ${minutos}m ${segundos}s transcurridos`;
+    return `${dias}d ${horas}h ${minutos}m ${segundos}s`;
+  }
+
+  verDescripcionCompleta(ticket: Ticket): void {
+    Swal.fire({
+      title: `<strong>${ticket.title || 'Ticket'}</strong>`,
+      html: `
+        <div style="text-align: left; max-height: 400px; overflow-y: auto;">
+          <p style="margin-bottom: 10px;">
+            <strong>Descripción:</strong>
+          </p>
+          <p style="white-space: pre-wrap; padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #1976D2;">
+            ${ticket.descripcion || 'Sin descripción'}
+          </p>
+          ${ticket.equipoAfectado?.product?.name ? `
+            <p style="margin-top: 15px;">
+              <strong>Equipo afectado:</strong> ${ticket.equipoAfectado.product.name}
+            </p>
+          ` : ''}
+          ${ticket.usuario_asignado?.nombre ? `
+            <p>
+              <strong>Asignado a:</strong> ${ticket.usuario_asignado.nombre}
+            </p>
+          ` : ''}
+          ${ticket.priority?.name ? `
+            <p>
+              <strong>Prioridad:</strong> <span style="color: ${
+                ticket.priority.name === 'ALTA' ? '#C62828' : 
+                ticket.priority.name === 'MEDIA' ? '#F57C00' : 
+                '#2E7D32'
+              }; font-weight: bold;">${ticket.priority.name}</span>
+            </p>
+          ` : ''}
+        </div>
+      `,
+      width: '600px',
+      confirmButtonText: 'Cerrar',
+      confirmButtonColor: '#1976D2',
+    });
   }
 
   getClaseEstado(estado: string): string {
