@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { TicketService } from '../../services/ticket.service';
+import { UsuarioService } from '../../services/usuario.service';
+import { forkJoin } from 'rxjs';
 import { Ticket } from '../../interface/Ticket';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common'; // Añadido DatePipe para el template
@@ -47,6 +49,7 @@ export class ActualizarPeticion implements OnInit {
 
   constructor(
     private servicesticket: TicketService,
+    private usuarioService: UsuarioService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
@@ -54,47 +57,109 @@ export class ActualizarPeticion implements OnInit {
   ngOnInit(): void {
     this.idtick = Number(this.route.snapshot.paramMap.get('id'));
 
-    // Cargar todos los tickets y extraer listas únicas PRIMERO
-    this.servicesticket.getAll().subscribe((tickets) => {
-      this.datosimportados = tickets;
-      console.log('📦 Todos los tickets importados:', this.datosimportados);
+    // Cargar usuarios y tickets en paralelo para evitar sobrescrituras y condiciones de carrera
+    forkJoin({ users: this.usuarioService.getAll(), tickets: this.servicesticket.getAll() }).subscribe(
+      ({ users, tickets }) => {
+        // Mapear usuarios del servicio (defensivo con posibles nombres de campo distintos)
+        this.usuariosDisponibles = (users || []).map((u: any) => ({
+          id_usuario: u.id_usuario ?? u.idUsuario ?? u.id ?? 0,
+          nombre:
+            u.nombre ??
+            u.nombres ??
+            (u.nombres ? `${u.nombres} ${u.apellidos ?? ''}`.trim() : '') ??
+            '',
+        }));
 
-      this.estadosDisponibles = this.extraerEstadosUnicos();
-      this.prioridadesDisponibles = this.extraerPrioridadesUnicas();
-      this.usuariosDisponibles = this.extraerUsuariosUnicos();
-      this.equiposDisponibles = this.extraerEquiposUnicos();
+        // Tickets
+        this.datosimportados = tickets || [];
+        console.log('📦 Todos los tickets importados:', this.datosimportados);
 
-      // 🚀 UNA VEZ QUE LAS LISTAS Y LOS DATOS BASE ESTÁN CARGADOS:
-      // Cargar el ticket seleccionado si el ID existe.
-      if (this.idtick) {
-        this.servicesticket.getById(this.idtick).subscribe((ticket) => {
-          // Asignar los datos del ticket con valores por defecto si son nulos
-          this.datosticket = {
-            ...ticket,
-            // Aseguramos que todas las sub-propiedades existan o tengan un valor por defecto seguro
-            status: ticket.status ?? { id_status: 0, nombre: '' },
-            priority: ticket.priority ?? { id_priority: 0, name: '' },
-            usuario_creador: ticket.usuario_creador ?? { id_usuario: 0, nombre: '' },
-            usuario_asignado: ticket.usuario_asignado ?? { id_usuario: 0, nombre: '' },
-            equipoAfectado: ticket.equipoAfectado ?? {
-              id: 0,
-              serial: '',
-              product: { id: 0, name: '' },
-            },
-            // Aseguramos que id_ticket se mapee correctamente
-            id_ticket: ticket.id_ticket ?? this.idtick,
-          };
+        this.estadosDisponibles = this.extraerEstadosUnicos();
+        this.prioridadesDisponibles = this.extraerPrioridadesUnicas();
 
-          // ✅ Inicializar los IDs seleccionados *después* de que this.datosticket se ha cargado.
-          this.selectedStatusId = this.datosticket.status?.id_status ?? 0;
-          this.selectedPriorityId = this.datosticket.priority?.id_priority ?? 0;
-          this.selectedUsuarioId = this.datosticket.usuario_asignado?.id_usuario ?? 0;
-          this.selectedEquipoId = this.datosticket.equipoAfectado?.id ?? 0;
-
-          console.log('✅ Ticket seleccionado:', this.datosticket);
+        // Fusionar usuarios extraídos de tickets con los usuarios obtenidos del servicio
+        const usuariosFromTickets = this.extraerUsuariosUnicos();
+        const merged = [...this.usuariosDisponibles];
+        usuariosFromTickets.forEach((ut) => {
+          if (!merged.some((m) => m.id_usuario === ut.id_usuario)) merged.push(ut);
         });
+        this.usuariosDisponibles = merged;
+
+        this.equiposDisponibles = this.extraerEquiposUnicos();
+
+        // Cargar el ticket seleccionado si el ID existe.
+        if (this.idtick) {
+          this.servicesticket.getById(this.idtick).subscribe((ticket) => {
+              // Normalizar campos del usuario asignado y creador para soportar varias formas
+              const tAny: any = ticket as any;
+              const usuarioAsignadoRaw: any = tAny.usuario_asignado ?? tAny.usuarioAsignado ?? tAny.usuarioAsignadoDTO ?? {};
+              const usuarioCreadorRaw: any = tAny.usuario_creador ?? tAny.usuarioCreador ?? {};
+
+              const usuarioAsignadoNorm = {
+                id_usuario:
+                  usuarioAsignadoRaw.id_usuario ?? usuarioAsignadoRaw.idUsuario ?? usuarioAsignadoRaw.id ?? 0,
+                nombre:
+                  usuarioAsignadoRaw.nombre ?? usuarioAsignadoRaw.nombres ?? usuarioAsignadoRaw.cedula ?? '' ,
+              };
+
+              const usuarioCreadorNorm = {
+                id_usuario:
+                  usuarioCreadorRaw.id_usuario ?? usuarioCreadorRaw.idUsuario ?? usuarioCreadorRaw.id ?? 0,
+                nombre: usuarioCreadorRaw.nombre ?? usuarioCreadorRaw.nombres ?? usuarioCreadorRaw.cedula ?? '',
+              };
+
+              this.datosticket = {
+                ...ticket,
+                status: ticket.status ?? { id_status: 0, nombre: '' },
+                priority: ticket.priority ?? { id_priority: 0, name: '' },
+                usuario_creador: usuarioCreadorNorm,
+                usuario_asignado: usuarioAsignadoNorm,
+                equipoAfectado: ticket.equipoAfectado ?? {
+                  id: 0,
+                  serial: '',
+                  product: { id: 0, name: '' },
+                },
+                id_ticket: ticket.id_ticket ?? this.idtick,
+              };
+
+              // Inicializar los IDs seleccionados después de que this.datosticket se ha cargado
+              this.selectedStatusId = this.datosticket.status?.id_status ?? 0;
+              this.selectedPriorityId = this.datosticket.priority?.id_priority ?? 0;
+              this.selectedEquipoId = this.datosticket.equipoAfectado?.id ?? 0;
+
+              // Intentar preseleccionar el usuario asignado.
+              // Primero usamos el id normalizado; si es 0/undefined, intentamos hacer match por 'cedula' o 'nombre'.
+              const asignadoRaw: any = usuarioAsignadoRaw || {};
+              let assignedId = this.datosticket.usuario_asignado?.id_usuario ?? 0;
+              if (!assignedId || assignedId === 0) {
+                // buscar por coincidencia en nombre/cedula entre usuariosDisponibles
+                const found = this.usuariosDisponibles.find((u) => {
+                  if (!u.nombre) return false;
+                  // comparar con cedula o nombre del objeto crudo
+                  return (
+                    (asignadoRaw.cedula && u.nombre === asignadoRaw.cedula) ||
+                    (asignadoRaw.nombre && u.nombre === asignadoRaw.nombre) ||
+                    (asignadoRaw.nombres && u.nombre === `${asignadoRaw.nombres} ${asignadoRaw.apellidos ?? ''}`.trim())
+                  );
+                });
+                if (found) assignedId = found.id_usuario;
+              }
+              this.selectedUsuarioId = assignedId ?? 0;
+
+              // Si el usuario asignado (por id) no aparece en la lista, lo añadimos para que el select pueda mostrarlo
+              const asignado = this.datosticket.usuario_asignado;
+              if (asignado && asignado.id_usuario) {
+                const exists = this.usuariosDisponibles.some((u) => u.id_usuario === asignado.id_usuario);
+                if (!exists) {
+                  this.usuariosDisponibles.push({ id_usuario: asignado.id_usuario, nombre: asignado.nombre ?? '' });
+                }
+              }
+
+              console.log('✅ Ticket seleccionado (normalizado):', this.datosticket);
+          });
+        }
       }
-    });
+    );
   }
 
   // Métodos de extracción (sin cambios, se conservan)
