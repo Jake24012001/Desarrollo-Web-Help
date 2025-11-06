@@ -213,6 +213,19 @@
   font-family: 'Courier New', monospace;
   font-size: 0.8rem;
   color: var(--text-medium);
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.tiempo-excedido {
+  color: #D32F2F !important;
+  font-weight: 700 !important;
+  animation: parpadeo 2s ease-in-out infinite;
+}
+
+@keyframes parpadeo {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 /* Prioridad - solo texto con color */

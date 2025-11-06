@@ -50,7 +50,9 @@
                 {{ item.priority?.name || '—' }}
               </span>
             </td>
-            <td class="text-nowrap tiempo-cell">{{ item.tiempoRestante || '—' }}</td>
+            <td class="text-nowrap tiempo-cell" [class.tiempo-excedido]="tiempoExcedido(item)">
+              {{ item.tiempoRestante || '—' }}
+            </td>
             <td>
               <div class="btn-group-actions">
                 <button class="btn-action btn-edit" (click)="modificarPeticion(item)" title="Editar">

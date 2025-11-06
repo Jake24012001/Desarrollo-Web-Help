@@ -9,6 +9,7 @@ export interface Ticket {
   priority?: {
     id_priority?: number;
     name?: string;
+    resolutionTimeHours?: number;
   };
   usuario_creador?: {
     id_usuario?: number;

@@ -375,4 +375,22 @@ export class VistaPrincipal implements OnInit, OnDestroy {
   isValidDate(date: any): boolean {
     return date && !isNaN(new Date(date).getTime());
   }
+
+  // Verificar si el tiempo de resolución se ha excedido
+  tiempoExcedido(ticket: Ticket): boolean {
+    if (!ticket.fecha_creacion || !ticket.priority?.resolutionTimeHours) {
+      return false;
+    }
+
+    const fechaCreacion = new Date(ticket.fecha_creacion);
+    if (isNaN(fechaCreacion.getTime())) {
+      return false;
+    }
+
+    const ahora = Date.now();
+    const tiempoTranscurridoMs = ahora - fechaCreacion.getTime();
+    const horasTranscurridas = tiempoTranscurridoMs / (1000 * 60 * 60);
+
+    return horasTranscurridas > ticket.priority.resolutionTimeHours;
+  }
 }
