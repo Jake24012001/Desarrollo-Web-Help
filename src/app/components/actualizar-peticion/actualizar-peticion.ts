@@ -28,7 +28,7 @@ export class ActualizarPeticion implements OnInit {
     priority: { id_priority: 0, name: '' },
     usuario_creador: { id_usuario: 0, nombre: '' },
     usuario_asignado: { id_usuario: 0, nombre: '' },
-    equipoAfectado: { id: 0, serial: '', product: { id: 0, name: '' } },
+    equipoAfectado: { id: 0, serial: '', product: { id: 0, name: '', brand: '', model: '' } },
   };
   
   datosimportados: Ticket[] = [];
@@ -46,7 +46,7 @@ export class ActualizarPeticion implements OnInit {
   equiposDisponibles: {
     id: number;
     serial: string;
-    product: { id: number; name: string };
+    product: { id: number; name: string; brand?: string; model?: string };
   }[] = [];
 
   constructor(

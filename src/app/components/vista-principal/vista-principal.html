@@ -41,7 +41,20 @@
               </button>
             </td>
             <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
-            <td class="td-truncate">{{ item.equipoAfectado?.product?.name || '—' }}</td>
+            <td class="td-truncate">
+              <span *ngIf="item.equipoAfectado?.product">
+                {{ item.equipoAfectado?.product?.name || '—' }}
+                <span *ngIf="item.equipoAfectado?.product?.brand || item.equipoAfectado?.product?.model" class="equipo-detalles">
+                  <br>
+                  <small class="text-muted">
+                    <span *ngIf="item.equipoAfectado?.product?.brand">{{ item.equipoAfectado?.product?.brand }}</span>
+                    <span *ngIf="item.equipoAfectado?.product?.brand && item.equipoAfectado?.product?.model"> - </span>
+                    <span *ngIf="item.equipoAfectado?.product?.model">{{ item.equipoAfectado?.product?.model }}</span>
+                  </small>
+                </span>
+              </span>
+              <span *ngIf="!item.equipoAfectado?.product">—</span>
+            </td>
             <td>{{ item.usuario_creador?.nombre || '—' }}</td>
             <td>
               <span class="prioridad-text" [class.prioridad-alta]="item.priority?.name === 'ALTA'"
@@ -109,7 +122,20 @@
               </button>
             </td>
             <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
-            <td class="td-truncate">{{ item.equipoAfectado?.product?.name || '—' }}</td>
+            <td class="td-truncate">
+              <span *ngIf="item.equipoAfectado?.product">
+                {{ item.equipoAfectado?.product?.name || '—' }}
+                <span *ngIf="item.equipoAfectado?.product?.brand || item.equipoAfectado?.product?.model" class="equipo-detalles">
+                  <br>
+                  <small class="text-muted">
+                    <span *ngIf="item.equipoAfectado?.product?.brand">{{ item.equipoAfectado?.product?.brand }}</span>
+                    <span *ngIf="item.equipoAfectado?.product?.brand && item.equipoAfectado?.product?.model"> - </span>
+                    <span *ngIf="item.equipoAfectado?.product?.model">{{ item.equipoAfectado?.product?.model }}</span>
+                  </small>
+                </span>
+              </span>
+              <span *ngIf="!item.equipoAfectado?.product">—</span>
+            </td>
             <td>{{ item.usuario_creador?.nombre || '—' }}</td>
             <td>
               <span class="prioridad-text" [class.prioridad-alta]="item.priority?.name === 'ALTA'"

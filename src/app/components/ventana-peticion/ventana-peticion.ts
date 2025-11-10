@@ -51,6 +51,8 @@ export class VentanaPeticion implements OnInit {
     product: {
       id: number;
       name: string;
+      brand?: string;
+      model?: string;
     };
   } | null = null;
 
@@ -191,5 +193,28 @@ export class VentanaPeticion implements OnInit {
         estadoElemento.style.backgroundColor = 'transparent';
         estadoElemento.style.color = '#333';
     }
+  }
+
+  // Formatear el texto del equipo para el select
+  formatearEquipo(equipo: InventoryUnit): string {
+    let texto = '';
+    
+    // Solo agregar serial si existe y no es null
+    if (equipo.serial && equipo.serial.trim() !== '' && equipo.serial !== 'null') {
+      texto = `${equipo.serial} - `;
+    }
+    
+    // Agregar nombre del producto
+    texto += equipo.product.name;
+    
+    // Agregar marca y modelo si existen
+    if (equipo.product.brand || equipo.product.model) {
+      const detalles: string[] = [];
+      if (equipo.product.brand) detalles.push(equipo.product.brand);
+      if (equipo.product.model) detalles.push(equipo.product.model);
+      texto += ` (${detalles.join(' - ')})`;
+    }
+    
+    return texto;
   }
 }

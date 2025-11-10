@@ -25,6 +25,8 @@ export interface Ticket {
     product?: {
       id?: number;
       name?: string;
+      brand?: string;
+      model?: string;
     };
   };
   fecha_creacion?: string;

@@ -331,6 +331,13 @@ export class VistaPrincipal implements OnInit, OnDestroy {
           ${ticket.equipoAfectado?.product?.name ? `
             <p style="margin-top: 15px;">
               <strong>Equipo afectado:</strong> ${ticket.equipoAfectado.product.name}
+              ${ticket.equipoAfectado.product.brand || ticket.equipoAfectado.product.model ? `
+                <br><small style="color: #757575; font-style: italic;">
+                  ${ticket.equipoAfectado.product.brand || ''} 
+                  ${ticket.equipoAfectado.product.brand && ticket.equipoAfectado.product.model ? ' - ' : ''}
+                  ${ticket.equipoAfectado.product.model || ''}
+                </small>
+              ` : ''}
             </p>
           ` : ''}
           ${ticket.usuario_asignado?.nombre ? `

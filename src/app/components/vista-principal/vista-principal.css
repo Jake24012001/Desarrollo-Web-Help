@@ -161,6 +161,30 @@
   white-space: nowrap;
 }
 
+/* Celda de equipo con modelo y marca */
+.td-equipo {
+  max-width: 200px;
+}
+
+.equipo-nombre {
+  font-weight: 600;
+  color: var(--text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.equipo-detalles {
+  display: block;
+  margin-top: 2px;
+}
+
+.equipo-detalles small {
+  font-size: 0.75rem;
+  color: var(--text-medium);
+  font-style: italic;
+}
+
 /* Celda de descripción con botón de ver más */
 .td-descripcion {
   max-width: 220px;

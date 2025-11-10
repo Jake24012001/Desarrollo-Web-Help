@@ -44,9 +44,13 @@
       <div class="form-group mb-3">
         <label for="equipo" class="form-label">Equipos disponibles:</label>
         <div class="d-flex gap-2">
-          <select id="equipo" class="form-select" [(ngModel)]="equipoSeleccionado" name="equipo" required>
-            <option value="" disabled selected *ngIf="!equiposFiltrados || equiposFiltrados.length === 0">-- Selecciona una categoría --</option>
-            <option *ngFor="let equipo of equiposFiltrados" [ngValue]="equipo">{{ equipo.serial }} - {{ equipo.product.name }}</option>
+          <select id="equipo" class="form-select equipo-select" [(ngModel)]="equipoSeleccionado" name="equipo" required>
+            <option value="" disabled selected *ngIf="!equiposFiltrados || equiposFiltrados.length === 0">
+              ── Selecciona una categoría primero ──
+            </option>
+            <option *ngFor="let equipo of equiposFiltrados" [ngValue]="equipo">
+              {{ formatearEquipo(equipo) }}
+            </option>
           </select>
         </div>
       </div>

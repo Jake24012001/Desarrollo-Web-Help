@@ -45,7 +45,12 @@
                         <label for="select-equipo" class="form-label">Equipo Afectado</label>
                         <select id="select-equipo" class="form-select" [(ngModel)]="selectedEquipoId" (change)="actualizarEquipoAfectado()" name="equipoId" required>
                             <option [value]="0">N/A - Sin Equipo Afectado</option>
-                            <option *ngFor="let equipo of equiposDisponibles" [value]="equipo.id">{{ equipo.serial }} ({{ equipo.product.name }})</option>
+                            <option *ngFor="let equipo of equiposDisponibles" [value]="equipo.id">
+                                {{ equipo.serial }} ({{ equipo.product.name }})
+                                <span *ngIf="equipo.product.brand || equipo.product.model">
+                                    - {{ equipo.product.brand }}{{ equipo.product.brand && equipo.product.model ? ' ' : '' }}{{ equipo.product.model }}
+                                </span>
+                            </option>
                         </select>
                     </div>
 

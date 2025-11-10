@@ -1,13 +1,200 @@
 /* Estilos: ajustes para formulario y estados */
 
+/* Card principal */
+.card {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%) !important;
+  border: none;
+  padding: 20px 24px;
+  border-bottom: 3px solid #0D47A1;
+}
+
+.card-header h5 {
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.card-body {
+  padding: 30px;
+  background-color: #FAFAFA;
+}
+
 .btn-primary,
 .btn-primary:hover,
 .btn-primary:active,
 .btn-primary:focus,
 .bg-primary {
-  background-color: #004a97 !important;
-  border-color: #004a97 !important;
+  background-color: #1976D2 !important;
+  border-color: #1976D2 !important;
   color: white !important;
+}
+
+/* Estilo mejorado para select de equipos */
+#equipo,
+.equipo-select {
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  border: 2px solid #BBDEFB;
+  border-radius: 10px;
+  background: linear-gradient(to bottom, #FFFFFF 0%, #F5F9FF 100%);
+  color: #212121;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 6px rgba(25, 118, 210, 0.12);
+  cursor: pointer;
+  min-height: 48px;
+}
+
+#equipo:hover,
+.equipo-select:hover {
+  border-color: #42A5F5;
+  box-shadow: 0 5px 12px rgba(25, 118, 210, 0.2);
+  transform: translateY(-1px);
+}
+
+#equipo:focus,
+.equipo-select:focus {
+  outline: none;
+  border-color: #1976D2;
+  box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.25);
+  background: linear-gradient(to bottom, #FAFAFA 0%, #F0F7FF 100%);
+}
+
+/* Estilo para las opciones del select - simulando tabla */
+#equipo option,
+.equipo-select option {
+  padding: 14px 18px;
+  font-size: 0.9rem;
+  background-color: white;
+  color: #212121;
+  border-bottom: 1px solid #E0E0E0;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+#equipo option:hover,
+#equipo option:focus,
+.equipo-select option:hover,
+.equipo-select option:focus {
+  background: linear-gradient(to right, #E3F2FD 0%, #BBDEFB 100%);
+  color: #0D47A1;
+  font-weight: 600;
+}
+
+#equipo option:checked,
+.equipo-select option:checked {
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+  color: white;
+  font-weight: 700;
+  border-left: 4px solid #0D47A1;
+}
+
+/* Opción disabled (placeholder) - estilo mejorado */
+#equipo option:disabled,
+.equipo-select option:disabled {
+  color: #9E9E9E;
+  font-style: italic;
+  background-color: #F5F5F5;
+  text-align: center;
+  font-size: 0.92rem;
+}
+
+/* Mejora para todos los selects del formulario */
+.form-select {
+  border: 2px solid #E3F2FD;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(25, 118, 210, 0.08);
+}
+
+.form-select:hover {
+  border-color: #90CAF9;
+  box-shadow: 0 4px 8px rgba(25, 118, 210, 0.12);
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: #1976D2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+  background-color: #FAFAFA;
+}
+
+/* Inputs del formulario */
+.form-control {
+  border: 2px solid #E3F2FD;
+  border-radius: 8px;
+  padding: 10px 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(25, 118, 210, 0.08);
+}
+
+.form-control:hover {
+  border-color: #90CAF9;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #1976D2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+  background-color: #FAFAFA;
+}
+
+/* Labels */
+.form-label {
+  font-weight: 600;
+  color: #1565C0;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+/* Botones mejorados */
+.btn {
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
+}
+
+.btn-outline-secondary {
+  border: 2px solid #9E9E9E;
+  color: #616161;
+  background-color: white;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #757575;
+  color: white;
+  border-color: #757575;
 }
 
 /* Badges/estados */
