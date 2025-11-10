@@ -41,7 +41,7 @@ export class VentanaPeticion implements OnInit {
   datosFiltradosPendientes: any[] = [];
 
   // Valores de formulario / selecciones
-  usuarioSeleccionado: { id_usuario: number; nombre: string } | null = null;
+  usuarioSeleccionado: Usuario | null = null;
 
   usuarioSeleccionados: { id: UsuarioRol; usuario: Usuario; rol: Rol } | null = null;
 
@@ -153,9 +153,47 @@ export class VentanaPeticion implements OnInit {
       return;
     }
 
-    this.equiposFiltrados = this.equiposInventario.filter(
-      (equipo) => equipo.product?.type === this.productoSeleccionado
-    );
+    console.log('=== FILTRADO DE EQUIPOS ===');
+    console.log('Usuario seleccionado:', this.usuarioSeleccionado);
+    console.log('Producto/Tipo seleccionado:', this.productoSeleccionado);
+
+    // Filtrar por tipo de producto y por custodio del usuario seleccionado
+    this.equiposFiltrados = this.equiposInventario.filter((equipo) => {
+      const coincideTipo = equipo.product?.type === this.productoSeleccionado;
+      
+      // Si hay usuario seleccionado, filtrar por custodio
+      if (this.usuarioSeleccionado) {
+        // Usar el campo 'nombre' del usuario (que contiene la cédula) para comparar
+        // con la cédula del custodio, ya que en el sistema el nombre de usuario es la cédula
+        const cedulaUsuario = this.usuarioSeleccionado.cedula || this.usuarioSeleccionado.nombre;
+        const cedulaCustodian = equipo.custodian?.cedula;
+        const coincideCustodio = cedulaCustodian === cedulaUsuario;
+        
+        console.log(`Equipo ${equipo.id}: tipo=${equipo.product?.type}, custodian=${cedulaCustodian}, coincideTipo=${coincideTipo}, coincideCustodio=${coincideCustodio}, cedulaUsuario=${cedulaUsuario}`);
+        
+        return coincideTipo && coincideCustodio;
+      }
+      
+      // Si no hay usuario, no mostrar equipos
+      return false;
+    });
+
+    console.log(`Equipos filtrados: ${this.equiposFiltrados.length}`);
+    console.log('=== FIN FILTRADO ===');
+
+    // Limpiar selección de equipo si ya no está en la lista filtrada
+    if (this.equipoSeleccionado && 
+        !this.equiposFiltrados.find(e => e.id === this.equipoSeleccionado?.id)) {
+      this.equipoSeleccionado = null;
+    }
+  }
+
+  // Filtrar equipos cuando se selecciona un usuario
+  onUsuarioChange(): void {
+    // Resetear categoría y equipos al cambiar de usuario
+    this.productoSeleccionado = '';
+    this.equipoSeleccionado = null;
+    this.equiposFiltrados = [];
   }
 
   mostrarFormEquipo(): void {
