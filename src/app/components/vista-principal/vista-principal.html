@@ -40,20 +40,7 @@
                 <i class="bi bi-eye"></i>
               </button>
             </td>
-            <td>
-              <select 
-                class="form-select form-select-sm" 
-                [value]="item.usuario_asignado?.nombre || ''" 
-                (change)="asignarTrabajo(item, $event)"
-                [disabled]="!usuariosAsignables || usuariosAsignables.length === 0"
-                title="Solo Admin y Agente pueden ser asignados"
-              >
-                <option value="">-- Sin asignar --</option>
-                <option *ngFor="let usuario of usuariosAsignables" [value]="usuario.nombre" [selected]="item.usuario_asignado?.nombre === usuario.nombre">
-                  {{ usuario.nombre }}
-                </option>
-              </select>
-            </td>
+            <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
             <td class="td-truncate">
               <span *ngIf="item.equipoAfectado?.product">
                 {{ item.equipoAfectado?.product?.name || '—' }}
@@ -70,20 +57,11 @@
             </td>
             <td>{{ item.usuario_creador?.nombre || '—' }}</td>
             <td>
-              <select 
-                class="form-select form-select-sm prioridad-select" 
-                [value]="item.priority?.name || ''" 
-                (change)="cambiarPrioridad(item, $event)"
-                [disabled]="!ticketPrioridades || ticketPrioridades.length === 0"
-                [class.prioridad-alta-bg]="item.priority?.name === 'ALTA'"
-                [class.prioridad-media-bg]="item.priority?.name === 'MEDIA'"
-                [class.prioridad-baja-bg]="item.priority?.name === 'BAJA'"
-              >
-                <option value="">-- Sin prioridad --</option>
-                <option *ngFor="let prioridad of ticketPrioridades" [value]="prioridad.name" [selected]="item.priority?.name === prioridad.name">
-                  {{ prioridad.name }}
-                </option>
-              </select>
+              <span class="prioridad-text" [class.prioridad-alta]="item.priority?.name === 'ALTA'"
+                [class.prioridad-media]="item.priority?.name === 'MEDIA'"
+                [class.prioridad-baja]="item.priority?.name === 'BAJA'">
+                {{ item.priority?.name || '—' }}
+              </span>
             </td>
             <td class="text-nowrap tiempo-cell" [class.tiempo-excedido]="tiempoExcedido(item)">
               {{ item.tiempoRestante || '—' }}
@@ -181,3 +159,10 @@
     </div>
   </div>
 
+  <!-- Botón crear -->
+  <div class="d-flex justify-content-end my-3">
+    <button class="btn btn-success btn-crear shadow" (click)="crearPeticion()">
+      <i class="bi bi-plus-circle me-2"></i> Crear Nuevo Ticket
+    </button>
+  </div>
+</div>
