@@ -33,6 +33,14 @@ export class TicketService {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
+  // Actualizar calificación de un ticket
+  actualizarCalificacion(id: number, puntuacion: number, comentario: string): Observable<Ticket> {
+    return this.http.patch<Ticket>(`${this.apiUrl}/${id}/calificacion`, {
+      puntuacion,
+      comentario_calificacion: comentario
+    });
+  }
+
   createFromPeticion(ticketData: {
     title: string;
     descripcion: string;

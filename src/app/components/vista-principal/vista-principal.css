@@ -406,6 +406,50 @@
   border-color: var(--primary-dark);
 }
 
+/* Dropdowns de asignación en la tabla */
+.tabla-tickets .form-select-sm {
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  min-width: 150px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.tabla-tickets .form-select-sm:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+.tabla-tickets .form-select-sm:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
+  outline: none;
+}
+
+/* Estilos para select de prioridad con colores */
+.prioridad-select.prioridad-alta-bg {
+  background-color: #FFEBEE;
+  border-color: #F44336;
+  color: #C62828;
+  font-weight: 600;
+}
+
+.prioridad-select.prioridad-media-bg {
+  background-color: #FFF3E0;
+  border-color: #FF9800;
+  color: #E65100;
+  font-weight: 600;
+}
+
+.prioridad-select.prioridad-baja-bg {
+  background-color: #E8F5E9;
+  border-color: #4CAF50;
+  color: #2E7D32;
+  font-weight: 600;
+}
+
 /* Responsive: ajustes para pantallas pequeñas */
 @media (max-width: 1200px) {
   .tabla-tickets {
