@@ -6,8 +6,14 @@ import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 
 import { TicketService } from '../../services/ticket.service';
+import { UsuarioService } from '../../services/usuario.service';
+import { UsuarioRolService } from '../../services/usuariorol.service';
+import { TicketPriorityService } from '../../services/ticket-priority.service';
 import { Ticket } from '../../interface/Ticket';
-import { Environment } from '../../environments/environment'; // agregado como variable global
+import { Usuario } from '../../interface/Usuario';
+import { UsuarioRol } from '../../interface/UsuarioRol';
+import { TicketPriority } from '../../interface/TicketPriority';
+import { Environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-vista-principal',
@@ -42,15 +48,67 @@ export class VistaPrincipal implements OnInit, OnDestroy {
   datosFiltradosPendientes: Ticket[] = [];
   datosResueltos: Ticket[] = [];
 
+  // Datos para asignación
+  usuarios: Usuario[] = [];
+  usuariosAsignables: Usuario[] = []; // Solo Admin y Agente
+  ticketPrioridades: TicketPriority[] = [];
+
   // Temporizadores y control por petición
   temporizadorPlaceholder: any;
   temporizadoresPorPeticion = new Map<number, any>();
 
   // Constructor
-  constructor(private router: Router, private servicios: TicketService) {}
+  constructor(
+    private router: Router, 
+    private servicios: TicketService,
+    private usuarioService: UsuarioService,
+    private usuarioRolService: UsuarioRolService,
+    private ticketPriorityService: TicketPriorityService
+  ) {}
 
   // Lifecycle: carga inicial y limpieza
   ngOnInit(): void {
+    // Cargar usuarios para asignación
+    this.usuarioService.getAll().subscribe({
+      next: (usuarios) => {
+        this.usuarios = usuarios;
+      },
+      error: (err) => console.error('Error al cargar usuarios:', err)
+    });
+
+    // Cargar relaciones usuario-rol para filtrar solo Admin y Agente
+    this.usuarioRolService.getAll().subscribe({
+      next: (usuarioRoles: UsuarioRol[]) => {
+        // Filtrar usuarios que tengan rol "Admin" o "Agente"
+        const idsUsuariosAsignables = usuarioRoles
+          .filter(ur => {
+            const nombreRol = ur.rol?.nombre?.toLowerCase();
+            return nombreRol === 'admin' || 
+                   nombreRol === 'administrador' || 
+                   nombreRol === 'agente';
+          })
+          .map(ur => ur.usuario?.idUsuario)
+          .filter(id => id !== undefined);
+
+        // Filtrar array de usuarios para obtener solo los asignables
+        this.usuariosAsignables = this.usuarios.filter(u => 
+          u.idUsuario !== undefined && idsUsuariosAsignables.includes(u.idUsuario)
+        );
+
+        console.log('Usuarios asignables (Admin/Agente):', this.usuariosAsignables);
+      },
+      error: (err) => console.error('Error al cargar roles de usuarios:', err)
+    });
+
+    // Cargar prioridades
+    this.ticketPriorityService.getAll().subscribe({
+      next: (prioridades) => {
+        this.ticketPrioridades = prioridades;
+      },
+      error: (err) => console.error('Error al cargar prioridades:', err)
+    });
+
+    // Cargar tickets
     this.servicios.getAll().subscribe((tickets) => {
       this.datosFiltrados = tickets.map((p: Ticket) => ({
         ...p,
@@ -399,5 +457,117 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     const horasTranscurridas = tiempoTranscurridoMs / (1000 * 60 * 60);
 
     return horasTranscurridas > ticket.priority.resolutionTimeHours;
+  }
+
+  // Asignar trabajo a un ticket
+  asignarTrabajo(ticket: Ticket, event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    const nombreUsuario = selectElement.value;
+
+    if (!nombreUsuario) {
+      return;
+    }
+
+    // Buscar en usuariosAsignables (solo Admin y Agente)
+    const usuarioSeleccionado = this.usuariosAsignables.find(u => u.nombre === nombreUsuario);
+    
+    if (!usuarioSeleccionado) {
+      Swal.fire('Error', 'No se pudo encontrar el usuario seleccionado. Solo Admin y Agente pueden ser asignados.', 'error');
+      return;
+    }
+
+    if (!ticket.id_ticket) {
+      Swal.fire('Error', 'El ticket no tiene ID válido', 'error');
+      return;
+    }
+
+    // Actualizar el ticket con el usuario asignado
+    const ticketActualizado: Ticket = {
+      ...ticket,
+      usuario_asignado: {
+        id_usuario: usuarioSeleccionado.idUsuario,
+        nombre: usuarioSeleccionado.nombre
+      }
+    };
+
+    this.servicios.update(ticket.id_ticket, ticketActualizado).subscribe({
+      next: (ticketGuardado) => {
+        // Actualizar en el array local
+        const index = this.datosFiltrados.findIndex(t => t.id_ticket === ticket.id_ticket);
+        if (index !== -1) {
+          this.datosFiltrados[index] = ticketGuardado;
+          this.actualizarListas();
+          this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
+        }
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Asignado',
+          text: `Ticket asignado a ${nombreUsuario}`,
+          timer: 2000,
+          showConfirmButton: false
+        });
+      },
+      error: (err) => {
+        console.error('Error al asignar trabajo:', err);
+        Swal.fire('Error', 'No se pudo asignar el ticket', 'error');
+      }
+    });
+  }
+
+  // Cambiar prioridad de un ticket
+  cambiarPrioridad(ticket: Ticket, event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    const nombrePrioridad = selectElement.value;
+
+    if (!nombrePrioridad) {
+      return;
+    }
+
+    const prioridadSeleccionada = this.ticketPrioridades.find(p => p.name === nombrePrioridad);
+    
+    if (!prioridadSeleccionada) {
+      Swal.fire('Error', 'No se pudo encontrar la prioridad seleccionada', 'error');
+      return;
+    }
+
+    if (!ticket.id_ticket) {
+      Swal.fire('Error', 'El ticket no tiene ID válido', 'error');
+      return;
+    }
+
+    // Actualizar el ticket con la nueva prioridad
+    const ticketActualizado: Ticket = {
+      ...ticket,
+      priority: {
+        id_priority: prioridadSeleccionada.id_priority,
+        name: prioridadSeleccionada.name,
+        resolutionTimeHours: prioridadSeleccionada.resolutionTimeHours
+      }
+    };
+
+    this.servicios.update(ticket.id_ticket, ticketActualizado).subscribe({
+      next: (ticketGuardado) => {
+        // Actualizar en el array local
+        const index = this.datosFiltrados.findIndex(t => t.id_ticket === ticket.id_ticket);
+        if (index !== -1) {
+          this.datosFiltrados[index] = ticketGuardado;
+          this.actualizarListas();
+          this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
+        }
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Prioridad actualizada',
+          text: `Prioridad cambiada a ${nombrePrioridad}`,
+          timer: 2000,
+          showConfirmButton: false
+        });
+      },
+      error: (err) => {
+        console.error('Error al cambiar prioridad:', err);
+        Swal.fire('Error', 'No se pudo cambiar la prioridad', 'error');
+      }
+    });
   }
 }

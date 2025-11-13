@@ -32,6 +32,10 @@ export interface Ticket {
   fecha_creacion?: string;
   fecha_actualizacion?: string;
   fecha_cierre?: string;
+  
+  // Calificación del servicio por el cliente
+  puntuacion?: number;
+  comentario_calificacion?: string;
 
   tiempoRestante?: string;
 
