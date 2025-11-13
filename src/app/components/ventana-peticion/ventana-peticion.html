@@ -16,8 +16,8 @@
       <!-- Selección de usuario -->
       <div class="form-group mb-3">
         <label for="usuario" class="form-label">Selecciona un usuario:</label>
-        <select id="usuario" class="form-select" [(ngModel)]="usuarioSeleccionado" (change)="onUsuarioChange()" name="usuario" required>
-          <option [ngValue]="null" disabled selected>-- Selecciona --</option>
+        <select id="usuario" class="form-select" [(ngModel)]="usuarioSeleccionado" name="usuario" required>
+          <option value="" disabled selected>-- Selecciona --</option>
           <option *ngFor="let usuario of usuarios" [ngValue]="usuario">{{ usuario.nombre }}</option>
         </select>
       </div>
@@ -26,36 +26,27 @@
       <div class="form-group mb-3">
         <label for="asignarTrabajo" class="form-label">Asignar Trabajo</label>
         <select id="asignarTrabajo" class="form-select" [(ngModel)]="usuarioSeleccionados" name="usuario" required>
-          <option [ngValue]="null" disabled selected>-- Selecciona --</option>
+          <option value="" disabled selected>-- Selecciona --</option>
           <option *ngFor="let item of rolesus" [ngValue]="item">{{ item.rol.nombre }} - {{ item.usuario.nombre }}</option>
         </select>
       </div>
 
       <!-- Categoría de equipo y equipos disponibles -->
       <div class="form-group mb-3">
-        <label for="producto" class="form-label">
-          Categoría de equipo
-          <span *ngIf="!usuarioSeleccionado" class="text-muted small">(Selecciona un usuario primero)</span>
-        </label>
+        <label for="producto" class="form-label">Categoría de equipo</label>
         <select name="producto" id="producto" class="form-select" [(ngModel)]="productoSeleccionado"
-          (change)="filtrarEquiposPorTipo()" [disabled]="!usuarioSeleccionado" required>
+          (change)="filtrarEquiposPorTipo()" required>
           <option value="" disabled selected>-- Selecciona --</option>
           <option *ngFor="let producto of productosUnicos" [value]="producto.type">{{ producto.type }}</option>
         </select>
       </div>
 
       <div class="form-group mb-3">
-        <label for="equipo" class="form-label">
-          Equipos disponibles:
-          <span *ngIf="!usuarioSeleccionado" class="text-muted small">(Selecciona un usuario primero)</span>
-        </label>
+        <label for="equipo" class="form-label">Equipos disponibles:</label>
         <div class="d-flex gap-2">
-          <select id="equipo" class="form-select equipo-select" [(ngModel)]="equipoSeleccionado" 
-                  [disabled]="!usuarioSeleccionado || !productoSeleccionado" name="equipo" required>
-            <option [ngValue]="null" disabled selected *ngIf="!equiposFiltrados || equiposFiltrados.length === 0">
-              <span *ngIf="!usuarioSeleccionado">── Selecciona un usuario primero ──</span>
-              <span *ngIf="usuarioSeleccionado && !productoSeleccionado">── Selecciona una categoría primero ──</span>
-              <span *ngIf="usuarioSeleccionado && productoSeleccionado">── No hay equipos disponibles ──</span>
+          <select id="equipo" class="form-select equipo-select" [(ngModel)]="equipoSeleccionado" name="equipo" required>
+            <option value="" disabled selected *ngIf="!equiposFiltrados || equiposFiltrados.length === 0">
+              ── Selecciona una categoría primero ──
             </option>
             <option *ngFor="let equipo of equiposFiltrados" [ngValue]="equipo">
               {{ formatearEquipo(equipo) }}
