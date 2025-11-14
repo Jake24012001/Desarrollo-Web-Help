@@ -15,19 +15,29 @@
 
       <!-- Selección de usuario -->
       <div class="form-group mb-3">
-        <label for="usuario" class="form-label">Selecciona un usuario:</label>
-        <select id="usuario" class="form-select" [(ngModel)]="usuarioSeleccionado" name="usuario" required>
+        <label for="usuario" class="form-label">Usuario creador:</label>
+        <!-- Si es ADMIN, mostrar select para elegir usuario -->
+        <select *ngIf="authorizationService.isAdmin()" id="usuario" class="form-select" [(ngModel)]="usuarioSeleccionado" name="usuario" required>
           <option value="" disabled selected>-- Selecciona --</option>
-          <option *ngFor="let usuario of usuarios" [ngValue]="usuario">{{ usuario.nombre }}</option>
+            <option *ngFor="let usuario of usuarios" [ngValue]="usuario">{{ usuario.apellidos }} {{ usuario.nombres }} — {{ usuario.cedula }}</option>
         </select>
+        <!-- Si NO es ADMIN, mostrar textbox readonly con el usuario actual -->
+          <div *ngIf="!authorizationService.isAdmin()" class="form-control" style="background-color: #f8f9fa; padding: 10px;">
+            <div class="fw-bold">{{ usuarioSeleccionado?.apellidos }} {{ usuarioSeleccionado?.nombres }}</div>
+            <small class="text-muted">Cédula: {{ usuarioSeleccionado?.cedula }}</small>
+          </div>
+          <input *ngIf="!authorizationService.isAdmin()" type="hidden" name="usuario" [(ngModel)]="usuarioSeleccionado" />
       </div>
 
       <!-- Asignar trabajo (usuario+rol) -->
-      <div class="form-group mb-3">
+      <div class="form-group mb-3" *ngIf="authorizationService.isAdmin()">
         <label for="asignarTrabajo" class="form-label">Asignar Trabajo</label>
-        <select id="asignarTrabajo" class="form-select" [(ngModel)]="usuarioSeleccionados" name="usuario" required>
+        <select id="asignarTrabajo" class="form-select" [(ngModel)]="usuarioSeleccionados" name="usuarioAsignado">
           <option value="" disabled selected>-- Selecciona --</option>
-          <option *ngFor="let item of rolesus" [ngValue]="item">{{ item.rol.nombre }} - {{ item.usuario.nombre }}</option>
+          <!-- Mostrar solo usuarios con rol ADMIN o AGENTE -->
+          <option *ngFor="let item of getRolesAdminYAgente()" [ngValue]="item">
+            {{ item.rol.nombre }} - {{ item.usuario.nombre }}
+          </option>
         </select>
       </div>
 
@@ -72,7 +82,7 @@
 
       <!-- Acciones -->
       <div class="d-flex gap-2 pt-3">
-        <button type="submit" class="btn btn-primary btn-lg">Enviar</button>
+        <button type="button" class="btn btn-primary btn-lg" (click)="crearTicket()">Enviar</button>
         <button type="button" class="btn btn-outline-secondary btn-lg" (click)="cancelarAccion()">Cancelar</button>
       </div>
 

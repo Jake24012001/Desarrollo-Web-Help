@@ -1,0 +1,75 @@
+<div class="login-container">
+  <div class="login-box">
+    <div class="login-header">
+      <h2>Iniciar Sesión</h2>
+      <p>Sistema de Gestión de Tickets</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Error Messages -->
+      <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Error!</strong> {{ error }}
+        <button
+          type="button"
+          class="btn-close"
+          (click)="error = ''"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <!-- Email Field -->
+      <div class="mb-3">
+        <label for="email" class="form-label">Correo Electrónico</label>
+        <input
+          type="email"
+          class="form-control"
+          id="email"
+          formControlName="email"
+          placeholder="ejemplo@correo.com"
+          [class.is-invalid]="submitted && f['email'].errors"
+        />
+        <div class="invalid-feedback" *ngIf="submitted && f['email'].errors">
+          <span *ngIf="f['email'].errors['required']">El correo electrónico es requerido</span>
+          <span *ngIf="f['email'].errors['email']">Ingrese un correo electrónico válido</span>
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="mb-3">
+        <label for="clave" class="form-label">Contraseña</label>
+        <input
+          type="password"
+          class="form-control"
+          id="clave"
+          formControlName="clave"
+          placeholder="Ingrese su contraseña"
+          [class.is-invalid]="submitted && f['clave'].errors"
+        />
+        <div class="invalid-feedback" *ngIf="submitted && f['clave'].errors">
+          <span *ngIf="f['clave'].errors['required']">La contraseña es requerida</span>
+          <span *ngIf="f['clave'].errors['minlength']">La contraseña debe tener al menos 6 caracteres</span>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn btn-primary w-100"
+        [disabled]="loading"
+      >
+        <span *ngIf="!loading">Iniciar Sesión</span>
+        <span *ngIf="loading">
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Cargando...
+        </span>
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <p class="text-muted">
+        ¿Problemas al iniciar sesión?
+        <a href="#" class="text-decoration-none">Contacte al administrador</a>
+      </p>
+    </div>
+  </div>
+</div>

@@ -10,6 +10,9 @@ import { EquipoService } from '../../services/equipos.service';
 import { TicketService } from '../../services/ticket.service';
 import { UsuarioRolService } from '../../services/usuariorol.service';
 import { TicketPriorityService } from '../../services/ticket-priority.service';
+import { AuthService } from '../../services/auth.service';
+import { AuthorizationService } from '../../services/authorization.service';
+import { Environment } from '../../environments/environment';
 
 import { Usuario } from '../../interface/Usuario';
 import { InventoryUnit } from '../../interface/InventoryUnit';
@@ -18,7 +21,6 @@ import { Ticket } from '../../interface/Ticket';
 import { UsuarioRol } from '../../interface/UsuarioRol';
 import { TicketPriority } from '../../interface/TicketPriority';
 import { Rol } from '../../interface/Rol';
-import { Environment } from '../../environments/environment'; // constantes de entorno
 
 @Component({
   selector: 'app-ventana-peticion',
@@ -41,7 +43,7 @@ export class VentanaPeticion implements OnInit {
   datosFiltradosPendientes: any[] = [];
 
   // Valores de formulario / selecciones
-  usuarioSeleccionado: { id_usuario: number; nombre: string } | null = null;
+  usuarioSeleccionado: Usuario | null = null;
 
   usuarioSeleccionados: { id: UsuarioRol; usuario: Usuario; rol: Rol } | null = null;
 
@@ -71,13 +73,46 @@ export class VentanaPeticion implements OnInit {
     private ticketService: TicketService,
     private usuarioservicesR: UsuarioRolService,
     private ticketPriority: TicketPriorityService
+    , private authService: AuthService
+    , public authorizationService: AuthorizationService
   ) {}
 
   // Ciclo de vida
+  /**
+   * Inicializa datos necesarios para el formulario de creación:
+   * - carga usuarios, prioridades y equipos
+   * - rellena el usuario creador con el usuario autenticado si es posible
+   */
   ngOnInit(): void {
+    // Obtener usuario actual y rellenar el campo "usuario creador"
+    const currentUser = this.authService.getCurrentUser();
+    
     // Cargar lista de usuarios
     this.usuarioService.getAll().subscribe((usuarios) => {
       this.usuarios = usuarios;
+      
+      // Si hay un usuario autenticado, buscarlo en la lista
+      if (currentUser) {
+        const usuarioActual = usuarios.find(
+          (u) => u.idUsuario === currentUser.idUsuario || u.email === currentUser.email
+        );
+        if (usuarioActual) {
+          this.usuarioSeleccionado = usuarioActual;
+        } else {
+          // Si no lo encuentra, crear un objeto Usuario con los datos disponibles
+          this.usuarioSeleccionado = {
+            idUsuario: currentUser.idUsuario ?? 0,
+            nombres: currentUser.nombres,
+            apellidos: currentUser.apellidos,
+            email: currentUser.email,
+            cedula: '',
+            estado: currentUser.estado,
+            clave: '',
+            nombre: `${currentUser.nombres || ''} ${currentUser.apellidos || ''}`.trim(),
+            unidadAdministrativa: {},
+          };
+        }
+      }
     });
 
     // Cargar inventario de equipos
@@ -123,26 +158,113 @@ export class VentanaPeticion implements OnInit {
   }
 
   crearTicket(): void {
-    const nuevoTicket: Ticket = {
+    // Handler principal para crear tickets. Valida el formulario, construye
+    // el payload y delega en TicketService.create().
+    console.log('crearTicket() invoked');
+    // Validar campos requeridos
+    if (!this.tipoPeticion || !this.tipoPeticion.trim()) {
+      Swal.fire('Error', 'Por favor ingrese el tipo de petición.', 'error');
+      return;
+    }
+    if (!this.detallePeticion || !this.detallePeticion.trim()) {
+      Swal.fire('Error', 'Por favor ingrese el detalle de la petición.', 'error');
+      return;
+    }
+    if (!this.usuarioSeleccionado) {
+      Swal.fire('Error', 'Por favor seleccione un usuario creador.', 'error');
+      return;
+    }
+    if (!this.productoSeleccionado) {
+      Swal.fire('Error', 'Por favor seleccione una categoría de equipo.', 'error');
+      return;
+    }
+    if (!this.equipoSeleccionado) {
+      Swal.fire('Error', 'Por favor seleccione un equipo disponible.', 'error');
+      return;
+    }
+    if (!this.prioridadSeleccionada) {
+      Swal.fire('Error', 'Por favor seleccione una prioridad.', 'error');
+      return;
+    }
+
+    // Construir ticket base
+    const baseTicket: Ticket = {
       title: this.tipoPeticion,
       descripcion: this.detallePeticion,
       status: this.getEstadoPendiente(),
-      priority: this.prioridadSeleccionada ?? undefined,
-      usuario_creador: this.usuarioSeleccionado ?? undefined,
-      usuario_asignado: this.usuarioSeleccionados?.usuario ?? undefined,
-      equipoAfectado: this.equipoSeleccionado ?? undefined,
+      priority: this.prioridadSeleccionada,
+      usuario_creador: this.usuarioSeleccionado
+        ? ({ idUsuario: this.usuarioSeleccionado.idUsuario } as any)
+        : undefined,
+      equipoAfectado: this.equipoSeleccionado,
     };
 
-  // Enviar creación al backend
-  this.ticketService.create(nuevoTicket).subscribe({
-      next: (ticketCreado) => {
-        console.log('Ticket creado:', ticketCreado);
-        this.router.navigate(['/help-menu']);
-        // Aquí podrías redirigir, mostrar mensaje, etc.
-      },
-      error: (err) => {
-        console.error('Error al crear ticket:', err);
-      },
+    // Si el usuario es ADMIN, permite usar la selección de asignación
+    if (this.authorizationService.isAdmin()) {
+      const nuevoTicket: Ticket = {
+        ...baseTicket,
+        usuario_asignado: this.usuarioSeleccionados?.usuario
+          ? ({ idUsuario: this.usuarioSeleccionados.usuario.idUsuario } as any)
+          : undefined,
+      };
+      console.log('Payload POST (admin):', nuevoTicket);
+      this.ticketService.create(nuevoTicket).subscribe({
+        next: (ticketCreado) => {
+          console.log('Ticket creado (admin):', ticketCreado);
+          this.router.navigate(['/help-menu']);
+        },
+        error: (err) => {
+          console.error('Error al crear ticket (admin):', err);
+        },
+      });
+      return;
+    }
+
+    // Si no es admin (e.g., Cliente), no se permite seleccionar asignado.
+    // Asignar automáticamente al agente con menos tickets abiertos (si existen agentes)
+    this.ticketService.getAll().subscribe((allTickets) => {
+      const agentes = this.rolesus
+        .filter((r) => r.rol?.nombre?.toUpperCase() === 'AGENTE')
+        .map((r) => r.usuario)
+        .filter(Boolean);
+
+      if (agentes.length === 0) {
+        // No hay agentes registrados: crear sin asignado
+          const nuevoTicket: Ticket = { ...baseTicket, usuario_asignado: undefined };
+        this.ticketService.create(nuevoTicket).subscribe({
+          next: (ticketCreado) => {
+            console.log('Ticket creado (sin agentes):', ticketCreado);
+            this.router.navigate(['/help-menu']);
+          },
+          error: (err) => console.error('Error crear ticket (sin agentes):', err),
+        });
+        return;
+      }
+
+      const cargaPorAgente = agentes.map((agente) => ({
+        agente,
+        count: allTickets.filter(
+          (t) => (((t.usuario_asignado as any)?.idUsuario ?? t.usuario_asignado?.id_usuario) === agente.idUsuario) && t.status?.nombre === Environment.NOMBRE_STATUS_ABIERTO
+        ).length,
+      }));
+
+      cargaPorAgente.sort((a, b) => a.count - b.count);
+      const agenteElegido = cargaPorAgente[0]?.agente ?? null;
+
+      const nuevoTicket: Ticket = {
+        ...baseTicket,
+        usuario_asignado: agenteElegido
+          ? ({ idUsuario: agenteElegido.idUsuario } as any)
+          : undefined,
+      };
+      console.log('Payload POST (auto-assign):', nuevoTicket);
+      this.ticketService.create(nuevoTicket).subscribe({
+        next: (ticketCreado) => {
+          console.log('Ticket creado (auto-assign):', ticketCreado);
+          this.router.navigate(['/help-menu']);
+        },
+        error: (err) => console.error('Error crear ticket (auto-assign):', err),
+      });
     });
   }
 
@@ -153,9 +275,29 @@ export class VentanaPeticion implements OnInit {
       return;
     }
 
-    this.equiposFiltrados = this.equiposInventario.filter(
-      (equipo) => equipo.product?.type === this.productoSeleccionado
-    );
+    // Filtrar por tipo de producto Y por custodio del usuario creador
+    this.equiposFiltrados = this.equiposInventario.filter((equipo) => {
+      // Verificar que el tipo de producto coincida
+      const tipoCoincide = equipo.product?.type === this.productoSeleccionado;
+      if (!tipoCoincide) return false;
+
+      // Si no hay usuario seleccionado, no filtrar por custodio
+      if (!this.usuarioSeleccionado) return true;
+
+      // Verificar que el custodio coincida con el usuario creador (por email o cedula)
+      const custodio = equipo.custodian;
+      if (!custodio) return false;
+
+      const usuarioEmail = this.usuarioSeleccionado.email?.toLowerCase() || '';
+      const usuarioCedula = this.usuarioSeleccionado.cedula?.toLowerCase() || '';
+      const custodioEmail = custodio.correo?.toLowerCase() || '';
+      const custodioCedula = custodio.cedula?.toLowerCase() || '';
+
+      return (
+        (usuarioEmail && usuarioEmail === custodioEmail) ||
+        (usuarioCedula && usuarioCedula === custodioCedula)
+      );
+    });
   }
 
   mostrarFormEquipo(): void {
@@ -217,4 +359,15 @@ export class VentanaPeticion implements OnInit {
     
     return texto;
   }
+
+  /**
+   * Filtra los roles para mostrar solo ADMIN y AGENTE en el select de asignación
+   */
+  getRolesAdminYAgente(): UsuarioRol[] {
+    return this.rolesus.filter(item => {
+      const rolNombre = (item.rol?.nombre || '').toUpperCase();
+      return rolNombre === 'ADMIN' || rolNombre === 'AGENTE' || rolNombre === 'AGENT';
+    });
+  }
 }
+

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TicketPriority } from '../../app/interface/TicketPriority';
 import { Environment } from '../../app/environments/environment';
@@ -9,7 +9,8 @@ import { Environment } from '../../app/environments/environment';
 })
 export class TicketPriorityService {
   // Servicio para CRUD de prioridades de ticket
-  private http = inject(HttpClient);
+  // Usamos inyección por constructor para mantener consistencia con otros servicios
+  constructor(private http: HttpClient) {}
   private apiUrl = `${Environment.apiUrl}/ticketpriority`;
 
   getAll(): Observable<TicketPriority[]> {

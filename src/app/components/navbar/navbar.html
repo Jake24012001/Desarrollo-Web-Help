@@ -13,10 +13,38 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
-      <div class="d-flex align-items-center">
-        <span class="me-2 text-white fw-semibold">Usuario</span>
-        <img src="http://marketplace.canva.com/A5alg/MAESXCA5alg/1/tl/canva-user-icon-MAESXCA5alg.png"
-          alt="Foto de perfil" class="rounded-circle border border-2 border-white" width="40" height="40">
+      <div class="d-flex align-items-center gap-3">
+        <!-- Mostrar usuario autenticado -->
+        <div *ngIf="currentUser" class="d-flex align-items-center">
+          <div class="text-end me-3">
+            <p class="mb-0 text-white fw-semibold">{{ currentUser.nombres }} {{ currentUser.apellidos }}</p>
+            <small class="text-white-50">{{ currentUser.email }}</small>
+            <div *ngIf="authorizationService.getUserRoles().length > 0">
+              <small class="text-warning">
+                <strong>Rol:</strong> 
+                <span *ngIf="authorizationService.isAdmin()" class="badge bg-danger">ADMIN</span>
+                <span *ngIf="authorizationService.isAgente()" class="badge bg-info">AGENTE</span>
+                <span *ngIf="authorizationService.isCliente()" class="badge bg-success">CLIENTE</span>
+              </small>
+            </div>
+          </div>
+          <img src="http://marketplace.canva.com/A5alg/MAESXCA5alg/1/tl/canva-user-icon-MAESXCA5alg.png"
+            alt="Foto de perfil" class="rounded-circle border border-2 border-white" width="40" height="40">
+        </div>
+
+        <!-- Botón Logout -->
+        <button 
+          *ngIf="currentUser"
+          type="button" 
+          class="btn btn-sm btn-outline-light" 
+          (click)="logout()"
+          title="Cerrar sesión"
+        >
+          <i class="bi bi-box-arrow-right"></i> Salir
+        </button>
+
+        <!-- Usuario no autenticado -->
+        <span *ngIf="!currentUser" class="me-2 text-white fw-semibold">Usuario</span>
       </div>
     </div>
   </div>

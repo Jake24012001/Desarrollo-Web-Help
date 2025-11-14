@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { TicketService } from '../../services/ticket.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { UsuarioRolService } from '../../services/usuariorol.service';
+import { AuthService } from '../../services/auth.service';
+import { AuthorizationService } from '../../services/authorization.service';
 import { forkJoin } from 'rxjs';
 import { Ticket } from '../../interface/Ticket';
 import { FormsModule } from '@angular/forms';
@@ -39,6 +41,12 @@ export class ActualizarPeticion implements OnInit {
   selectedUsuarioId: number = 0;
   selectedEquipoId: number = 0;
 
+  // Propiedades para control de UI según rol
+  usuarioLogeado: any = null;
+  nombreUsuarioLogeado: string = '';
+  esCliente: boolean = false;
+  esAdmin: boolean = false;
+
   // Listas usadas por los selects
   estadosDisponibles: { id_status: number; nombre: string }[] = [];
   prioridadesDisponibles: { id_priority: number; name: string }[] = [];
@@ -53,11 +61,23 @@ export class ActualizarPeticion implements OnInit {
     private servicesticket: TicketService,
     private usuarioService: UsuarioService,
     private usuarioRolService: UsuarioRolService,
+    private authService: AuthService,
+    private authorizationService: AuthorizationService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
 
   ngOnInit(): void {
+    // Obtener datos del usuario logeado
+    this.usuarioLogeado = this.authService.getCurrentUser();
+    this.esCliente = this.authorizationService.isCliente();
+    this.esAdmin = this.authorizationService.isAdmin();
+
+    // Mostrar nombre del usuario logeado
+    if (this.usuarioLogeado) {
+      this.nombreUsuarioLogeado = this.usuarioLogeado.nombres || this.usuarioLogeado.nombre || 'Usuario';
+    }
+
     this.idtick = Number(this.route.snapshot.paramMap.get('id'));
 
     // Cargar usuarios, roles y tickets en paralelo
@@ -185,6 +205,14 @@ export class ActualizarPeticion implements OnInit {
 
               console.log('Ticket cargado:', this.datosticket);
           });
+        } else {
+          // Es nuevo ticket - si es cliente, auto-asignar usuario logeado
+          if (this.esCliente && this.usuarioLogeado) {
+            this.datosticket.usuario_creador = {
+              id_usuario: this.usuarioLogeado.idUsuario,
+              nombre: this.nombreUsuarioLogeado
+            };
+          }
         }
       }
     );

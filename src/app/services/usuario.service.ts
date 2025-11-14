@@ -33,9 +33,7 @@ export class UsuarioService {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
-  private usuarios: Usuario[] = [];
-
-  getUsuarios() {
-    return this.usuarios;
-  }
+  // NOTE: previously there was a local cache `usuarios` and `getUsuarios()` which
+  // were not used. Keeping the service lean: if you need a client-side cache,
+  // implement it explícitamente con BehaviorSubject y métodos públicos.
 }

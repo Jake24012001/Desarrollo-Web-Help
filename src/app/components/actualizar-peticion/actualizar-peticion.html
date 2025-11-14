@@ -35,9 +35,25 @@
 
                     <div class="col-12 col-sm-6 col-lg-4">
                         <label for="select-usuario" class="form-label">Usuario Asignado</label>
-                        <select id="select-usuario" class="form-select" [(ngModel)]="selectedUsuarioId" (change)="actualizarUsuarioAsignado()" name="usuarioAsignadoId" required>
-                            <option [value]="0">-- Seleccione un Usuario --</option>
-                            <option *ngFor="let usuario of usuariosDisponibles" [value]="usuario.id_usuario">{{ usuario.nombre }}</option>
+                        <!-- Para CLIENTE: mostrar textbox con usuario logeado (solo lectura) -->
+                        <input *ngIf="esCliente" 
+                               type="text" 
+                               class="form-control bg-light" 
+                               [value]="nombreUsuarioLogeado" 
+                               readonly>
+                        <!-- Para ADMIN/AGENTE: mostrar select para elegir usuario -->
+                        <select *ngIf="!esCliente"
+                                id="select-usuario" 
+                                class="form-select" 
+                                [(ngModel)]="selectedUsuarioId" 
+                                (change)="actualizarUsuarioAsignado()" 
+                                name="usuarioAsignadoId" 
+                                required>
+                            <option [value]="0">-- Seleccione un Usuario (Admin/Agente) --</option>
+                            <option *ngFor="let usuario of usuariosDisponibles" [value]="usuario.id_usuario"
+                              [hidden]="!esAdmin && usuario.id_usuario !== usuarioLogeado?.idUsuario">
+                                {{ usuario.nombre }}
+                            </option>
                         </select>
                     </div>
 

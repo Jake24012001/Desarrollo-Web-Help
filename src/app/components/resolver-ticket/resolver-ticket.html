@@ -1,0 +1,173 @@
+<div class="container-fluid px-4 py-4">
+  <div class="row">
+    <div class="col-lg-8">
+      <!-- Información del Ticket -->
+      <div class="card mb-4" *ngIf="ticket">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-ticket-detailed me-2"></i>
+            Resolver Ticket: {{ ticket.title }}
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <p><strong>ID:</strong> {{ ticket.id_ticket }}</p>
+              <p><strong>Problema:</strong> {{ ticket.title }}</p>
+              <p><strong>Descripción:</strong></p>
+              <p class="text-muted bg-light p-2 rounded">{{ ticket.descripcion }}</p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Creador:</strong> {{ ticket.usuario_creador?.nombre }}</p>
+              <p><strong>Equipo Afectado:</strong> {{ ticket.equipoAfectado?.product?.name }}</p>
+              <p><strong>Prioridad:</strong>
+                <span class="badge"
+                  [ngClass]="{
+                    'bg-danger': ticket.priority?.name === 'ALTA',
+                    'bg-warning': ticket.priority?.name === 'MEDIA',
+                    'bg-success': ticket.priority?.name === 'BAJA'
+                  }">
+                  {{ ticket.priority?.name }}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comentarios Existentes -->
+      <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-chat-dots me-2"></i>
+            Comentarios ({{ comentarios.length }})
+          </h5>
+        </div>
+        <div class="card-body">
+          <div *ngIf="comentarios.length === 0" class="alert alert-info">
+            No hay comentarios aún
+          </div>
+
+          <div *ngFor="let comentario of comentarios" class="card mb-3 border-start border-primary">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <strong>{{ comentario.author.nombres }} {{ comentario.author.apellidos }}</strong>
+                <small class="text-muted">
+                  {{ comentario.createdAt | date : 'short' }}
+                </small>
+              </div>
+              <p class="mb-0">{{ comentario.message }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario de Resolución -->
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-check-circle me-2"></i>
+            Resolver el Ticket
+          </h5>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="resolverForm" (ngSubmit)="resolverTicket()">
+            <div class="mb-3">
+              <label for="mensaje" class="form-label">
+                Comentario de Resolución
+                <span class="text-danger">*</span>
+              </label>
+              <textarea
+                id="mensaje"
+                class="form-control"
+                formControlName="mensaje"
+                rows="6"
+                placeholder="Describe cómo se resolvió el problema o proporciona detalles adicionales..."
+                [class.is-invalid]="submitted && f['mensaje'].errors"
+              ></textarea>
+              <div class="invalid-feedback" *ngIf="submitted && f['mensaje'].errors">
+                <span *ngIf="f['mensaje'].errors['required']">
+                  El comentario es requerido
+                </span>
+                <span *ngIf="f['mensaje'].errors['minlength']">
+                  El comentario debe tener al menos 10 caracteres
+                </span>
+              </div>
+              <small class="form-text text-muted">
+                Mínimo 10 caracteres
+              </small>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button
+                type="submit"
+                class="btn btn-success"
+                [disabled]="loading"
+              >
+                <span *ngIf="!loading">
+                  <i class="bi bi-check-circle me-2"></i>
+                  Resolver Ticket
+                </span>
+                <span *ngIf="loading">
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Guardando...
+                </span>
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="volver()"
+                [disabled]="loading"
+              >
+                <i class="bi bi-x-circle me-2"></i>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de Información Lateral -->
+    <div class="col-lg-4" *ngIf="ticket">
+      <div class="card">
+        <div class="card-header bg-secondary text-white">
+          <h6 class="mb-0">
+            <i class="bi bi-info-circle me-2"></i>
+            Información del Ticket
+          </h6>
+        </div>
+        <div class="card-body">
+          <dl class="row">
+            <dt class="col-6">Estado:</dt>
+            <dd class="col-6">
+              <span class="badge bg-warning">{{ ticket.status?.nombre }}</span>
+            </dd>
+
+            <dt class="col-6">Creado:</dt>
+            <dd class="col-6">
+              <small>{{ ticket.fecha_creacion | date : 'short' }}</small>
+            </dd>
+
+            <dt class="col-6">Asignado a:</dt>
+            <dd class="col-6">
+              {{ ticket.usuario_asignado?.nombre || 'No asignado' }}
+            </dd>
+
+            <dt class="col-6">Prioridad:</dt>
+            <dd class="col-6">
+              <span class="badge"
+                [ngClass]="{
+                  'bg-danger': ticket.priority?.name === 'ALTA',
+                  'bg-warning': ticket.priority?.name === 'MEDIA',
+                  'bg-success': ticket.priority?.name === 'BAJA'
+                }">
+                {{ ticket.priority?.name }}
+              </span>
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

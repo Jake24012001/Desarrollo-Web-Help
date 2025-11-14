@@ -2,10 +2,15 @@ export const Environment = {
   production: false,
   apiUrl: 'http://localhost:8090/api',
 
-  ID_STATUS_CERRADO:1,
-  NOMBRE_STATUS_CERRADO:'CERRADO',
+  ID_STATUS_CERRADO: 2,
+  NOMBRE_STATUS_CERRADO: 'CERRADO',
 
-  ID_STATUS_ABIERTO:2,
-  NOMBRE_STATUS_ABIERTO:'ABIERTO',
+  ID_STATUS_ABIERTO: 1,
+  NOMBRE_STATUS_ABIERTO: 'ABIERTO',
 
+  // Constantes adicionales útiles para la UI y timeouts
+  DEFAULT_PAGE_SIZE: 20,
+  DATE_FORMAT: 'yyyy-MM-dd HH:mm:ss',
+  REQUEST_TIMEOUT_MS: 20000,
+  NOTIFICATION_DURATION_MS: 6000,
 };

@@ -6,6 +6,9 @@ import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 
 import { TicketService } from '../../services/ticket.service';
+import { AuthService } from '../../services/auth.service';
+import { AuthorizationService } from '../../services/authorization.service';
+import { TicketAccessService } from '../../services/ticket-access.service';
 import { Ticket } from '../../interface/Ticket';
 import { Environment } from '../../environments/environment'; // agregado como variable global
 
@@ -47,31 +50,54 @@ export class VistaPrincipal implements OnInit, OnDestroy {
   temporizadoresPorPeticion = new Map<number, any>();
 
   // Constructor
-  constructor(private router: Router, private servicios: TicketService) {}
+  constructor(
+    private router: Router,
+    private servicios: TicketService,
+    private authService: AuthService,
+    public authorizationService: AuthorizationService,
+    public ticketAccessService: TicketAccessService
+  ) {}
 
-  // Lifecycle: carga inicial y limpieza
+  /**
+   * Inicializa la vista: carga tickets, aplica filtros por rol y arranca temporizadores.
+   * También actualiza el placeholder con mensajes rotativos.
+   */
   ngOnInit(): void {
-    this.servicios.getAll().subscribe((tickets) => {
-      this.datosFiltrados = tickets.map((p: Ticket) => ({
-        ...p,
-        fechaEntrega: this.isValidDate(p.fecha_creacion) ? new Date(p.fecha_creacion!) : undefined,
-        tiempoRestante:
-          p.status?.nombre === Environment.NOMBRE_STATUS_ABIERTO && p.fecha_creacion
-            ? this.calcularTiempoTranscurrido(p.fecha_creacion)
-            : '—',
-      }));
-      this.actualizarListas();
-      this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
-      this.datosOriginalesResueltos = [...this.datosResueltos];
+    // Log inicial del usuario autenticado
+    const currentUser = this.authService.getCurrentUser();
+    
+    this.servicios.getAll().subscribe({
+      next: (tickets) => {
+        
+        // Filtrar tickets según el rol del usuario
+        const ticketsFiltrados = this.ticketAccessService.getTicketsForUser(tickets);
 
-      this.datosFiltradosPendientes.forEach((p) => {
-        if (
-          typeof p.id_ticket === 'number' &&
-          p.status?.nombre === Environment.NOMBRE_STATUS_ABIERTO
-        ) {
-          this.iniciarTemporizador(p.id_ticket);
-        }
-      });
+        this.datosFiltrados = ticketsFiltrados.map((p: Ticket) => ({
+          ...p,
+          fechaEntrega: this.isValidDate(p.fecha_creacion) ? new Date(p.fecha_creacion!) : undefined,
+          tiempoRestante:
+            p.status?.nombre === Environment.NOMBRE_STATUS_ABIERTO && p.fecha_creacion
+              ? this.calcularTiempoTranscurrido(p.fecha_creacion)
+              : '—',
+        }));
+        this.actualizarListas();
+        this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
+        this.datosOriginalesResueltos = [...this.datosResueltos];
+
+        this.datosFiltradosPendientes.forEach((p) => {
+          if (
+            typeof p.id_ticket === 'number' &&
+            p.status?.nombre === Environment.NOMBRE_STATUS_ABIERTO
+          ) {
+            this.iniciarTemporizador(p.id_ticket);
+          }
+        });
+      },
+      error: (error) => {
+        console.error('❌ Error al obtener tickets:', error);
+        console.error('Detalles:', error.message);
+        console.error('Status:', error.status);
+      }
     });
 
     this.temporizadorPlaceholder = setInterval(() => {
@@ -80,13 +106,18 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     }, 5000);
   }
 
+  /**
+   * Limpia temporizadores y recursos al destruir el componente.
+   */
   ngOnDestroy(): void {
     clearInterval(this.temporizadorPlaceholder);
     this.temporizadoresPorPeticion.forEach((t) => clearInterval(t));
     this.temporizadoresPorPeticion.clear();
   }
 
-  // Búsqueda y filtrado
+  /**
+   * Filtra tickets en pantalla según el texto de búsqueda actual.
+   */
   filtrarDatos(): void {
     if (!this.terminoBusqueda || this.terminoBusqueda.trim() === '') {
       this.datosFiltradosPendientes = [...this.datosOriginalesPendientes];
@@ -106,6 +137,9 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     );
   }
 
+  /**
+   * Resetea el texto de búsqueda y restaura las listas originales.
+   */
   limpiarBusqueda(): void {
     this.terminoBusqueda = '';
     this.filtrarDatos();
@@ -129,7 +163,9 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     );
   }
 
-  // Temporizadores por petición
+  /**
+   * Inicia un temporizador por ticket (muestra tiempo transcurrido desde creación).
+   */
   iniciarTemporizador(id: number): void {
     if (this.temporizadoresPorPeticion.has(id)) return;
 
@@ -157,6 +193,9 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     this.temporizadoresPorPeticion.set(id, intervalo);
   }
 
+  /**
+   * Detiene y elimina el temporizador asociado a un ticket.
+   */
   detenerTemporizador(id: number): void {
     const temporizador = this.temporizadoresPorPeticion.get(id);
     if (temporizador) {
@@ -165,7 +204,9 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     }
   }
 
-  // Acciones CRUD y confirmaciones
+  /**
+   * Navega al formulario de creación de peticiones tras confirmar con el usuario.
+   */
   crearPeticion(): void {
     Swal.fire({
       title: '¿Deseas crear la petición?',
@@ -181,8 +222,17 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Inicia el flujo de modificación de un ticket, validando permisos.
+   */
   modificarPeticion(item?: Ticket): void {
     if (!item?.id_ticket) return;
+
+    // Verificar si tiene permiso para editar
+    if (!this.ticketAccessService.canEditTicket(item)) {
+      Swal.fire('Acceso Denegado', 'No tienes permiso para editar este ticket.', 'error');
+      return;
+    }
 
     Swal.fire({
       title: 'Modificar ticket',
@@ -198,12 +248,21 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Elimina un ticket (solo si el usuario tiene permiso), con confirmación.
+   */
   borrarPeticion(index: number, tipo: 'pendiente' | 'resuelto'): void {
     const fuente = tipo === 'pendiente' ? this.datosFiltradosPendientes : this.datosResueltos;
     const ticket = fuente[index];
     const id = ticket?.id_ticket;
 
     if (typeof id !== 'number') return;
+
+    // Verificar si tiene permiso para eliminar
+    if (!this.ticketAccessService.canDeleteTicket(ticket)) {
+      Swal.fire('Acceso Denegado', 'No tienes permiso para eliminar este ticket.', 'error');
+      return;
+    }
 
     Swal.fire({
       title: '¿Estás seguro?',
@@ -237,8 +296,24 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Marca un ticket como resuelto (cambia el estado a CERRADO) si existe permiso
+   * y el ticket está en estado ABIERTO.
+   */
   marcarComoResuelta(item: Ticket): void {
     if (item.id_ticket == null || !item.status) return;
+
+    // Verificar si tiene permiso para resolver
+    if (!this.ticketAccessService.canResolveTicket(item)) {
+      Swal.fire('Acceso Denegado', 'No tienes permiso para resolver este ticket.', 'error');
+      return;
+    }
+
+    // Solo permitir marcar como resuelto si está ABIERTO
+    if (item.status?.nombre !== Environment.NOMBRE_STATUS_ABIERTO) {
+      Swal.fire('Acción inválida', 'Solo se pueden resolver tickets que estén abiertos.', 'error');
+      return;
+    }
 
     // Actualizar el status
     const ticketActualizado: Ticket = {
@@ -274,17 +349,41 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     });
   }
 
-  // Funciones utilitarias
+  /**
+   * Recalcula las listas de pendientes y resueltos a partir del array principal
+   * y mantiene el orden por fecha de creación (más reciente primero).
+   */
   actualizarListas(): void {
+
+    
     this.datosFiltradosPendientes = this.datosFiltrados.filter(
-      (p) => p.status?.nombre !== Environment.NOMBRE_STATUS_CERRADO
+      (p) => {
+        const esCerrado = p.status?.nombre === Environment.NOMBRE_STATUS_CERRADO;
+        return !esCerrado;
+      }
     );
 
     this.datosResueltos = this.datosFiltrados.filter(
       (p) => p.status?.nombre === Environment.NOMBRE_STATUS_CERRADO
     );
+
+    // Ordenar por fecha de creación (más reciente primero)
+    this.datosFiltradosPendientes.sort((a, b) => {
+      const fechaA = new Date(a.fecha_creacion || 0).getTime();
+      const fechaB = new Date(b.fecha_creacion || 0).getTime();
+      return fechaB - fechaA; // Descendente: más reciente primero
+    });
+
+    this.datosResueltos.sort((a, b) => {
+      const fechaA = new Date(a.fecha_creacion || 0).getTime();
+      const fechaB = new Date(b.fecha_creacion || 0).getTime();
+      return fechaB - fechaA; // Descendente: más reciente primero
+    });
   }
 
+  /**
+   * Calcula el tiempo restante hasta una fecha de cierre indicada.
+   */
   calcularTiempoRestante(fechaCierre: string): string {
     const cierre = new Date(fechaCierre);
     if (!fechaCierre || isNaN(cierre.getTime())) return '—';
@@ -302,6 +401,9 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     return `${dias}d ${horas}h ${minutos}m ${segundos}s restantes`;
   }
 
+  /**
+   * Calcula el tiempo transcurrido desde la fecha de inicio hasta ahora.
+   */
   calcularTiempoTranscurrido(fechaInicio: string): string {
     const inicio = new Date(fechaInicio);
     if (!fechaInicio || isNaN(inicio.getTime())) return '—';
@@ -317,6 +419,9 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     return `${dias}d ${horas}h ${minutos}m ${segundos}s`;
   }
 
+  /**
+   * Muestra un modal con la descripción completa y metadatos del ticket.
+   */
   verDescripcionCompleta(ticket: Ticket): void {
     Swal.fire({
       title: `<strong>${ticket.title || 'Ticket'}</strong>`,
@@ -362,6 +467,9 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Devuelve una clase CSS según el nombre del estado para el styling.
+   */
   getClaseEstado(estado: string): string {
     switch (estado) {
       case 'Pendiente':
@@ -379,11 +487,16 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Verifica si un valor es una fecha válida.
+   */
   isValidDate(date: any): boolean {
     return date && !isNaN(new Date(date).getTime());
   }
 
-  // Verificar si el tiempo de resolución se ha excedido
+  /**
+   * Indica si el tiempo esperado de resolución (según prioridad) ha sido excedido.
+   */
   tiempoExcedido(ticket: Ticket): boolean {
     if (!ticket.fecha_creacion || !ticket.priority?.resolutionTimeHours) {
       return false;

@@ -8,27 +8,51 @@ import { Environment } from '../../app/environments/environment';
   providedIn: 'root',
 })
 export class TicketService {
-  // Servicio principal para tickets: listar, obtener, crear, actualizar y eliminar
+  /**
+   * Servicio principal para tickets: listar, obtener, crear, actualizar y eliminar.
+   * Este servicio envuelve las llamadas HTTP al backend y no realiza transformaciones
+   * complejas: la validación y normalización deben ser gestionadas por el backend.
+   */
   private apiUrl = `${Environment.apiUrl}/ticket`;
 
   constructor(private http: HttpClient) {}
 
+  /**
+   * Obtiene todos los tickets.
+   * Devuelve un Observable con el array de tickets crudo tal como lo retorna la API.
+   */
   getAll(): Observable<Ticket[]> {
     return this.http.get<Ticket[]>(this.apiUrl);
   }
 
+  /**
+   * Obtiene un ticket por su id.
+   * @param id Identificador numérico del ticket
+   */
   getById(id: number): Observable<Ticket> {
     return this.http.get<Ticket>(`${this.apiUrl}/${id}`);
   }
 
+  /**
+   * Crea un nuevo ticket. Se espera que el payload siga el contrato del backend
+   * (idealmente DTO que contenga solo ids para relaciones en lugar de entidades completas).
+   */
   create(ticket: Ticket): Observable<Ticket> {
     return this.http.post<Ticket>(this.apiUrl, ticket);
   }
 
+  /**
+   * Actualiza un ticket existente.
+   * @param id Id del ticket a actualizar
+   * @param ticket Objeto con los campos a actualizar
+   */
   update(id: number, ticket: Ticket): Observable<Ticket> {
     return this.http.put<Ticket>(`${this.apiUrl}/${id}`, ticket);
   }
 
+  /**
+   * Elimina un ticket por id.
+   */
   delete(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
@@ -62,6 +86,8 @@ export class TicketService {
       }
     };
 
+    // Utiliza el endpoint create para persistir el ticket. Este helper facilita
+    // la construcción del payload a partir de ids (recomendado sobre enviar entidades).
     return this.create(ticket);
   }
 }

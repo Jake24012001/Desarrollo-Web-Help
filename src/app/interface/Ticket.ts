@@ -11,13 +11,22 @@ export interface Ticket {
     name?: string;
     resolutionTimeHours?: number;
   };
+  // Backend devuelve camelCase (idUsuario) pero también soportamos snake_case
   usuario_creador?: {
+    idUsuario?: number;
     id_usuario?: number;
+    nombres?: string;
+    apellidos?: string;
     nombre?: string;
+    email?: string;
   };
   usuario_asignado?: {
+    idUsuario?: number;
     id_usuario?: number;
+    nombres?: string;
+    apellidos?: string;
     nombre?: string;
+    email?: string;
   };
   equipoAfectado?: {
     id?: number;
@@ -32,7 +41,5 @@ export interface Ticket {
   fecha_creacion?: string;
   fecha_actualizacion?: string;
   fecha_cierre?: string;
-
   tiempoRestante?: string;
-
 }

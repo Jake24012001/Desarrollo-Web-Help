@@ -23,7 +23,8 @@
             <th>Creador</th>
             <th>Prioridad</th>
             <th>Tiempo</th>
-            <th>Acciones</th>
+            <!-- Mostrar ACCIONES solo si no es CLIENTE -->
+            <th *ngIf="!authorizationService.isCliente()">Acciones</th>
             <th>Estado</th>
           </tr>
         </thead>
@@ -66,15 +67,16 @@
             <td class="text-nowrap tiempo-cell" [class.tiempo-excedido]="tiempoExcedido(item)">
               {{ item.tiempoRestante || '—' }}
             </td>
-            <td>
+            <!-- Mostrar ACCIONES solo si no es CLIENTE -->
+            <td *ngIf="!authorizationService.isCliente()">
               <div class="btn-group-actions">
-                <button class="btn-action btn-edit" (click)="modificarPeticion(item)" title="Editar">
+                <button *ngIf="ticketAccessService.canEditTicket(item)" class="btn-action btn-edit" (click)="modificarPeticion(item)" title="Editar">
                   <i class="bi bi-pencil-square"></i>
                 </button>
-                <button class="btn-action btn-delete" (click)="borrarPeticion(i, 'pendiente')" title="Eliminar">
+                <button *ngIf="ticketAccessService.canDeleteTicket(item)" class="btn-action btn-delete" (click)="borrarPeticion(i, 'pendiente')" title="Eliminar">
                   <i class="bi bi-trash3"></i>
                 </button>
-                <button class="btn-action btn-resolve" (click)="marcarComoResuelta(item)" title="Marcar como resuelta">
+                <button *ngIf="ticketAccessService.canResolveTicket(item)" class="btn-action btn-resolve" (click)="marcarComoResuelta(item)" title="Marcar como resuelta">
                   <i class="bi bi-check-circle"></i>
                 </button>
               </div>
@@ -149,7 +151,7 @@
               <span *ngIf="!item.fecha_cierre">—</span>
             </td>
             <td>
-              <button class="btn-action btn-delete" (click)="borrarPeticion(i, 'resuelto')" title="Eliminar">
+              <button *ngIf="ticketAccessService.canDeleteTicket(item)" class="btn-action btn-delete" (click)="borrarPeticion(i, 'resuelto')" title="Eliminar">
                 <i class="bi bi-trash3"></i>
               </button>
             </td>
