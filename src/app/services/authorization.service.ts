@@ -1,12 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth.service';
 import { LoginResponse } from '../interface/Auth';
-
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  AGENTE = 'AGENTE',
-  CLIENTE = 'CLIENTE'
-}
+import { Environment } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -46,30 +41,30 @@ export class AuthorizationService {
    * Verifica si el usuario es ADMIN
    */
   isAdmin(): boolean {
-    return this.hasRole(UserRole.ADMIN);
+    return this.hasRole(Environment.ADMIN);
   }
 
   /**
    * Verifica si el usuario es AGENTE
    */
   isAgente(): boolean {
-    return this.hasRole(UserRole.AGENTE);
+    return this.hasRole(Environment.AGENTE);
   }
 
   /**
    * Verifica si el usuario es CLIENTE
    */
   isCliente(): boolean {
-    return this.hasRole(UserRole.CLIENTE);
+    return this.hasRole(Environment.CLIENTE);
   }
 
   /**
    * Obtiene el rol principal del usuario (por prioridad: ADMIN > AGENTE > CLIENTE)
    */
-  getPrimaryRole(): UserRole | null {
-    if (this.isAdmin()) return UserRole.ADMIN;
-    if (this.isAgente()) return UserRole.AGENTE;
-    if (this.isCliente()) return UserRole.CLIENTE;
+  getPrimaryRole(): string | null {
+    if (this.isAdmin()) return Environment.ADMIN;
+    if (this.isAgente()) return Environment.AGENTE;
+    if (this.isCliente()) return Environment.CLIENTE;
     return null;
   }
 

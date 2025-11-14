@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth.service';
-import { AuthorizationService, UserRole } from './authorization.service';
+import { AuthorizationService } from './authorization.service';
 import { Ticket } from '../interface/Ticket';
 import { Environment } from '../environments/environment';
 
