@@ -34,9 +34,9 @@
         <label for="asignarTrabajo" class="form-label">Asignar Trabajo</label>
         <select id="asignarTrabajo" class="form-select" [(ngModel)]="usuarioSeleccionados" name="usuarioAsignado">
           <option value="" disabled selected>-- Selecciona --</option>
-          <!-- Mostrar solo usuarios con rol ADMIN o AGENTE -->
+          <!-- Mostrar solo usuarios con rol ADMIN o AGENTE; mostrar nombre y apellidos en vez de apodo -->
           <option *ngFor="let item of getRolesAdminYAgente()" [ngValue]="item">
-            {{ item.rol.nombre }} - {{ item.usuario.nombre }}
+            {{ item.rol.nombre }} - {{ (item.usuario.nombres || item.usuario.nombre) + (item.usuario.apellidos ? ' ' + item.usuario.apellidos : '') }}
           </option>
         </select>
       </div>
@@ -68,10 +68,18 @@
       <!-- Prioridad y detalle -->
       <div class="form-group mb-3">
         <label for="prioridad" class="form-label">Prioridad del ticket:</label>
-        <select id="prioridad" class="form-select" [(ngModel)]="prioridadSeleccionada" name="prioridad" required>
+
+        <!-- Si es ADMIN: permitir seleccionar prioridad -->
+        <select *ngIf="authorizationService.isAdmin()" id="prioridad" class="form-select" [(ngModel)]="prioridadSeleccionada" name="prioridad" required>
           <option value="" disabled selected>-- Selecciona --</option>
           <option *ngFor="let prioridad of ticketPrioridades" [ngValue]="prioridad">{{ prioridad.name }}</option>
         </select>
+
+        <!-- Si NO es ADMIN: mostrar mensaje fijo indicando que el admin asignará la prioridad -->
+        <div *ngIf="!authorizationService.isAdmin()" class="form-control" style="background-color: #f8f9fa; padding: 10px;">
+          <div class="fw-bold text-muted">La prioridad será asignada por un administrador.</div>
+        </div>
+        <!-- No enviar prioridad en el form si no es admin (dejar null para que admin la asigne) -->
       </div>
 
       <div class="form-group mb-3">

@@ -51,19 +51,24 @@ export class Login implements OnInit {
 
     const { email, clave } = this.loginForm.value;
 
+    // Preparar payload y log para debug
+    const payload = { email, clave, nombre: email };
+    console.log('Login -> payload:', payload);
+
     this.authService.login(email, clave).subscribe({
       next: (response: any) => {
         if (response && response.idUsuario) {
           this.authService.saveUser(response);
           this.router.navigate(['/help-menu']);
         } else {
-          this.error = response.message || 'Usuario o contraseña incorrectos';
+          this.error = response?.message || 'Usuario o contraseña incorrectos';
           this.loading = false;
         }
       },
-      error: (error) => {
-        console.error('Error en login:', error);
-        this.error = 'Usuario o contraseña incorrectos';
+      error: (err) => {
+        console.error('Error en login:', err, 'status=', err?.status, 'body=', err?.error);
+        // Mostrar el mensaje real devuelto por el backend si existe
+        this.error = err?.error?.message || `Error ${err?.status || ''}: Usuario o contraseña incorrectos`;
         this.loading = false;
       },
     });

@@ -1,6 +1,6 @@
-/* Paleta de colores basada en #1976D2 */
+/* Paleta de colores (usa variable global) */
 :root {
-  --primary: #1976D2;
+  --primary: var(--primary);
   --primary-dark: #1565C0;
   --primary-light: #42A5F5;
   --primary-lighter: #BBDEFB;
@@ -32,7 +32,31 @@
 
 .search-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 74, 151, 0.08);
+}
+
+/* Combobox de filtro formal */
+.filter-select {
+  width: 220px;
+  border: 2px solid var(--primary-lighter);
+  border-radius: 8px;
+  padding: 4px 8px;
+  background: white;
+  color: var(--text-dark);
+  font-weight: 600;
+  transition: all 0.18s ease;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(0, 74, 151, 0.06);
+}
+
+.filtro-label {
+  color: var(--text-dark);
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
 /* Botón limpiar */
@@ -65,6 +89,10 @@
   padding: 18px 24px;
   font-weight: 700;
   border-bottom: 4px solid #0D47A1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
 }
 
 .card-header-custom h5 {
@@ -80,6 +108,44 @@
   color: #FFFFFF !important;
   font-size: 1.4rem;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Header-right select positioning */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Header combobox: subtle border, custom down arrow, aligned to the right */
+.header-filter-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 190px;
+  padding: 6px 36px 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background-color: white;
+  color: var(--text-dark);
+  font-weight: 600;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%23004A97' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+  transition: all 0.12s ease;
+}
+
+.header-filter-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(0, 74, 151, 0.06);
+  outline: none;
+}
+
+/* Top filter row (outside tables) */
+/* removed .top-filter-row — combobox now lives in the search row */
+.header-filter-select {
+  width: 220px;
 }
 
 .card-header-success {
@@ -143,7 +209,7 @@
 }
 
 .tabla-tickets tbody tr:hover {
-  background-color: rgba(25, 118, 210, 0.04);
+  background-color: rgba(0, 74, 151, 0.04);
 }
 
 .tabla-tickets tbody td {
@@ -190,11 +256,12 @@
   max-width: 220px;
   position: relative;
   text-align: left;
+  padding-right: 40px; /* espacio para el icono al extremo derecho */
 }
 
 .descripcion-texto {
   display: inline-block;
-  max-width: calc(100% - 40px);
+  max-width: calc(100% - 48px);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -202,31 +269,30 @@
 }
 
 .btn-ver-mas {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
   background: transparent;
-  border: 1px solid #1976D2;
-  color: #1976D2;
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  font-size: 0.85rem;
-  padding: 3px 7px;
-  border-radius: 4px;
-  margin-left: 6px;
-  transition: all 0.2s ease;
-  vertical-align: middle;
+  color: var(--primary);
 }
 
 .btn-ver-mas i {
-  color: #1976D2 !important;
-  font-size: 0.9rem;
-}
-
-.btn-ver-mas:hover {
-  background: #1976D2;
-  border-color: #1976D2;
-  transform: scale(1.05);
+  color: var(--primary) !important;
+  font-size: 1.05rem;
 }
 
 .btn-ver-mas:hover i {
-  color: white !important;
+  color: #003f7f !important;
 }
 
 .text-nowrap {
@@ -323,7 +389,7 @@
 }
 
 .btn-edit:hover {
-  background-color: rgba(25, 118, 210, 0.1);
+  background-color: rgba(0, 74, 151, 0.1);
   color: var(--primary-dark);
 }
 

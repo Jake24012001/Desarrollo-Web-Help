@@ -1,5 +1,5 @@
 :root{
-  --primary: #1976D2;
+  --primary: var(--primary); /* Use global primary */
   --primary-contrast: #ffffff;
   --muted-bg: #f6f9fc;
   --border: #d1e6fb;

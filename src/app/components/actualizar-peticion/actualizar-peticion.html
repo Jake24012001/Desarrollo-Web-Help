@@ -1,5 +1,5 @@
 <form class="formulario-actualizar" (ngSubmit)="guardarCambios()" #actualizarForm="ngForm">
-    <!-- Formulario en Bootstrap: conservar [(ngModel)] y names para ngForm -->
+    <!-- Formulario de actualización de ticket -->
     <div class="container-fluid px-3 px-md-4">
         <div class="card shadow-sm rounded-3">
             <div class="card-body">
@@ -34,14 +34,14 @@
                     </div>
 
                     <div class="col-12 col-sm-6 col-lg-4">
-                        <label for="select-usuario" class="form-label">Usuario Asignado</label>
-                        <!-- Para CLIENTE: mostrar textbox con usuario logeado (solo lectura) -->
+                           <label for="select-usuario" class="form-label">Usuario Asignado</label>
+                           <!-- Cliente: mostrar nombre en solo lectura; Admin/Agente: select -->
                         <input *ngIf="esCliente" 
                                type="text" 
                                class="form-control bg-light" 
                                [value]="nombreUsuarioLogeado" 
                                readonly>
-                        <!-- Para ADMIN/AGENTE: mostrar select para elegir usuario -->
+                        <!-- Admin/Agente: select para elegir usuario -->
                         <select *ngIf="!esCliente"
                                 id="select-usuario" 
                                 class="form-select" 
@@ -50,10 +50,10 @@
                                 name="usuarioAsignadoId" 
                                 required>
                             <option [value]="0">-- Seleccione un Usuario (Admin/Agente) --</option>
-                            <option *ngFor="let usuario of usuariosDisponibles" [value]="usuario.id_usuario"
-                              [hidden]="!esAdmin && usuario.id_usuario !== usuarioLogeado?.idUsuario">
-                                {{ usuario.nombre }}
-                            </option>
+                                                        <option *ngFor="let usuario of usuariosDisponibles" [value]="usuario.id_usuario"
+                                                            [hidden]="!esAdmin && usuario.id_usuario !== usuarioLogeado?.idUsuario">
+                                                                {{ usuario.nombre }}{{ usuario.roleLabel ? ' (' + usuario.roleLabel + ')' : '' }}
+                                                        </option>
                         </select>
                     </div>
 
@@ -63,9 +63,7 @@
                             <option [value]="0">N/A - Sin Equipo Afectado</option>
                             <option *ngFor="let equipo of equiposDisponibles" [value]="equipo.id">
                                 {{ equipo.serial }} ({{ equipo.product.name }})
-                                <span *ngIf="equipo.product.brand || equipo.product.model">
-                                    - {{ equipo.product.brand }}{{ equipo.product.brand && equipo.product.model ? ' ' : '' }}{{ equipo.product.model }}
-                                </span>
+                                <span *ngIf="equipo.product.brand || equipo.product.model">- {{ equipo.product.brand }} {{ equipo.product.model }}</span>
                             </option>
                         </select>
                     </div>

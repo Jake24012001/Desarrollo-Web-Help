@@ -1,5 +1,4 @@
 footer.bg-custom {
   color: #090909;
-  background: #1976d2;
-  
+  background: var(--primary);
 }

@@ -18,8 +18,10 @@ export class AuthService {
    * Envía las credenciales al backend y retorna la respuesta tipada como `LoginResponse`.
    */
   login(email: string, clave: string): Observable<LoginResponse> {
-    const loginRequest: LoginRequest = { email, clave };
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, loginRequest);
+    // Enviar ambos campos (email y nombre) para cubrir APIs que esperen uno u otro.
+    const loginRequest: LoginRequest & { nombre?: string } = { email, clave, nombre: email };
+    const headers = { 'Content-Type': 'application/json' };
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, loginRequest, { headers });
   }
 
   logout(): void {

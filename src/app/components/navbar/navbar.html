@@ -20,11 +20,11 @@
             <p class="mb-0 text-white fw-semibold">{{ currentUser.nombres }} {{ currentUser.apellidos }}</p>
             <small class="text-white-50">{{ currentUser.email }}</small>
             <div *ngIf="authorizationService.getUserRoles().length > 0">
-              <small class="text-warning">
-                <strong>Rol:</strong> 
-                <span *ngIf="authorizationService.isAdmin()" class="badge bg-danger">ADMIN</span>
-                <span *ngIf="authorizationService.isAgente()" class="badge bg-info">AGENTE</span>
-                <span *ngIf="authorizationService.isCliente()" class="badge bg-success">CLIENTE</span>
+              <small class="text-white-50">
+                <strong>Rol:</strong>
+                <span *ngIf="authorizationService.isAdmin()" class="role-pill">Administrador</span>
+                <span *ngIf="authorizationService.isAgente()" class="role-pill">Agente</span>
+                <span *ngIf="authorizationService.isCliente()" class="role-pill">Cliente</span>
               </small>
             </div>
           </div>

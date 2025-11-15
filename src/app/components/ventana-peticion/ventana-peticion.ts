@@ -139,6 +139,20 @@ export class VentanaPeticion implements OnInit {
     this.ticketPriority.getAll().subscribe((name) => {
       console.log('Prioridades cargadas:', name);
       this.ticketPrioridades = name;
+      // Si el usuario NO es admin, asignar una prioridad por defecto (ej. BAJA/NORMAL)
+      if (!this.authorizationService.isAdmin()) {
+        // Intentar elegir una prioridad llamada 'BAJA' o 'LOW' o 'NORMAL' (no sensible a mayúsculas)
+        const prioridadPorNombre = this.ticketPrioridades.find(p => {
+          const n = (p.name || '').toUpperCase();
+          return n.includes('BAJA') || n.includes('LOW') || n.includes('NORMAL') || n.includes('MEDIA');
+        });
+        if (prioridadPorNombre) {
+          this.prioridadSeleccionada = prioridadPorNombre;
+        } else if (this.ticketPrioridades.length > 0) {
+          // fallback: asignar la última prioridad (asumida menos severa)
+          this.prioridadSeleccionada = this.ticketPrioridades[this.ticketPrioridades.length - 1];
+        }
+      }
     });
   }
   // Acciones (crear/cancelar)
@@ -182,7 +196,8 @@ export class VentanaPeticion implements OnInit {
       Swal.fire('Error', 'Por favor seleccione un equipo disponible.', 'error');
       return;
     }
-    if (!this.prioridadSeleccionada) {
+    // Prioridad sólo requerida si el usuario es ADMIN
+    if (this.authorizationService.isAdmin() && !this.prioridadSeleccionada) {
       Swal.fire('Error', 'Por favor seleccione una prioridad.', 'error');
       return;
     }
@@ -192,7 +207,8 @@ export class VentanaPeticion implements OnInit {
       title: this.tipoPeticion,
       descripcion: this.detallePeticion,
       status: this.getEstadoPendiente(),
-      priority: this.prioridadSeleccionada,
+      // Sólo incluir prioridad si el creador es ADMIN y además hay una prioridad seleccionada
+      priority: (this.authorizationService.isAdmin() && this.prioridadSeleccionada) ? this.prioridadSeleccionada : undefined,
       usuario_creador: this.usuarioSeleccionado
         ? ({ idUsuario: this.usuarioSeleccionado.idUsuario } as any)
         : undefined,

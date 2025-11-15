@@ -72,9 +72,9 @@ export class TicketService {
       status: {
         id_status: ticketData.statusId || 1 // Por defecto "Pendiente"
       },
-      priority: {
-        id_priority: ticketData.priorityId || 2 // Por defecto "Media"
-      },
+      // `priority` is intentionally omitted when `priorityId` is not provided.
+      // This allows the backend to store `id_priority = NULL` for tickets
+      // created by non-admin users. Only include priority when explicitly set.
       usuario_creador: {
         id_usuario: ticketData.usuarioCreadorId
       },
@@ -85,6 +85,10 @@ export class TicketService {
         id: ticketData.equipoAfectadoId
       }
     };
+
+    if (ticketData.priorityId !== undefined && ticketData.priorityId !== null) {
+      (ticket as any).priority = { id_priority: ticketData.priorityId };
+    }
 
     // Utiliza el endpoint create para persistir el ticket. Este helper facilita
     // la construcción del payload a partir de ids (recomendado sobre enviar entidades).

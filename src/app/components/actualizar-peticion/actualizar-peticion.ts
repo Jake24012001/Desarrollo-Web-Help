@@ -7,19 +7,19 @@ import { AuthorizationService } from '../../services/authorization.service';
 import { forkJoin } from 'rxjs';
 import { Ticket } from '../../interface/Ticket';
 import { FormsModule } from '@angular/forms';
-import { CommonModule, DatePipe } from '@angular/common'; // Añadido DatePipe para el template
+import { CommonModule, DatePipe } from '@angular/common'; // DatePipe (template)
 import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-actualizar-peticion',
   standalone: true,
-  // Añadido DatePipe a imports para usarlo en el template (si es necesario)
+  // DatePipe en imports
   imports: [FormsModule, CommonModule, DatePipe], 
   templateUrl: './actualizar-peticion.html',
   styleUrls: ['./actualizar-peticion.css'],
 })
 export class ActualizarPeticion implements OnInit {
-  // Valores por defecto del ticket (evita undefined al renderizar)
+  // Valores por defecto para evitar campos undefined en la UI
   datosticket: Ticket = {
     id_ticket: 0, 
     title: '',
@@ -41,16 +41,17 @@ export class ActualizarPeticion implements OnInit {
   selectedUsuarioId: number = 0;
   selectedEquipoId: number = 0;
 
-  // Propiedades para control de UI según rol
+  // Flags de rol del usuario
   usuarioLogeado: any = null;
   nombreUsuarioLogeado: string = '';
   esCliente: boolean = false;
   esAdmin: boolean = false;
+  esAgent: boolean = false;
 
-  // Listas usadas por los selects
+  // Listas para selects
   estadosDisponibles: { id_status: number; nombre: string }[] = [];
   prioridadesDisponibles: { id_priority: number; name: string }[] = [];
-  usuariosDisponibles: { id_usuario: number; nombre: string }[] = [];
+  usuariosDisponibles: { id_usuario: number; nombre: string; roleLabel?: string; }[] = [];
   equiposDisponibles: {
     id: number;
     serial: string;
@@ -72,8 +73,9 @@ export class ActualizarPeticion implements OnInit {
     this.usuarioLogeado = this.authService.getCurrentUser();
     this.esCliente = this.authorizationService.isCliente();
     this.esAdmin = this.authorizationService.isAdmin();
+    this.esAgent = this.authorizationService.isAgente();
 
-    // Mostrar nombre del usuario logeado
+    // Mostrar nombre del usuario logeado (fallback)
     if (this.usuarioLogeado) {
       this.nombreUsuarioLogeado = this.usuarioLogeado.nombres || this.usuarioLogeado.nombre || 'Usuario';
     }
@@ -83,28 +85,65 @@ export class ActualizarPeticion implements OnInit {
     // Cargar usuarios, roles y tickets en paralelo
     forkJoin({ users: this.usuarioService.getAll(), tickets: this.servicesticket.getAll(), userRoles: this.usuarioRolService.getAll() }).subscribe(
       ({ users, tickets, userRoles }) => {
-  // Normalizar usuarios del servicio (soporta varios nombres de campo)
-        const mappedUsers = (users || []).map((u: any) => ({
-          id_usuario: u.id_usuario ?? u.idUsuario ?? u.id ?? 0,
-          nombre:
-            u.nombre ??
-            u.nombres ??
-            (u.nombres ? `${u.nombres} ${u.apellidos ?? ''}`.trim() : '') ??
-            u.cedula ??
-            '',
-        }));
+        // Normalizar usuarios
+        const mappedUsers = (users || []).map((u: any) => {
+          const id = u.id_usuario ?? u.idUsuario ?? u.id ?? 0;
+          const nombres = (u.nombres ?? u.nombre ?? '').toString().trim();
+          const apellidos = (u.apellidos ?? u.apellido ?? '').toString().trim();
+          const cedula = u.cedula ?? u.identificacion ?? '';
+          const displayName = `${nombres} ${apellidos}`.trim() || (u.nombre ?? '') || cedula || '';
+          return {
+            id_usuario: id,
+            nombres,
+            apellidos,
+            cedula,
+            nombre: displayName,
+          };
+        });
 
-  // Detectar usuarios con rol 'Admin' a partir de los mapeos usuario-rol
+  // Detectar usuarios con roles relevantes
         let allowedUserIds = new Set<number>();
         (userRoles || []).forEach((ur: any) => {
           const rolObj = ur.rol ?? ur.role ?? {};
           const rolId = rolObj.idRol ?? rolObj.id ?? rolObj.id_role ?? 0;
           const rolName = (rolObj.nombre ?? rolObj.name ?? '').toString().toLowerCase();
-          if (rolId === 1 || rolName.includes('admin')) {
-            const usuarioObj = ur.usuario ?? ur.user ?? {};
-            const uId = usuarioObj.id_usuario ?? usuarioObj.idUsuario ?? usuarioObj.id ?? 0;
-            if (uId) allowedUserIds.add(uId);
+          const usuarioObj = ur.usuario ?? ur.user ?? {};
+          const uId = usuarioObj.id_usuario ?? usuarioObj.idUsuario ?? usuarioObj.id ?? 0;
+          if (!uId) return;
+          // Incluir tanto Admin como Agent/Agente
+          if (
+            rolId === 1 ||
+            rolId === 2 ||
+            rolName.includes('admin') ||
+            rolName.includes('agent') ||
+            rolName.includes('agente')
+          ) {
+            allowedUserIds.add(uId);
           }
+        });
+
+        // Construir mapa de roles por usuario
+        const rolesPorUsuario = new Map<number, string[]>();
+        (userRoles || []).forEach((ur: any) => {
+          const usuarioObj = ur.usuario ?? ur.user ?? {};
+          const uId = usuarioObj.id_usuario ?? usuarioObj.idUsuario ?? usuarioObj.id ?? 0;
+          if (!uId) return;
+          const rolObj = ur.rol ?? ur.role ?? {};
+          const rolName = (rolObj.nombre ?? rolObj.name ?? '').toString();
+          const arr = rolesPorUsuario.get(uId) ?? [];
+          arr.push(rolName);
+          rolesPorUsuario.set(uId, arr);
+        });
+
+        // Adjuntar roleLabel a mappedUsers
+        mappedUsers.forEach((mu: any) => {
+          const r = rolesPorUsuario.get(mu.id_usuario) ?? [];
+          // Priorizar Admin > Agent > Agente > otros
+          let label = '';
+          if (r.some((x: string) => x.toLowerCase().includes('admin'))) label = 'Admin';
+          else if (r.some((x: string) => x.toLowerCase().includes('agent') || x.toLowerCase().includes('agente'))) label = 'Agent';
+          else if (r.length > 0) label = r[0];
+          mu.roleLabel = label;
         });
 
         // Aplicar filtro por rol si hay mapeos
@@ -114,32 +153,42 @@ export class ActualizarPeticion implements OnInit {
           this.usuariosDisponibles = mappedUsers;
         }
 
-        // Tickets
+        // Tickets cargados
         this.datosimportados = tickets || [];
         console.log('📦 Todos los tickets importados:', this.datosimportados);
 
         this.estadosDisponibles = this.extraerEstadosUnicos();
         this.prioridadesDisponibles = this.extraerPrioridadesUnicas();
 
-  // Añadir usuarios encontrados en tickets que no estén en la lista
-        const usuariosFromTickets = this.extraerUsuariosUnicos();
+        // Añadir usuarios encontrados en tickets que no estén en la lista
+        const usuariosFromTickets = this.extraerUsuariosUnicos().map((ut) => ({
+          id_usuario: ut.id_usuario,
+          nombre: ut.nombre ?? '',
+          roleLabel: ''
+        }));
         const merged = [...this.usuariosDisponibles];
         usuariosFromTickets.forEach((ut) => {
           if (!merged.some((m) => m.id_usuario === ut.id_usuario)) merged.push(ut);
         });
-        // Si aplicamos filtro por roles, asegurarnos de que merged también respete allowedUserIds
+        // Respetar filtro por roles en la lista combinada
         if (allowedUserIds.size > 0) {
           this.usuariosDisponibles = merged.filter((m) => allowedUserIds.has(m.id_usuario));
         } else {
           this.usuariosDisponibles = merged;
         }
 
+        // Asegurarse de que todos los usuariosDisponibles tengan roleLabel
+        this.usuariosDisponibles = this.usuariosDisponibles.map((u: any) => ({
+          ...u,
+          roleLabel: u.roleLabel ?? rolesPorUsuario.get(u.id_usuario)?.length ? (rolesPorUsuario.get(u.id_usuario)!.some(r => r.toLowerCase().includes('admin')) ? 'Admin' : (rolesPorUsuario.get(u.id_usuario)!.some(r => r.toLowerCase().includes('agent') || r.toLowerCase().includes('agente')) ? 'Agent' : rolesPorUsuario.get(u.id_usuario)![0])) : ''
+        }));
+
     this.equiposDisponibles = this.extraerEquiposUnicos();
 
-    // Cargar el ticket seleccionado (si hay id en la ruta)
+    // Cargar ticket seleccionado si existe id en la ruta
         if (this.idtick) {
           this.servicesticket.getById(this.idtick).subscribe((ticket) => {
-      // Normalizar usuario asignado/creador (varias formas según backend)
+      // Normalizar usuario asignado/creador
               const tAny: any = ticket as any;
               const usuarioAsignadoRaw: any = tAny.usuario_asignado ?? tAny.usuarioAsignado ?? tAny.usuarioAsignadoDTO ?? {};
               const usuarioCreadorRaw: any = tAny.usuario_creador ?? tAny.usuarioCreador ?? {};
@@ -176,11 +225,11 @@ export class ActualizarPeticion implements OnInit {
               this.selectedPriorityId = this.datosticket.priority?.id_priority ?? 0;
               this.selectedEquipoId = this.datosticket.equipoAfectado?.id ?? 0;
 
-              // Preseleccionar usuario asignado (por id o por coincidencia de nombre/cedula)
+              // Preseleccionar usuario asignado por id o coincidencia
               const asignadoRaw: any = usuarioAsignadoRaw || {};
               let assignedId = this.datosticket.usuario_asignado?.id_usuario ?? 0;
               if (!assignedId || assignedId === 0) {
-                // buscar por coincidencia en nombre/cedula entre usuariosDisponibles
+                // Buscar por coincidencia en nombre/cedula
                 const found = this.usuariosDisponibles.find((u) => {
                   if (!u.nombre) return false;
                   // comparar con cedula o nombre del objeto crudo
@@ -206,7 +255,7 @@ export class ActualizarPeticion implements OnInit {
               console.log('Ticket cargado:', this.datosticket);
           });
         } else {
-          // Es nuevo ticket - si es cliente, auto-asignar usuario logeado
+          // Nuevo ticket: si es cliente, auto-asignar usuario logeado
           if (this.esCliente && this.usuarioLogeado) {
             this.datosticket.usuario_creador = {
               id_usuario: this.usuarioLogeado.idUsuario,
@@ -218,7 +267,7 @@ export class ActualizarPeticion implements OnInit {
     );
   }
 
-  // MÉTODOS AUXILIARES: extraen listas únicas para selects
+  // Métodos auxiliares: extraen listas únicas para selects
   extraerEstadosUnicos(): { id_status: number; nombre: string }[] {
     return this.datosimportados
       .map((t) => t.status)
@@ -329,12 +378,11 @@ export class ActualizarPeticion implements OnInit {
     }
   }
 
-  // Enviar actualización: construir payload minimalista para el backend
   guardarCambios(): void {
-    // actualizar fecha de modificación
+    // Actualizar fecha de modificación
     this.datosticket.fecha_actualizacion = new Date().toISOString();
 
-    // construir payload explícito (solo ids para relaciones)
+    // Construir payload con ids para relaciones
     const payload: any = {
       id_ticket: this.datosticket.id_ticket,
       title: this.datosticket.title,
@@ -360,7 +408,7 @@ export class ActualizarPeticion implements OnInit {
         : this.datosticket.usuario_asignado && this.datosticket.usuario_asignado.id_usuario
         ? { id_usuario: this.datosticket.usuario_asignado.id_usuario }
         : undefined,
-      // también incluir camelCase por si el backend lo espera
+      // Incluir diferentes formatos de id por compatibilidad con backend
       usuarioAsignado: this.selectedUsuarioId && this.selectedUsuarioId > 0 ? { id: this.selectedUsuarioId } : undefined,
       equipoAfectado: this.selectedEquipoId && this.selectedEquipoId > 0 ? { id: this.selectedEquipoId } : undefined,
     };

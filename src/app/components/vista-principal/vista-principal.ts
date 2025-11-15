@@ -39,6 +39,8 @@ export class VistaPrincipal implements OnInit, OnDestroy {
   terminoBusqueda: string = '';
   datosOriginalesPendientes: Ticket[] = [];
   datosOriginalesResueltos: Ticket[] = [];
+  // Filtro de vista: 'todos' | 'pendientes' | 'resueltos'
+  filtroTickets: 'todos' | 'pendientes' | 'resueltos' = 'todos';
 
   // Datos mostrados en tablas
   datosFiltrados: Ticket[] = [];
@@ -135,6 +137,16 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     this.datosResueltos = this.datosOriginalesResueltos.filter((item) =>
       this.contieneTermino(item, termino)
     );
+  }
+
+  /**
+   * Aplica filtro de vista (pendientes/resueltos/todos).
+   */
+  aplicarFiltroTickets(): void {
+    // La visibilidad se controla en la plantilla mediante *ngIf en base a `filtroTickets`.
+    // Aquí podemos añadir lógica adicional si se requiere (p. ej. recargar datos desde servidor).
+    // Por ahora solo forzamos la reconstrucción de las listas derivadas.
+    this.actualizarListas();
   }
 
   /**
@@ -430,7 +442,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
           <p style="margin-bottom: 10px;">
             <strong>Descripción:</strong>
           </p>
-          <p style="white-space: pre-wrap; padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #1976D2;">
+            <p style="white-space: pre-wrap; padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #004A97;">
             ${ticket.descripcion || 'Sin descripción'}
           </p>
           ${ticket.equipoAfectado?.product?.name ? `
@@ -463,7 +475,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
       `,
       width: '600px',
       confirmButtonText: 'Cerrar',
-      confirmButtonColor: '#1976D2',
+      confirmButtonColor: '#004A97',
     });
   }
 

@@ -3,34 +3,47 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, rgba(0,74,151,0.12) 0%, rgba(0,74,151,0.08) 100%);
   padding: 20px;
 }
 
 .login-box {
-  background: white;
+  background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  padding: 40px;
+  box-shadow: 0 8px 30px rgba(0, 74, 151, 0.08);
+  padding: 36px;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
+  border: 1px solid rgba(0,74,151,0.06);
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-logo {
+  width: 86px;
+  height: auto;
+  object-fit: contain;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,74,151,0.08);
 }
 
 .login-header h2 {
-  color: #333;
-  font-size: 28px;
-  font-weight: 600;
-  margin-bottom: 10px;
+  color: var(--text-dark);
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 6px;
 }
 
 .login-header p {
-  color: #999;
-  font-size: 14px;
+  color: var(--text-medium);
+  font-size: 13px;
   margin: 0;
 }
 
@@ -54,8 +67,8 @@
 }
 
 .form-control:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0,74,151,0.08);
 }
 
 .form-control.is-invalid {
@@ -70,18 +83,19 @@
 }
 
 .btn-primary {
-  background-color: #667eea;
+  background-color: var(--primary);
   border: none;
   padding: 12px;
   font-size: 16px;
-  font-weight: 600;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  font-weight: 700;
+  border-radius: 6px;
+  transition: background-color 0.18s ease, transform 0.08s ease;
   margin-top: 10px;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #5568d3;
+  background-color: #003f7f;
+  transform: translateY(-1px);
 }
 
 .btn-primary:disabled {
@@ -112,8 +126,8 @@
 }
 
 .login-footer a {
-  color: #667eea;
-  font-weight: 500;
+  color: var(--primary);
+  font-weight: 600;
 }
 
 .login-footer a:hover {

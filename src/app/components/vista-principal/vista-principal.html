@@ -1,15 +1,27 @@
 <div class="container-fluid px-4">
   <!-- Buscador (input + limpiar) -->
-  <div class="d-flex align-items-center gap-2 my-3">
-    <input type="text" class="form-control form-control-sm search-input" [placeholder]="placeholderText"
-      [(ngModel)]="terminoBusqueda" (input)="filtrarDatos()" />
-    <button class="btn btn-primary btn-sm" (click)="limpiarBusqueda()">Limpiar</button>
+  <div class="d-flex align-items-center gap-2 my-3 justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <input type="text" class="form-control form-control-sm search-input" [placeholder]="placeholderText"
+        [(ngModel)]="terminoBusqueda" (input)="filtrarDatos()" />
+      <button class="btn btn-primary btn-sm" (click)="limpiarBusqueda()">Limpiar</button>
+    </div>
+    <div class="d-flex align-items-center">
+      <label for="filtroTicketsTop" class="visually-hidden">Filtro de tickets</label>
+      <select id="filtroTicketsTop" class="header-filter-select ms-2" [(ngModel)]="filtroTickets" (change)="aplicarFiltroTickets()" aria-label="Filtro de tickets">
+        <option value="todos">Mostrar todos</option>
+        <option value="pendientes">Tickets pendientes</option>
+        <option value="resueltos">Tickets resueltos</option>
+      </select>
+    </div>
   </div>
 
   <!-- Tickets pendientes -->
-  <div class="tickets-card mb-4">
+  <div *ngIf="filtroTickets === 'todos' || filtroTickets === 'pendientes'" class="tickets-card mb-4">
     <div class="card-header-custom">
-      <h5 class="mb-0 text-white fw-bold"><i class="bi bi-clipboard-check me-2"></i>Tickets Pendientes</h5>
+      <div class="header-left">
+        <h5 class="mb-0 text-white fw-bold"><i class="bi bi-clipboard-check me-2"></i>Tickets Pendientes</h5>
+      </div>
     </div>
     <div class="table-responsive">
       <table class="table table-hover tabla-tickets mb-0">
@@ -93,7 +105,7 @@
   </div>
 
   <!-- Tickets resueltos -->
-  <div class="tickets-card mb-4">
+  <div *ngIf="filtroTickets === 'todos' || filtroTickets === 'resueltos'" class="tickets-card mb-4">
     <div class="card-header-success">
       <h5 class="mb-0 text-white fw-bold"><i class="bi bi-check-circle me-2"></i>Tickets Resueltos</h5>
     </div>
