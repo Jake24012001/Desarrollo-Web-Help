@@ -18,7 +18,7 @@
 
 /* Contenedor principal */
 .container-fluid {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
 }
 
@@ -500,5 +500,52 @@
   .btn-action {
     font-size: 1rem;
     padding: 3px 6px;
+  }
+}
+
+/* Estilos para modal responsivo */
+:host ::ng-deep .swal-responsive-modal {
+  max-width: 900px !important;
+  width: 90% !important;
+}
+
+:host ::ng-deep .swal-responsive-modal .swal2-html-container {
+  overflow-x: hidden !important;
+}
+
+@media (max-width: 1024px) {
+  :host ::ng-deep .swal-responsive-modal {
+    width: 92% !important;
+    max-width: 700px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  :host ::ng-deep .swal-responsive-modal {
+    width: 95% !important;
+    max-width: 95% !important;
+    padding: 15px 10px !important;
+  }
+  
+  :host ::ng-deep .swal-responsive-modal .swal2-html-container {
+    font-size: 0.85rem !important;
+    padding: 10px 5px !important;
+  }
+  
+  :host ::ng-deep .swal-responsive-modal .swal2-title {
+    font-size: 1.1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  :host ::ng-deep .swal-responsive-modal {
+    width: 98% !important;
+    padding: 12px 8px !important;
+  }
+  
+  :host ::ng-deep .swal-responsive-modal .swal2-html-container {
+    font-size: 0.8rem !important;
+    max-height: 70vh !important;
+    overflow-y: auto !important;
   }
 }

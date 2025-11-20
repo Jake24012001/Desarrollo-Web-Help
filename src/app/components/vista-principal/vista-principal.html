@@ -53,7 +53,17 @@
                 <i class="bi bi-eye"></i>
               </button>
             </td>
-            <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
+            <td>
+              <span *ngIf="item.usuario_asignado">
+                {{ item.usuario_asignado.nombres || item.usuario_asignado.nombre || '—' }}
+                {{ item.usuario_asignado.apellidos || '' }}
+                <br>
+                <small class="text-muted">
+                  <i class="bi bi-envelope"></i> {{ item.usuario_asignado.email || '—' }}
+                </small>
+              </span>
+              <span *ngIf="!item.usuario_asignado">—</span>
+            </td>
             <td class="td-truncate">
               <span *ngIf="item.equipoAfectado?.product">
                 {{ item.equipoAfectado?.product?.name || '—' }}
@@ -68,7 +78,17 @@
               </span>
               <span *ngIf="!item.equipoAfectado?.product">—</span>
             </td>
-            <td>{{ item.usuario_creador?.nombre || '—' }}</td>
+            <td>
+              <span *ngIf="item.usuario_creador">
+                {{ item.usuario_creador.nombres || item.usuario_creador.nombre || '—' }}
+                {{ item.usuario_creador.apellidos || '' }}
+                <br>
+                <small class="text-muted">
+                  <i class="bi bi-envelope"></i> {{ item.usuario_creador.email || '—' }}
+                </small>
+              </span>
+              <span *ngIf="!item.usuario_creador">—</span>
+            </td>
             <td>
               <span class="prioridad-text" [class.prioridad-alta]="item.priority?.name === 'ALTA'"
                 [class.prioridad-media]="item.priority?.name === 'MEDIA'"
@@ -120,7 +140,7 @@
             <th>Creador</th>
             <th>Prioridad</th>
             <th>Tiempo</th>
-            <th>Eliminar</th>
+            <th *ngIf="!authorizationService.isCliente()">Eliminar</th>
           </tr>
         </thead>
         <tbody>
@@ -135,7 +155,17 @@
                 <i class="bi bi-eye"></i>
               </button>
             </td>
-            <td>{{ item.usuario_asignado?.nombre || '—' }}</td>
+            <td>
+              <span *ngIf="item.usuario_asignado">
+                {{ item.usuario_asignado.nombres || item.usuario_asignado.nombre || '—' }}
+                {{ item.usuario_asignado.apellidos || '' }}
+                <br>
+                <small class="text-muted">
+                  <i class="bi bi-envelope"></i> {{ item.usuario_asignado.email || '—' }}
+                </small>
+              </span>
+              <span *ngIf="!item.usuario_asignado">—</span>
+            </td>
             <td class="td-truncate">
               <span *ngIf="item.equipoAfectado?.product">
                 {{ item.equipoAfectado?.product?.name || '—' }}
@@ -150,7 +180,17 @@
               </span>
               <span *ngIf="!item.equipoAfectado?.product">—</span>
             </td>
-            <td>{{ item.usuario_creador?.nombre || '—' }}</td>
+            <td>
+              <span *ngIf="item.usuario_creador">
+                {{ item.usuario_creador.nombres || item.usuario_creador.nombre || '—' }}
+                {{ item.usuario_creador.apellidos || '' }}
+                <br>
+                <small class="text-muted">
+                  <i class="bi bi-envelope"></i> {{ item.usuario_creador.email || '—' }}
+                </small>
+              </span>
+              <span *ngIf="!item.usuario_creador">—</span>
+            </td>
             <td>
               <span class="prioridad-text" [class.prioridad-alta]="item.priority?.name === 'ALTA'"
                 [class.prioridad-media]="item.priority?.name === 'MEDIA'"
@@ -162,7 +202,7 @@
               <span *ngIf="item.fecha_cierre">{{ calcularTiempoRestante(item.fecha_cierre) }}</span>
               <span *ngIf="!item.fecha_cierre">—</span>
             </td>
-            <td>
+            <td *ngIf="!authorizationService.isCliente()">
               <button *ngIf="ticketAccessService.canDeleteTicket(item)" class="btn-action btn-delete" (click)="borrarPeticion(i, 'resuelto')" title="Eliminar">
                 <i class="bi bi-trash3"></i>
               </button>

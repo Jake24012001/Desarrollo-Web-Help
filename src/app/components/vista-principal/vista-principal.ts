@@ -6,10 +6,12 @@ import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 
 import { TicketService } from '../../services/ticket.service';
+import { TicketCommentService } from '../../services/ticket-comment.service';
 import { AuthService } from '../../services/auth.service';
 import { AuthorizationService } from '../../services/authorization.service';
 import { TicketAccessService } from '../../services/ticket-access.service';
 import { Ticket } from '../../interface/Ticket';
+import { TicketComment } from '../../interface/TicketComment';
 import { Environment } from '../../environments/environment'; // agregado como variable global
 
 @Component({
@@ -55,6 +57,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private servicios: TicketService,
+    private ticketCommentService: TicketCommentService,
     private authService: AuthService,
     public authorizationService: AuthorizationService,
     public ticketAccessService: TicketAccessService
@@ -310,7 +313,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
 
   /**
    * Marca un ticket como resuelto (cambia el estado a CERRADO) si existe permiso
-   * y el ticket está en estado ABIERTO.
+   * y el ticket está en estado ABIERTO. Solicita un comentario de resolución.
    */
   marcarComoResuelta(item: Ticket): void {
     if (item.id_ticket == null || !item.status) return;
@@ -327,32 +330,109 @@ export class VistaPrincipal implements OnInit, OnDestroy {
       return;
     }
 
+    // Mostrar diálogo para ingresar la solución
+    Swal.fire({
+      title: '<strong style="color: #004A97; font-size: 1.5rem;">Resolver Ticket</strong>',
+      html: `
+        <div style="text-align: left; margin: 20px auto; max-width: 100%;">
+          <div style="background: #E3F2FD; padding: 15px; border-radius: 8px; border-left: 4px solid #004A97; margin-bottom: 20px;">
+            <p style="margin: 0; color: #004A97; font-weight: 600; font-size: 1rem;">
+              <i class="bi bi-ticket-detailed"></i> ${item.title || 'Sin título'}
+            </p>
+          </div>
+          <label style="display: block; margin-bottom: 10px; color: #212121; font-weight: 500; font-size: 0.95rem;">
+            Por favor, describe la solución aplicada:
+          </label>
+          <div style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <textarea id="swal-comment" 
+              placeholder="Describe detalladamente cómo se resolvió el problema..." 
+              style="width: 100%; min-height: 180px; padding: 15px; border: none; 
+              font-size: 0.95rem; resize: vertical; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+              line-height: 1.6; color: #212121; box-sizing: border-box; outline: none;"
+              rows="8"
+              onfocus="this.parentElement.style.border='2px solid #004A97'; this.parentElement.style.boxShadow='0 0 0 3px rgba(0,74,151,0.1)'"
+              onblur="this.parentElement.style.border='1px solid #ddd'; this.parentElement.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'"></textarea>
+          </div>
+          <small style="display: block; margin-top: 8px; color: #757575; font-size: 0.85rem;">
+            <i class="bi bi-info-circle"></i> Describe los pasos realizados, herramientas utilizadas y resultado final
+          </small>
+        </div>
+      `,
+      width: '800px',
+      padding: '30px 40px',
+      icon: 'question',
+      iconColor: '#004A97',
+      showCancelButton: true,
+      confirmButtonText: '<i class="bi bi-check-circle"></i> Resolver',
+      cancelButtonText: '<i class="bi bi-x-circle"></i> Cancelar',
+      confirmButtonColor: '#004A97',
+      cancelButtonColor: '#6c757d',
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: 'btn-resolver-custom',
+        cancelButton: 'btn-cancelar-custom'
+      },
+      preConfirm: () => {
+        const comment = (document.getElementById('swal-comment') as HTMLTextAreaElement)?.value;
+        if (!comment || comment.trim() === '') {
+          Swal.showValidationMessage('Por favor ingresa la solución del problema');
+          return false;
+        }
+        return comment.trim();
+      },
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        this.resolverTicketConComentario(item, result.value);
+      }
+    });
+  }
+
+  /**
+   * Resuelve el ticket y crea el comentario de resolución.
+   */
+  private resolverTicketConComentario(item: Ticket, solucion: string): void {
     // Actualizar el status
     const ticketActualizado: Ticket = {
       ...item,
       status: {
-        id_status: Environment.ID_STATUS_CERRADO, // ID para "Resuelto" - ajusta según tu BD
+        id_status: Environment.ID_STATUS_CERRADO,
         nombre: Environment.NOMBRE_STATUS_CERRADO,
       },
     };
 
-    // Actualizar en el backend
-    this.servicios.update(item.id_ticket, ticketActualizado).subscribe({
+    // Actualizar ticket en el backend
+    this.servicios.update(item.id_ticket!, ticketActualizado).subscribe({
       next: (ticketResuelto) => {
-        // Actualizar en el array local
-        const index = this.datosFiltrados.findIndex((p) => p.id_ticket === item.id_ticket);
-        if (index !== -1) {
-          this.datosFiltrados[index] = ticketResuelto;
-        }
+        // Crear comentario de resolución
+        const currentUser = this.authService.getCurrentUser();
+        const comment: TicketComment = {
+          ticket: { id_ticket: item.id_ticket } as Ticket,
+          author: { idUsuario: currentUser?.idUsuario } as any,
+          message: solucion,
+        };
 
-        // Detener temporizador
-        this.detenerTemporizador(item.id_ticket!);
+        this.ticketCommentService.create(comment).subscribe({
+          next: () => {
+            // Actualizar en el array local
+            const index = this.datosFiltrados.findIndex((p) => p.id_ticket === item.id_ticket);
+            if (index !== -1) {
+              this.datosFiltrados[index] = ticketResuelto;
+            }
 
-        this.actualizarListas();
-        this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
-        this.datosOriginalesResueltos = [...this.datosResueltos];
+            // Detener temporizador
+            this.detenerTemporizador(item.id_ticket!);
 
-        Swal.fire('Resuelto', 'El ticket ha sido marcado como resuelto.', 'success');
+            this.actualizarListas();
+            this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
+            this.datosOriginalesResueltos = [...this.datosResueltos];
+
+            Swal.fire('Resuelto', 'El ticket ha sido marcado como resuelto y la solución ha sido registrada.', 'success');
+          },
+          error: (error) => {
+            console.error('Error al crear comentario:', error);
+            Swal.fire('Advertencia', 'El ticket fue resuelto pero no se pudo guardar el comentario.', 'warning');
+          },
+        });
       },
       error: (error) => {
         console.error('Error al resolver ticket:', error);
@@ -433,49 +513,256 @@ export class VistaPrincipal implements OnInit, OnDestroy {
 
   /**
    * Muestra un modal con la descripción completa y metadatos del ticket.
+   * Si el ticket está resuelto, carga y muestra los comentarios de resolución.
    */
   verDescripcionCompleta(ticket: Ticket): void {
-    Swal.fire({
-      title: `<strong>${ticket.title || 'Ticket'}</strong>`,
-      html: `
-        <div style="text-align: left; max-height: 400px; overflow-y: auto;">
-          <p style="margin-bottom: 10px;">
-            <strong>Descripción:</strong>
-          </p>
-            <p style="white-space: pre-wrap; padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #004A97;">
-            ${ticket.descripcion || 'Sin descripción'}
-          </p>
-          ${ticket.equipoAfectado?.product?.name ? `
-            <p style="margin-top: 15px;">
-              <strong>Equipo afectado:</strong> ${ticket.equipoAfectado.product.name}
-              ${ticket.equipoAfectado.product.brand || ticket.equipoAfectado.product.model ? `
-                <br><small style="color: #757575; font-style: italic;">
-                  ${ticket.equipoAfectado.product.brand || ''} 
-                  ${ticket.equipoAfectado.product.brand && ticket.equipoAfectado.product.model ? ' - ' : ''}
-                  ${ticket.equipoAfectado.product.model || ''}
+    if (!ticket.id_ticket) return;
+
+    // Si el ticket está resuelto, cargar comentarios
+    if (ticket.status?.nombre === Environment.NOMBRE_STATUS_CERRADO) {
+      this.ticketCommentService.getAll().subscribe({
+        next: (allComments) => {
+          const comments = allComments.filter(c => c.ticket?.id_ticket === ticket.id_ticket);
+          this.mostrarModalConComentarios(ticket, comments);
+        },
+        error: () => {
+          this.mostrarModalConComentarios(ticket, []);
+        }
+      });
+    } else {
+      this.mostrarModalConComentarios(ticket, []);
+    }
+  }
+
+  /**
+   * Muestra el modal con información del ticket y comentarios (si existen).
+   */
+  private mostrarModalConComentarios(ticket: Ticket, comments: TicketComment[]): void {
+    const currentUser = this.authService.getCurrentUser();
+    const isAdminOrAgent = this.authorizationService.isAdmin() || this.authorizationService.isAgente();
+
+    let commentsHtml = '';
+    if (comments.length > 0) {
+      commentsHtml = `
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #E3F2FD;">
+          <h6 style="color: #004A97; font-weight: 700; margin-bottom: 15px;">
+            <i class="bi bi-chat-left-text"></i> Solución Aplicada
+          </h6>
+      `;
+      
+      comments.forEach(comment => {
+        const isAuthor = comment.author?.idUsuario === currentUser?.idUsuario;
+        const isAdmin = this.authorizationService.isAdmin();
+        const canEdit = (isAuthor && isAdminOrAgent) || isAdmin;
+        
+        commentsHtml += `
+          <div style="background: #f8fcff; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #4CAF50; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+              <div>
+                <strong style="color: #004A97;">${comment.author?.nombre || comment.author?.nombres || 'Usuario'}</strong>
+                <small style="color: #757575; display: block; font-size: 0.85rem;">
+                  ${comment.createdAt ? new Date(comment.createdAt).toLocaleString('es-EC') : ''}
                 </small>
+              </div>
+              ${canEdit ? `
+                <button 
+                  class="btn-edit-comment" 
+                  data-comment-id="${comment.id}"
+                  style="background: transparent; border: 1px solid #004A97; color: #004A97; 
+                  padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; cursor: pointer; 
+                  transition: all 0.2s;"
+                  onmouseover="this.style.background='#004A97'; this.style.color='white';"
+                  onmouseout="this.style.background='transparent'; this.style.color='#004A97';">
+                  <i class="bi bi-pencil"></i> Editar
+                </button>
               ` : ''}
-            </p>
-          ` : ''}
-          ${ticket.usuario_asignado?.nombre ? `
-            <p>
-              <strong>Asignado a:</strong> ${ticket.usuario_asignado.nombre}
-            </p>
-          ` : ''}
-          ${ticket.priority?.name ? `
-            <p>
-              <strong>Prioridad:</strong> <span style="color: ${
-                ticket.priority.name === 'ALTA' ? '#C62828' : 
-                ticket.priority.name === 'MEDIA' ? '#F57C00' : 
-                '#2E7D32'
-              }; font-weight: bold;">${ticket.priority.name}</span>
-            </p>
-          ` : ''}
+            </div>
+            <p style="white-space: pre-wrap; margin: 0; color: #212121;">${comment.message}</p>
+          </div>
+        `;
+      });
+      commentsHtml += '</div>';
+    }
+
+    Swal.fire({
+      title: `<strong style="color: #004A97; font-size: 1.4rem;">${ticket.title || 'Detalle del Ticket'}</strong>`,
+      html: `
+        <div style="text-align: left; max-height: 600px; overflow-y: auto; padding: 10px;">
+          
+          <!-- Descripción -->
+          <div style="margin-bottom: 20px;">
+            <h6 style="color: #004A97; font-weight: 600; margin-bottom: 10px; font-size: 0.95rem;">
+              <i class="bi bi-file-text"></i> Descripción
+            </h6>
+            <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%); 
+                        padding: ${ticket.descripcion && ticket.descripcion.length > 100 ? '12px 15px' : '10px 15px'}; 
+                        border-radius: 8px; border-left: 4px solid #004A97; 
+                        color: #212121; line-height: 1.6; font-size: 0.9rem;">
+              ${ticket.descripcion || 'Sin descripción'}
+            </div>
+          </div>
+
+          <!-- Información del Ticket -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            
+            ${ticket.equipoAfectado?.product?.name ? `
+              <div style="background: #f8fcff; padding: 12px; border-radius: 8px; border: 1px solid #BBDEFB;">
+                <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                  <i class="bi bi-laptop" style="color: #004A97; font-size: 1.1rem; margin-right: 8px;"></i>
+                  <strong style="color: #004A97; font-size: 0.85rem;">Equipo Afectado</strong>
+                </div>
+                <div style="color: #212121; font-size: 0.9rem;">${ticket.equipoAfectado.product.name}</div>
+                ${ticket.equipoAfectado.product.brand || ticket.equipoAfectado.product.model ? `
+                  <small style="color: #757575; font-size: 0.8rem; display: block; margin-top: 4px;">
+                    ${ticket.equipoAfectado.product.brand || ''} 
+                    ${ticket.equipoAfectado.product.brand && ticket.equipoAfectado.product.model ? ' • ' : ''}
+                    ${ticket.equipoAfectado.product.model || ''}
+                  </small>
+                ` : ''}
+              </div>
+            ` : ''}
+
+            ${ticket.usuario_asignado ? `
+              <div style="background: #f8fcff; padding: 12px; border-radius: 8px; border: 1px solid #BBDEFB;">
+                <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                  <i class="bi bi-person-check" style="color: #004A97; font-size: 1.1rem; margin-right: 8px;"></i>
+                  <strong style="color: #004A97; font-size: 0.85rem;">Asignado a</strong>
+                </div>
+                <div style="color: #212121; font-size: 0.9rem;">
+                  ${ticket.usuario_asignado.nombres || ticket.usuario_asignado.nombre || '—'}
+                  ${ticket.usuario_asignado.apellidos || ''}
+                </div>
+                <small style="color: #757575; font-size: 0.8rem; display: block; margin-top: 4px;">
+                  <i class="bi bi-envelope"></i> ${ticket.usuario_asignado.email || '—'}
+                </small>
+              </div>
+            ` : ''}
+
+            ${ticket.priority?.name ? `
+              <div style="background: #f8fcff; padding: 12px; border-radius: 8px; border: 1px solid #BBDEFB;">
+                <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                  <i class="bi bi-exclamation-triangle" style="color: #004A97; font-size: 1.1rem; margin-right: 8px;"></i>
+                  <strong style="color: #004A97; font-size: 0.85rem;">Prioridad</strong>
+                </div>
+                <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: 600; 
+                             font-size: 0.85rem; background: ${
+                  ticket.priority.name === 'ALTA' ? '#FFEBEE' : 
+                  ticket.priority.name === 'MEDIA' ? '#FFF3E0' : 
+                  '#E8F5E9'
+                }; color: ${
+                  ticket.priority.name === 'ALTA' ? '#C62828' : 
+                  ticket.priority.name === 'MEDIA' ? '#EF6C00' : 
+                  '#2E7D32'
+                };">
+                  ${ticket.priority.name}
+                </span>
+              </div>
+            ` : ''}
+          </div>
+
+          ${commentsHtml}
         </div>
       `,
-      width: '600px',
-      confirmButtonText: 'Cerrar',
+      width: '90%',
+      padding: '25px 30px',
+      confirmButtonText: '<i class="bi bi-x-circle"></i> Cerrar',
       confirmButtonColor: '#004A97',
+      buttonsStyling: true,
+      customClass: {
+        popup: 'swal-responsive-modal'
+      },
+      didOpen: () => {
+        // Agregar event listeners a los botones de editar
+        const editButtons = document.querySelectorAll('.btn-edit-comment');
+        editButtons.forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const commentId = (e.currentTarget as HTMLElement).getAttribute('data-comment-id');
+            if (commentId) {
+              const comment = comments.find(c => c.id === parseInt(commentId));
+              if (comment) {
+                Swal.close();
+                this.editarComentario(comment, ticket);
+              }
+            }
+          });
+        });
+      }
+    });
+  }
+
+  /**
+   * Permite editar un comentario de resolución.
+   */
+  private editarComentario(comment: TicketComment, ticket: Ticket): void {
+    Swal.fire({
+      title: '<strong style="color: #004A97; font-size: 1.5rem;">Editar Solución</strong>',
+      html: `
+        <div style="text-align: left; margin: 20px auto; max-width: 100%;">
+          <div style="background: #E3F2FD; padding: 15px; border-radius: 8px; border-left: 4px solid #004A97; margin-bottom: 20px;">
+            <p style="margin: 0; color: #004A97; font-weight: 600; font-size: 1rem;">
+              <i class="bi bi-ticket-detailed"></i> ${ticket.title || 'Sin título'}
+            </p>
+          </div>
+          <label style="display: block; margin-bottom: 10px; color: #212121; font-weight: 500; font-size: 0.95rem;">
+            Modifica la solución aplicada:
+          </label>
+          <div style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <textarea id="swal-edit-comment" 
+              style="width: 100%; min-height: 180px; padding: 15px; border: none; 
+              font-size: 0.95rem; resize: vertical; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+              line-height: 1.6; color: #212121; box-sizing: border-box; outline: none;"
+              rows="8"
+              onfocus="this.parentElement.style.border='2px solid #004A97'; this.parentElement.style.boxShadow='0 0 0 3px rgba(0,74,151,0.1)'"
+              onblur="this.parentElement.style.border='1px solid #ddd'; this.parentElement.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'">${comment.message}</textarea>
+          </div>
+          <small style="display: block; margin-top: 8px; color: #757575; font-size: 0.85rem;">
+            <i class="bi bi-info-circle"></i> Actualiza los detalles de la solución aplicada
+          </small>
+        </div>
+      `,
+      width: '800px',
+      padding: '30px 40px',
+      icon: 'info',
+      iconColor: '#004A97',
+      showCancelButton: true,
+      confirmButtonText: '<i class="bi bi-check-circle"></i> Guardar',
+      cancelButtonText: '<i class="bi bi-x-circle"></i> Cancelar',
+      confirmButtonColor: '#004A97',
+      cancelButtonColor: '#6c757d',
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: 'btn-resolver-custom',
+        cancelButton: 'btn-cancelar-custom'
+      },
+      preConfirm: () => {
+        const newMessage = (document.getElementById('swal-edit-comment') as HTMLTextAreaElement)?.value;
+        if (!newMessage || newMessage.trim() === '') {
+          Swal.showValidationMessage('El comentario no puede estar vacío');
+          return false;
+        }
+        return newMessage.trim();
+      },
+    }).then((result) => {
+      if (result.isConfirmed && result.value && comment.id) {
+        const updatedComment: TicketComment = {
+          ...comment,
+          message: result.value,
+        };
+        
+        this.ticketCommentService.update(comment.id, updatedComment).subscribe({
+          next: () => {
+            Swal.fire('Actualizado', 'El comentario ha sido actualizado exitosamente.', 'success')
+              .then(() => this.verDescripcionCompleta(ticket));
+          },
+          error: (error) => {
+            console.error('Error al actualizar comentario:', error);
+            Swal.fire('Error', 'No se pudo actualizar el comentario.', 'error');
+          },
+        });
+      } else {
+        // Volver al modal anterior
+        this.verDescripcionCompleta(ticket);
+      }
     });
   }
 
