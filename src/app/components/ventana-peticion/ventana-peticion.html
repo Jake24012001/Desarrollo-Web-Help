@@ -52,17 +52,24 @@
       </div>
 
       <div class="form-group mb-3">
-        <label for="equipo" class="form-label">Equipos disponibles:</label>
-        <div class="d-flex gap-2">
-          <select id="equipo" class="form-select equipo-select" [(ngModel)]="equipoSeleccionado" name="equipo" required>
-            <option value="" disabled selected *ngIf="!equiposFiltrados || equiposFiltrados.length === 0">
-              ── Selecciona una categoría primero ──
-            </option>
-            <option *ngFor="let equipo of equiposFiltrados" [ngValue]="equipo">
-              {{ formatearEquipo(equipo) }}
-            </option>
-          </select>
-        </div>
+        <label for="productoNombre" class="form-label">Nombre del Producto:</label>
+        <select id="productoNombre" class="form-select" [(ngModel)]="productoNombreSeleccionado" 
+          (change)="onProductoNombreSeleccionado()" name="productoNombre" 
+          [disabled]="!equiposFiltrados || equiposFiltrados.length === 0">
+          <option [ngValue]="''" *ngIf="!productoNombreSeleccionado" disabled selected>── Selecciona un producto ──</option>
+          <option *ngFor="let nombre of obtenerNombresUnicos()" [value]="nombre">{{ nombre }}</option>
+        </select>
+      </div>
+
+      <div class="form-group mb-3" *ngIf="productoNombreSeleccionado">
+        <label for="equipo" class="form-label">Equipo específico (Serial / Modelo / Código):</label>
+        <select id="equipo" class="form-select equipo-select" [(ngModel)]="equipoSeleccionado" 
+          (change)="onEquipoSeleccionado()" name="equipo" required>
+          <option [ngValue]="null" *ngIf="!equipoSeleccionado" disabled selected>── Selecciona el equipo ──</option>
+          <option *ngFor="let equipo of equiposDelProducto" [ngValue]="equipo">
+            {{ formatearEquipoDetalle(equipo) }}
+          </option>
+        </select>
       </div>
 
       <!-- Prioridad y detalle -->

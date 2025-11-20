@@ -44,8 +44,8 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   border: 2px solid #BBDEFB;
   border-radius: 10px;
-  background: linear-gradient(to bottom, #FFFFFF 0%, #F5F9FF 100%);
-  color: #212121;
+  background: white !important;
+  color: #212121 !important;
   transition: all 0.3s ease;
   box-shadow: 0 3px 6px rgba(0, 74, 151, 0.12);
   cursor: pointer;
@@ -57,6 +57,8 @@
   border-color: #42A5F5;
   box-shadow: 0 5px 12px rgba(0, 74, 151, 0.2);
   transform: translateY(-1px);
+  background: white !important;
+  color: #212121 !important;
 }
 
 #equipo:focus,
@@ -64,16 +66,17 @@
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(0, 74, 151, 0.25);
-  background: linear-gradient(to bottom, #FAFAFA 0%, #F0F7FF 100%);
+  background: white !important;
+  color: #212121 !important;
 }
 
-/* Estilo para las opciones del select - simulando tabla */
+/* Forzar texto oscuro en todas las opciones del select */
 #equipo option,
 .equipo-select option {
   padding: 14px 18px;
   font-size: 0.9rem;
-  background-color: white;
-  color: #212121;
+  background-color: white !important;
+  color: #212121 !important;
   border-bottom: 1px solid #E0E0E0;
   line-height: 1.6;
   font-weight: 500;
@@ -83,17 +86,16 @@
 #equipo option:focus,
 .equipo-select option:hover,
 .equipo-select option:focus {
-  background: linear-gradient(to right, #E3F2FD 0%, #BBDEFB 100%);
-  color: #0D47A1;
+  background: #E3F2FD !important;
+  color: #0D47A1 !important;
   font-weight: 600;
 }
 
 #equipo option:checked,
 .equipo-select option:checked {
-  background: linear-gradient(135deg, var(--primary) 0%, #1565C0 100%);
-  color: white;
+  background: #BBDEFB !important;
+  color: #0D47A1 !important;
   font-weight: 700;
-  border-left: 4px solid #0D47A1;
 }
 
 /* Opción disabled (placeholder) - estilo mejorado */
@@ -213,3 +215,46 @@
 .en-proceso { background-color: #ffc107; color: #212529; border: 1px solid #e0a800; }
 .terminado { background-color: #17a2b8; color: white; border: 1px solid #117a8b; }
 .no-disponible { background-color: #6c757d; color: white; border: 1px solid #545b62; }
+
+/* Tarjeta de detalles del equipo seleccionado */
+.equipo-detalles-card {
+  border: 2px solid var(--primary);
+  border-radius: 10px;
+  background: linear-gradient(to bottom, #ffffff 0%, #f8fcff 100%);
+  box-shadow: 0 3px 8px rgba(0, 74, 151, 0.12);
+  animation: slideDown 0.3s ease-out;
+}
+
+.equipo-detalles-card .card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--primary);
+  border-bottom: 2px solid #E3F2FD;
+  padding-bottom: 8px;
+}
+
+.equipo-detalles-card .form-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.equipo-detalles-card .form-control-plaintext {
+  padding: 6px 0;
+  font-size: 0.9rem;
+  color: #212121;
+  min-height: auto;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

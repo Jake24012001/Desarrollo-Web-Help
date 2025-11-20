@@ -38,6 +38,10 @@ export class VentanaPeticion implements OnInit {
   equiposInventario: InventoryUnit[] = [];
   equiposFiltrados: InventoryUnit[] = [];
   productosUnicos: Product[] = [];
+  
+  // Cascading dropdowns: producto nombre → equipo específico
+  productoNombreSeleccionado: string = '';
+  equiposDelProducto: InventoryUnit[] = [];
 
   datosResueltos: any[] = [];
   datosFiltradosPendientes: any[] = [];
@@ -47,16 +51,7 @@ export class VentanaPeticion implements OnInit {
 
   usuarioSeleccionados: { id: UsuarioRol; usuario: Usuario; rol: Rol } | null = null;
 
-  equipoSeleccionado: {
-    id: number;
-    serial: string;
-    product: {
-      id: number;
-      name: string;
-      brand?: string;
-      model?: string;
-    };
-  } | null = null;
+  equipoSeleccionado: InventoryUnit | null = null;
 
   productoSeleccionado: string = '';
   mostrarFormularioEquipo = false;
@@ -155,6 +150,7 @@ export class VentanaPeticion implements OnInit {
       }
     });
   }
+
   // Acciones (crear/cancelar)
   cancelarAccion(): void {
     Swal.fire({
@@ -288,6 +284,9 @@ export class VentanaPeticion implements OnInit {
   filtrarEquiposPorTipo(): void {
     if (!this.productoSeleccionado) {
       this.equiposFiltrados = [];
+      this.equipoSeleccionado = null;
+      this.productoNombreSeleccionado = '';
+      this.equiposDelProducto = [];
       return;
     }
 
@@ -314,6 +313,55 @@ export class VentanaPeticion implements OnInit {
         (usuarioCedula && usuarioCedula === custodioCedula)
       );
     });
+    // Reset cascading selections
+    this.equipoSeleccionado = null;
+    this.productoNombreSeleccionado = '';
+    this.equiposDelProducto = [];
+  }
+
+  /**
+   * Handler cuando se selecciona un equipo (permite que Angular detecte el cambio y muestre detalles).
+   */
+  onEquipoSeleccionado(): void {
+    // No necesita lógica adicional; el *ngIf en el HTML detectará el cambio automáticamente
+  }
+
+  /**
+   * Obtiene los nombres únicos de productos disponibles después de filtrar por categoría.
+   */
+  obtenerNombresUnicos(): string[] {
+    const nombresSet = new Set<string>();
+    this.equiposFiltrados.forEach(equipo => {
+      if (equipo.product?.name) {
+        nombresSet.add(equipo.product.name);
+      }
+    });
+    return Array.from(nombresSet).sort();
+  }
+
+  /**
+   * Cuando se selecciona un nombre de producto, filtra los equipos específicos de ese producto.
+   */
+  onProductoNombreSeleccionado(): void {
+    this.equipoSeleccionado = null;
+    if (!this.productoNombreSeleccionado) {
+      this.equiposDelProducto = [];
+      return;
+    }
+    this.equiposDelProducto = this.equiposFiltrados.filter(
+      equipo => equipo.product?.name === this.productoNombreSeleccionado
+    );
+  }
+
+  /**
+   * Formatea el texto de un equipo específico para el segundo dropdown (serial + modelo + código).
+   */
+  formatearEquipoDetalle(equipo: InventoryUnit): string {
+    const partes: string[] = [];
+    if (equipo.serial) partes.push(`Serial: ${equipo.serial}`);
+    if (equipo.product?.model) partes.push(`Modelo: ${equipo.product.model}`);
+    if (equipo.municipalCode) partes.push(`Código: ${equipo.municipalCode}`);
+    return partes.length > 0 ? partes.join(' | ') : 'Sin detalles';
   }
 
   mostrarFormEquipo(): void {
