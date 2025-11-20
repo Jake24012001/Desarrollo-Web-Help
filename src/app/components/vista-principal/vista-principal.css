@@ -74,6 +74,26 @@
   border-color: var(--primary-dark) !important;
 }
 
+/* Botón de gestionar prioridades (outline) */
+.btn-outline-primary {
+  background-color: white !important;
+  border: 2px solid var(--primary) !important;
+  color: var(--primary) !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary) !important;
+  color: white !important;
+  border-color: var(--primary-dark) !important;
+  transform: translateY(-1px);
+}
+
+.btn-outline-primary i {
+  font-size: 0.95rem;
+}
+
 /* Tarjetas que contienen las tablas de tickets */
 .tickets-card {
   background: white;

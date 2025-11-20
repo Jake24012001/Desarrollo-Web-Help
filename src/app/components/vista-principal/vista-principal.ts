@@ -7,11 +7,13 @@ import Swal from 'sweetalert2';
 
 import { TicketService } from '../../services/ticket.service';
 import { TicketCommentService } from '../../services/ticket-comment.service';
+import { TicketPriorityService } from '../../services/ticket-priority.service';
 import { AuthService } from '../../services/auth.service';
 import { AuthorizationService } from '../../services/authorization.service';
 import { TicketAccessService } from '../../services/ticket-access.service';
 import { Ticket } from '../../interface/Ticket';
 import { TicketComment } from '../../interface/TicketComment';
+import { TicketPriority } from '../../interface/TicketPriority';
 import { Environment } from '../../environments/environment';
 
 @Component({
@@ -56,6 +58,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     private router: Router,
     private servicios: TicketService,
     private ticketCommentService: TicketCommentService,
+    private ticketPriorityService: TicketPriorityService,
     private authService: AuthService,
     public authorizationService: AuthorizationService,
     public ticketAccessService: TicketAccessService
@@ -770,5 +773,142 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     const horasTranscurridas = tiempoTranscurridoMs / (1000 * 60 * 60);
 
     return horasTranscurridas > ticket.priority.resolutionTimeHours;
+  }
+
+  // Abre modal para que el admin gestione las duraciones de las prioridades
+  gestionarPrioridades(): void {
+    this.ticketPriorityService.getAll().subscribe({
+      next: (prioridades: TicketPriority[]) => {
+        // Ordeno las prioridades: BAJA -> MEDIA -> ALTA
+        const prioridadesOrdenadas = [...prioridades].sort((a, b) => {
+          const orden: { [key: string]: number } = { 'BAJA': 1, 'LOW': 1, 'MEDIA': 2, 'MEDIUM': 2, 'ALTA': 3, 'HIGH': 3 };
+          const valorA = orden[a.name.toUpperCase()] || 999;
+          const valorB = orden[b.name.toUpperCase()] || 999;
+          return valorA - valorB;
+        });
+
+        // Construyo el HTML del modal con inputs editables para cada prioridad
+        const prioridadesHTML = prioridadesOrdenadas.map(p => `
+          <div style="margin-bottom: 16px; padding: 18px; border: 2px solid #BBDEFB; border-radius: 8px; background: #FAFAFA;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <label style="font-weight: 700; color: #1565C0; font-size: 1.05rem; margin: 0;">
+                Prioridad ${p.name}
+              </label>
+              <span style="background: #E3F2FD; color: #0D47A1; padding: 4px 14px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; border: 1px solid #BBDEFB;">
+                ${p.name}
+              </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <input 
+                type="number" 
+                id="priority-${p.id_priority}" 
+                class="swal2-input" 
+                value="${p.resolutionTimeHours || 0}" 
+                min="1"
+                step="1"
+                style="margin: 0; flex: 1; padding: 12px; font-size: 1rem; border: 2px solid #BBDEFB; border-radius: 6px; background: white;"
+                placeholder="Horas"
+              />
+              <span style="color: #1565C0; font-weight: 600; white-space: nowrap; min-width: 50px;">horas</span>
+            </div>
+          </div>
+        `).join('');
+
+        Swal.fire({
+          title: '<span style="color: #1565C0; font-weight: 700;">Gestión de Prioridades</span>',
+          html: `
+            <div style="text-align: left; max-height: 500px; overflow-y: auto; padding: 10px;">
+              <p style="color: #616161; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5;">
+                Configura el tiempo máximo de resolución para cada nivel de prioridad.
+              </p>
+              ${prioridadesHTML}
+            </div>
+          `,
+          width: '600px',
+          showCancelButton: true,
+          confirmButtonText: 'Guardar Cambios',
+          cancelButtonText: 'Cancelar',
+          customClass: {
+            popup: 'swal-responsive-modal',
+            confirmButton: 'btn-confirmar-custom',
+            cancelButton: 'btn-cancelar-custom'
+          },
+          preConfirm: () => {
+            const cambios: { prioridad: TicketPriority; nuevasDuracion: number }[] = [];
+            let hayError = false;
+
+            prioridades.forEach(p => {
+              const input = document.getElementById(`priority-${p.id_priority}`) as HTMLInputElement;
+              if (input) {
+                const nuevoValor = parseInt(input.value);
+                if (isNaN(nuevoValor) || nuevoValor < 1) {
+                  Swal.showValidationMessage(`El valor para ${p.name} debe ser mayor a 0`);
+                  hayError = true;
+                  return;
+                }
+                if (nuevoValor !== p.resolutionTimeHours) {
+                  cambios.push({ prioridad: p, nuevasDuracion: nuevoValor });
+                }
+              }
+            });
+
+            if (hayError) return false;
+            return cambios;
+          },
+        }).then((result) => {
+          if (result.isConfirmed && result.value && result.value.length > 0) {
+            // Guardo los cambios en el backend
+            let actualizacionesCompletadas = 0;
+            const totalActualizaciones = result.value.length;
+
+            result.value.forEach((cambio: { prioridad: TicketPriority; nuevasDuracion: number }) => {
+              const prioridadActualizada: TicketPriority = {
+                ...cambio.prioridad,
+                resolutionTimeHours: cambio.nuevasDuracion
+              };
+
+              // Valido que exista el ID antes de actualizar
+              if (!cambio.prioridad.id_priority) {
+                console.error('ID de prioridad no encontrado');
+                return;
+              }
+
+              this.ticketPriorityService.update(cambio.prioridad.id_priority, prioridadActualizada).subscribe({
+                next: () => {
+                  actualizacionesCompletadas++;
+                  if (actualizacionesCompletadas === totalActualizaciones) {
+                    Swal.fire({
+                      icon: 'success',
+                      title: '¡Actualizado!',
+                      text: `Se actualizaron ${totalActualizaciones} prioridad(es) exitosamente.`,
+                      timer: 2000
+                    });
+                    // Recargo los tickets para reflejar los cambios
+                    this.ngOnInit();
+                  }
+                },
+                error: (error) => {
+                  console.error('Error al actualizar prioridad:', error);
+                  Swal.fire('Error', `No se pudo actualizar la prioridad ${cambio.prioridad.name}.`, 'error');
+                }
+              });
+            });
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error al cargar prioridades:', error);
+        Swal.fire('Error', 'No se pudieron cargar las prioridades.', 'error');
+      }
+    });
+  }
+
+  // Devuelve el color según el nombre de la prioridad
+  private getColorPrioridad(nombre: string): string {
+    const nombreUpper = nombre.toUpperCase();
+    if (nombreUpper.includes('ALTA') || nombreUpper.includes('HIGH')) return '#C62828';
+    if (nombreUpper.includes('MEDIA') || nombreUpper.includes('MEDIUM')) return '#F57C00';
+    if (nombreUpper.includes('BAJA') || nombreUpper.includes('LOW')) return '#2E7D32';
+    return '#616161';
   }
 }

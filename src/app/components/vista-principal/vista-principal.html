@@ -6,6 +6,16 @@
       <input type="text" class="form-control form-control-sm search-input" [placeholder]="placeholderText"
         [(ngModel)]="terminoBusqueda" (input)="filtrarDatos()" />
       <button class="btn btn-primary btn-sm" (click)="limpiarBusqueda()">Limpiar</button>
+      
+      <!-- Botón para gestionar prioridades (solo admin) -->
+      <button 
+        *ngIf="authorizationService.isAdmin()" 
+        class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" 
+        (click)="gestionarPrioridades()"
+        title="Gestionar duraciones de prioridades"
+      >
+        <i class="bi bi-gear-fill"></i> Prioridades
+      </button>
     </div>
     <!-- Filtro de vista (todos/pendientes/resueltos) -->
     <div class="d-flex align-items-center">
