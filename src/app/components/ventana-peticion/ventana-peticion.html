@@ -3,25 +3,24 @@
     <h5 class="mb-0">Creación de Ticket de Soporte</h5>
   </div>
   <div class="card-body">
-    <!-- Formulario para crear ticket -->
+    <!-- Formulario para crear un nuevo ticket -->
     <form class="formulario-peticion" (ngSubmit)="crearTicket()">
 
-      <!-- Tipo de petición -->
+      <!-- Título del ticket -->
       <div class="form-group mb-3">
         <label for="tipoPeticion" class="form-label">Tipo de petición:</label>
         <input type="text" id="tipoPeticion" class="form-control" placeholder="Ingrese su petición"
           [(ngModel)]="tipoPeticion" name="tipoPeticion" required />
       </div>
 
-      <!-- Selección de usuario -->
+      <!-- Usuario creador: select para admin, readonly para otros roles -->
       <div class="form-group mb-3">
         <label for="usuario" class="form-label">Usuario creador:</label>
-        <!-- Si es ADMIN, mostrar select para elegir usuario -->
         <select *ngIf="authorizationService.isAdmin()" id="usuario" class="form-select" [(ngModel)]="usuarioSeleccionado" name="usuario" required>
           <option value="" disabled selected>-- Selecciona --</option>
             <option *ngFor="let usuario of usuarios" [ngValue]="usuario">{{ usuario.apellidos }} {{ usuario.nombres }} — {{ usuario.cedula }}</option>
         </select>
-        <!-- Si NO es ADMIN, mostrar textbox readonly con el usuario actual -->
+        <!-- Usuario actual (no editable para no-admin) -->
           <div *ngIf="!authorizationService.isAdmin()" class="form-control" style="background-color: #f8f9fa; padding: 10px;">
             <div class="fw-bold">{{ usuarioSeleccionado?.apellidos }} {{ usuarioSeleccionado?.nombres }}</div>
             <small class="text-muted">Cédula: {{ usuarioSeleccionado?.cedula }}</small>
@@ -29,19 +28,19 @@
           <input *ngIf="!authorizationService.isAdmin()" type="hidden" name="usuario" [(ngModel)]="usuarioSeleccionado" />
       </div>
 
-      <!-- Asignar trabajo (usuario+rol) -->
+      <!-- Asignación manual (solo admin) -->
       <div class="form-group mb-3" *ngIf="authorizationService.isAdmin()">
         <label for="asignarTrabajo" class="form-label">Asignar Trabajo</label>
         <select id="asignarTrabajo" class="form-select" [(ngModel)]="usuarioSeleccionados" name="usuarioAsignado">
           <option value="" disabled selected>-- Selecciona --</option>
-          <!-- Mostrar solo usuarios con rol ADMIN o AGENTE; mostrar nombre y apellidos en vez de apodo -->
+          <!-- Muestra solo usuarios con rol ADMIN o AGENTE -->
           <option *ngFor="let item of getRolesAdminYAgente()" [ngValue]="item">
             {{ item.rol.nombre }} - {{ (item.usuario.nombres || item.usuario.nombre) + (item.usuario.apellidos ? ' ' + item.usuario.apellidos : '') }}
           </option>
         </select>
       </div>
 
-      <!-- Categoría de equipo y equipos disponibles -->
+      <!-- Selectores en cascada: tipo de equipo → nombre → equipo específico -->
       <div class="form-group mb-3">
         <label for="producto" class="form-label">Categoría de equipo</label>
         <select name="producto" id="producto" class="form-select" [(ngModel)]="productoSeleccionado"
@@ -51,6 +50,7 @@
         </select>
       </div>
 
+      <!-- Nombre del producto (segundo nivel de filtrado) -->
       <div class="form-group mb-3">
         <label for="productoNombre" class="form-label">Nombre del Producto:</label>
         <select id="productoNombre" class="form-select" [(ngModel)]="productoNombreSeleccionado" 
@@ -61,6 +61,7 @@
         </select>
       </div>
 
+      <!-- Equipo específico con serial, modelo y código -->
       <div class="form-group mb-3" *ngIf="productoNombreSeleccionado">
         <label for="equipo" class="form-label">Equipo específico (Serial / Modelo / Código):</label>
         <select id="equipo" class="form-select equipo-select" [(ngModel)]="equipoSeleccionado" 
@@ -72,36 +73,35 @@
         </select>
       </div>
 
-      <!-- Prioridad y detalle -->
+      <!-- Prioridad: editable por admin, fija para otros roles -->
       <div class="form-group mb-3">
         <label for="prioridad" class="form-label">Prioridad del ticket:</label>
 
-        <!-- Si es ADMIN: permitir seleccionar prioridad -->
         <select *ngIf="authorizationService.isAdmin()" id="prioridad" class="form-select" [(ngModel)]="prioridadSeleccionada" name="prioridad" required>
           <option value="" disabled selected>-- Selecciona --</option>
           <option *ngFor="let prioridad of ticketPrioridades" [ngValue]="prioridad">{{ prioridad.name }}</option>
         </select>
 
-        <!-- Si NO es ADMIN: mostrar mensaje fijo indicando que el admin asignará la prioridad -->
+        <!-- Mensaje para usuarios no admin -->
         <div *ngIf="!authorizationService.isAdmin()" class="form-control" style="background-color: #f8f9fa; padding: 10px;">
           <div class="fw-bold text-muted">La prioridad será asignada por un administrador.</div>
         </div>
-        <!-- No enviar prioridad en el form si no es admin (dejar null para que admin la asigne) -->
       </div>
 
+      <!-- Descripción detallada del problema -->
       <div class="form-group mb-3">
         <label for="detallePeticion" class="form-label">Detalle de petición:</label>
         <textarea id="detallePeticion" class="form-control" rows="4" placeholder="Describa su problemática"
           [(ngModel)]="detallePeticion" name="detallePeticion" required></textarea>
       </div>
 
-      <!-- Acciones -->
+      <!-- Botones de acción -->
       <div class="d-flex gap-2 pt-3">
         <button type="button" class="btn btn-primary btn-lg" (click)="crearTicket()">Enviar</button>
         <button type="button" class="btn btn-outline-secondary btn-lg" (click)="cancelarAccion()">Cancelar</button>
       </div>
 
-      <!-- Estado inicial -->
+      <!-- Muestra el estado inicial del ticket (siempre ABIERTO) -->
       <div class="form-group mt-4 pt-3 border-top">
         <label class="form-label">Estado inicial del ticket:</label>
         <div class="alert alert-success fw-bold p-2 mb-0" role="alert">{{ getEstadoPendiente()?.nombre || 'ABIERTO' }}</div>

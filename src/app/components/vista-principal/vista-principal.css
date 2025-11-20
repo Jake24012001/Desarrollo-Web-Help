@@ -1,4 +1,4 @@
-/* Paleta de colores (usa variable global) */
+/* Colores del tema - heredados de styles.css global */
 :root {
   --primary: var(--primary);
   --primary-dark: #1565C0;
@@ -16,13 +16,13 @@
   --bg-light: #FAFAFA;
 }
 
-/* Contenedor principal */
+/* Ancho máximo del contenedor para que las tablas no se estiren demasiado */
 .container-fluid {
   max-width: 1600px;
   margin: 0 auto;
 }
 
-/* Input de búsqueda */
+/* Campo de búsqueda con focus bonito */
 .search-input {
   max-width: 300px;
   border: 2px solid var(--primary-lighter);
@@ -35,7 +35,7 @@
   box-shadow: 0 0 0 3px rgba(0, 74, 151, 0.08);
 }
 
-/* Combobox de filtro formal */
+/* Selector de filtros (todos/pendientes/resueltos) */
 .filter-select {
   width: 220px;
   border: 2px solid var(--primary-lighter);
@@ -59,7 +59,7 @@
   font-size: 0.9rem;
 }
 
-/* Botón limpiar */
+/* Botón de limpiar búsqueda con estilo outline */
 .btn-primary.btn-sm {
   background-color: white !important;
   border: 2px solid var(--primary) !important;
@@ -74,7 +74,7 @@
   border-color: var(--primary-dark) !important;
 }
 
-/* Cards de tickets */
+/* Tarjetas que contienen las tablas de tickets */
 .tickets-card {
   background: white;
   border-radius: 12px;
@@ -83,6 +83,7 @@
   border: 1px solid var(--border-light);
 }
 
+/* Encabezado azul de las tarjetas (Tickets Pendientes) */
 .card-header-custom {
   background: #1565C0 !important;
   color: #FFFFFF !important;
@@ -110,14 +111,13 @@
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-/* Header-right select positioning */
 .header-right {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* Header combobox: subtle border, custom down arrow, aligned to the right */
+/* Selector de filtros en el header con flecha personalizada */
 .header-filter-select {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -142,12 +142,11 @@
   outline: none;
 }
 
-/* Top filter row (outside tables) */
-/* removed .top-filter-row — combobox now lives in the search row */
 .header-filter-select {
   width: 220px;
 }
 
+/* Encabezado verde para tickets resueltos */
 .card-header-success {
   background: #388E3C !important;
   color: #FFFFFF !important;
@@ -171,17 +170,19 @@
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-/* Tabla compacta y responsiva */
+/* Wrapper responsivo para tablas con scroll horizontal */
 .table-responsive {
   overflow-x: auto;
 }
 
+/* Estilos base de la tabla */
 .tabla-tickets {
   font-size: 0.875rem;
   margin-bottom: 0;
   background-color: white;
 }
 
+/* Headers de la tabla con fondo celeste */
 .tabla-tickets thead {
   background-color: #E3F2FD;
   color: var(--text-dark);
@@ -204,6 +205,7 @@
   vertical-align: middle;
 }
 
+/* Efecto hover en las filas de la tabla */
 .tabla-tickets tbody tr {
   transition: background-color 0.15s ease;
 }
@@ -219,7 +221,7 @@
   font-size: 0.85rem;
 }
 
-/* Truncar texto largo */
+/* Celdas con texto largo: lo trunca con puntos suspensivos */
 .td-truncate {
   max-width: 180px;
   overflow: hidden;
@@ -227,7 +229,7 @@
   white-space: nowrap;
 }
 
-/* Celda de equipo con modelo y marca */
+/* Celda de equipo: muestra nombre en negrita y marca/modelo abajo */
 .td-equipo {
   max-width: 200px;
 }
@@ -251,12 +253,12 @@
   font-style: italic;
 }
 
-/* Celda de descripción con botón de ver más */
+/* Celda de descripción: texto truncado + icono ojo para ver más */
 .td-descripcion {
   max-width: 220px;
   position: relative;
   text-align: left;
-  padding-right: 40px; /* espacio para el icono al extremo derecho */
+  padding-right: 40px;
 }
 
 .descripcion-texto {
@@ -268,6 +270,7 @@
   vertical-align: middle;
 }
 
+/* Botón ojo: posicionado absolutamente a la derecha de la celda */
 .btn-ver-mas {
   position: absolute;
   right: 6px;
@@ -299,6 +302,7 @@
   white-space: nowrap;
 }
 
+/* Celda de tiempo: fuente monoespacio para alineación */
 .tiempo-cell {
   font-family: 'Courier New', monospace;
   font-size: 0.8rem;
@@ -307,6 +311,7 @@
   transition: color 0.3s ease;
 }
 
+/* Cuando se excede el tiempo, parpadea en rojo */
 .tiempo-excedido {
   color: #D32F2F !important;
   font-weight: 700 !important;
@@ -318,7 +323,7 @@
   50% { opacity: 0.6; }
 }
 
-/* Prioridad - solo texto con color */
+/* Prioridad: solo texto con color según nivel */
 .prioridad-text {
   font-weight: 700;
   font-size: 0.85rem;
@@ -338,7 +343,7 @@
   color: #2E7D32;
 }
 
-/* Estados - solo texto sin resaltado */
+/* Estados: texto con color sin fondo */
 .estado-label {
   font-weight: 600;
   font-size: 0.85rem;
@@ -360,7 +365,7 @@
   color: #C62828;
 }
 
-/* Botones de acción compactos */
+/* Grupo de botones de acción (editar, eliminar, resolver) */
 .btn-group-actions {
   display: flex;
   gap: 6px;
@@ -384,6 +389,7 @@
   border-color: currentColor;
 }
 
+/* Botón editar: azul */
 .btn-edit {
   color: var(--primary);
 }
@@ -393,6 +399,7 @@
   color: var(--primary-dark);
 }
 
+/* Botón eliminar: rojo */
 .btn-delete {
   color: var(--danger);
 }
@@ -402,6 +409,7 @@
   color: #D32F2F;
 }
 
+/* Botón resolver: verde */
 .btn-resolve {
   color: var(--success);
 }
@@ -411,7 +419,7 @@
   color: #388E3C;
 }
 
-/* Botón crear - siempre visible y destacado */
+/* Botón crear nuevo ticket: siempre visible y con sombra */
 .btn-crear {
   padding: 12px 28px;
   font-weight: 700;
@@ -440,7 +448,7 @@
   font-size: 1.2rem;
 }
 
-/* Override Bootstrap btn-success para resaltar */
+/* Estilos personalizados para botones btn-success de Bootstrap */
 .btn-success {
   background-color: #4CAF50 !important;
   border-color: #388E3C !important;
@@ -461,7 +469,7 @@
   box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.3) !important;
 }
 
-/* Override Bootstrap btn-primary para usar nuestra paleta */
+/* Override para btn-primary usando nuestra paleta */
 .btn-primary {
   background-color: var(--primary);
   border-color: var(--primary);
@@ -472,7 +480,7 @@
   border-color: var(--primary-dark);
 }
 
-/* Responsive: ajustes para pantallas pequeñas */
+/* Ajustes para pantallas medianas (tablets) */
 @media (max-width: 1200px) {
   .tabla-tickets {
     font-size: 0.8rem;
@@ -488,6 +496,7 @@
   }
 }
 
+/* Ajustes para móviles */
 @media (max-width: 768px) {
   .search-input {
     max-width: 200px;
@@ -503,7 +512,7 @@
   }
 }
 
-/* Estilos para modal responsivo */
+/* Clase personalizada para modales responsivos (usada con SweetAlert2) */
 :host ::ng-deep .swal-responsive-modal {
   max-width: 900px !important;
   width: 90% !important;
@@ -513,6 +522,7 @@
   overflow-x: hidden !important;
 }
 
+/* Modal en tablets grandes */
 @media (max-width: 1024px) {
   :host ::ng-deep .swal-responsive-modal {
     width: 92% !important;
@@ -520,6 +530,7 @@
   }
 }
 
+/* Modal en tablets y móviles horizontales */
 @media (max-width: 768px) {
   :host ::ng-deep .swal-responsive-modal {
     width: 95% !important;
@@ -537,6 +548,7 @@
   }
 }
 
+/* Modal en móviles pequeños */
 @media (max-width: 480px) {
   :host ::ng-deep .swal-responsive-modal {
     width: 98% !important;

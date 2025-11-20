@@ -1,12 +1,13 @@
-/* Estilos: ajustes para formulario y estados */
+/* Estilos del formulario de creación de tickets */
 
-/* Card principal */
+/* Card principal con bordes redondeados */
 .card {
   border: none;
   border-radius: 12px;
   overflow: hidden;
 }
 
+/* Header con gradiente azul */
 .card-header {
   background: linear-gradient(135deg, var(--primary) 0%, #1565C0 100%) !important;
   border: none;
@@ -26,6 +27,7 @@
   background-color: #FAFAFA;
 }
 
+/* Colores consistentes para botones y fondos */
 .btn-primary,
 .btn-primary:hover,
 .btn-primary:active,
@@ -36,7 +38,7 @@
   color: white !important;
 }
 
-/* Estilo mejorado para select de equipos */
+/* Select de equipos con estilo mejorado y texto oscuro */
 #equipo,
 .equipo-select {
   padding: 12px 16px;
@@ -70,7 +72,7 @@
   color: #212121 !important;
 }
 
-/* Forzar texto oscuro en todas las opciones del select */
+/* Opciones del select con texto oscuro y separador */
 #equipo option,
 .equipo-select option {
   padding: 14px 18px;
@@ -82,6 +84,7 @@
   font-weight: 500;
 }
 
+/* Estados hover y checked de las opciones */
 #equipo option:hover,
 #equipo option:focus,
 .equipo-select option:hover,
@@ -98,7 +101,7 @@
   font-weight: 700;
 }
 
-/* Opción disabled (placeholder) - estilo mejorado */
+/* Placeholder (opción deshabilitada) con estilo gris itálico */
 #equipo option:disabled,
 .equipo-select option:disabled {
   color: #9E9E9E;
@@ -108,7 +111,7 @@
   font-size: 0.92rem;
 }
 
-/* Mejora para todos los selects del formulario */
+/* Todos los selects del formulario con borde azul claro */
 .form-select {
   border: 2px solid #E3F2FD;
   border-radius: 8px;
@@ -131,7 +134,7 @@
   background-color: #FAFAFA;
 }
 
-/* Inputs del formulario */
+/* Inputs de texto y textarea */
 .form-control {
   border: 2px solid #E3F2FD;
   border-radius: 8px;
@@ -151,7 +154,7 @@
   background-color: #FAFAFA;
 }
 
-/* Labels */
+/* Labels en azul con mayor peso */
 .form-label {
   font-weight: 600;
   color: #1565C0;
@@ -159,7 +162,7 @@
   font-size: 0.95rem;
 }
 
-/* Botones mejorados */
+/* Botones con bordes redondeados y sombras */
 .btn {
   border-radius: 8px;
   padding: 12px 28px;
@@ -199,7 +202,7 @@
   border-color: #757575;
 }
 
-/* Badges/estados */
+/* Badges de estado con colores diferentes */
 
 .estado-texto {
   font-weight: bold;
@@ -211,12 +214,13 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+/* Colores para cada estado posible */
 .disponible { background-color: #28a745; color: white; border: 1px solid #1e7e34; }
 .en-proceso { background-color: #ffc107; color: #212529; border: 1px solid #e0a800; }
 .terminado { background-color: #17a2b8; color: white; border: 1px solid #117a8b; }
 .no-disponible { background-color: #6c757d; color: white; border: 1px solid #545b62; }
 
-/* Tarjeta de detalles del equipo seleccionado */
+/* Tarjeta que muestra los detalles del equipo seleccionado */
 .equipo-detalles-card {
   border: 2px solid var(--primary);
   border-radius: 10px;
@@ -248,6 +252,7 @@
   min-height: auto;
 }
 
+/* Animación de entrada para la tarjeta de detalles */
 @keyframes slideDown {
   from {
     opacity: 0;

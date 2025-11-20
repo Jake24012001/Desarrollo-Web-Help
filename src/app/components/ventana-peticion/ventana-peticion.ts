@@ -30,7 +30,7 @@ import { Rol } from '../../interface/Rol';
   styleUrl: './ventana-peticion.css',
 })
 export class VentanaPeticion implements OnInit {
-  // Estado y datos mostrados en la UI
+  // Listas que se cargan desde el servidor
   ticketPrioridades: TicketPriority[] = [];
   usuarios: Usuario[] = [];
   rolesus: UsuarioRol[] = [];
@@ -39,14 +39,14 @@ export class VentanaPeticion implements OnInit {
   equiposFiltrados: InventoryUnit[] = [];
   productosUnicos: Product[] = [];
   
-  // Cascading dropdowns: producto nombre → equipo específico
+  // Selectores en cascada: tipo → nombre de producto → equipo específico
   productoNombreSeleccionado: string = '';
   equiposDelProducto: InventoryUnit[] = [];
 
   datosResueltos: any[] = [];
   datosFiltradosPendientes: any[] = [];
 
-  // Valores de formulario / selecciones
+  // Valores del formulario
   usuarioSeleccionado: Usuario | null = null;
 
   usuarioSeleccionados: { id: UsuarioRol; usuario: Usuario; rol: Rol } | null = null;
@@ -60,7 +60,6 @@ export class VentanaPeticion implements OnInit {
   detallePeticion = '';
   prioridadSeleccionada: TicketPriority | null = null;
 
-  // Constructor e inyección de servicios
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
@@ -72,21 +71,14 @@ export class VentanaPeticion implements OnInit {
     , public authorizationService: AuthorizationService
   ) {}
 
-  // Ciclo de vida
-  /**
-   * Inicializa datos necesarios para el formulario de creación:
-   * - carga usuarios, prioridades y equipos
-   * - rellena el usuario creador con el usuario autenticado si es posible
-   */
+  // Al iniciar, cargo todos los datos necesarios para el formulario
   ngOnInit(): void {
-    // Obtener usuario actual y rellenar el campo "usuario creador"
     const currentUser = this.authService.getCurrentUser();
     
-    // Cargar lista de usuarios
+    // Cargo la lista de usuarios y preselecciono el usuario actual
     this.usuarioService.getAll().subscribe((usuarios) => {
       this.usuarios = usuarios;
       
-      // Si hay un usuario autenticado, buscarlo en la lista
       if (currentUser) {
         const usuarioActual = usuarios.find(
           (u) => u.idUsuario === currentUser.idUsuario || u.email === currentUser.email
@@ -94,7 +86,7 @@ export class VentanaPeticion implements OnInit {
         if (usuarioActual) {
           this.usuarioSeleccionado = usuarioActual;
         } else {
-          // Si no lo encuentra, crear un objeto Usuario con los datos disponibles
+          // Si no está en la lista, creo un objeto Usuario con los datos disponibles
           this.usuarioSeleccionado = {
             idUsuario: currentUser.idUsuario ?? 0,
             nombres: currentUser.nombres,
@@ -110,10 +102,9 @@ export class VentanaPeticion implements OnInit {
       }
     });
 
-    // Cargar inventario de equipos
+    // Cargo el inventario de equipos y extraigo tipos únicos
     this.equipoService.getAll().subscribe((equipos) => {
       this.equiposInventario = equipos;
-      // Filtrar por usuario y obtener tipos únicos de producto
       const tiposSet = new Set<string>();
       this.productosUnicos = equipos
         .map((e) => e.product)
@@ -126,17 +117,17 @@ export class VentanaPeticion implements OnInit {
       this.equiposFiltrados = [];
     });
 
-    // Cargar mapeos usuario-rol
+    // Cargo las asignaciones de usuario-rol
     this.usuarioservicesR.getAll().subscribe((roles) => {
       this.rolesus = roles;
     });
-    // Cargar prioridades de ticket
+    
+    // Cargo las prioridades y asigno una por defecto si no es admin
     this.ticketPriority.getAll().subscribe((name) => {
       console.log('Prioridades cargadas:', name);
       this.ticketPrioridades = name;
-      // Si el usuario NO es admin, asignar una prioridad por defecto (ej. BAJA/NORMAL)
       if (!this.authorizationService.isAdmin()) {
-        // Intentar elegir una prioridad llamada 'BAJA' o 'LOW' o 'NORMAL' (no sensible a mayúsculas)
+        // Busco una prioridad media/baja para usuarios normales
         const prioridadPorNombre = this.ticketPrioridades.find(p => {
           const n = (p.name || '').toUpperCase();
           return n.includes('BAJA') || n.includes('LOW') || n.includes('NORMAL') || n.includes('MEDIA');
@@ -144,14 +135,13 @@ export class VentanaPeticion implements OnInit {
         if (prioridadPorNombre) {
           this.prioridadSeleccionada = prioridadPorNombre;
         } else if (this.ticketPrioridades.length > 0) {
-          // fallback: asignar la última prioridad (asumida menos severa)
           this.prioridadSeleccionada = this.ticketPrioridades[this.ticketPrioridades.length - 1];
         }
       }
     });
   }
 
-  // Acciones (crear/cancelar)
+  // Muestra confirmación antes de cancelar y perder los datos del formulario
   cancelarAccion(): void {
     Swal.fire({
       title: '¿Cancelar petición?',
@@ -167,11 +157,11 @@ export class VentanaPeticion implements OnInit {
     });
   }
 
+  // Valida el formulario y crea el ticket con la lógica según el rol
   crearTicket(): void {
-    // Handler principal para crear tickets. Valida el formulario, construye
-    // el payload y delega en TicketService.create().
     console.log('crearTicket() invoked');
-    // Validar campos requeridos
+    
+    // Valido todos los campos requeridos
     if (!this.tipoPeticion || !this.tipoPeticion.trim()) {
       Swal.fire('Error', 'Por favor ingrese el tipo de petición.', 'error');
       return;
@@ -192,18 +182,17 @@ export class VentanaPeticion implements OnInit {
       Swal.fire('Error', 'Por favor seleccione un equipo disponible.', 'error');
       return;
     }
-    // Prioridad sólo requerida si el usuario es ADMIN
+    // Solo admins deben seleccionar prioridad manualmente
     if (this.authorizationService.isAdmin() && !this.prioridadSeleccionada) {
       Swal.fire('Error', 'Por favor seleccione una prioridad.', 'error');
       return;
     }
 
-    // Construir ticket base
+    // Armo el ticket base con los datos comunes
     const baseTicket: Ticket = {
       title: this.tipoPeticion,
       descripcion: this.detallePeticion,
       status: this.getEstadoPendiente(),
-      // Sólo incluir prioridad si el creador es ADMIN y además hay una prioridad seleccionada
       priority: (this.authorizationService.isAdmin() && this.prioridadSeleccionada) ? this.prioridadSeleccionada : undefined,
       usuario_creador: this.usuarioSeleccionado
         ? ({ idUsuario: this.usuarioSeleccionado.idUsuario } as any)
@@ -211,7 +200,7 @@ export class VentanaPeticion implements OnInit {
       equipoAfectado: this.equipoSeleccionado,
     };
 
-    // Si el usuario es ADMIN, permite usar la selección de asignación
+    // Si es admin, permite asignar manualmente el ticket
     if (this.authorizationService.isAdmin()) {
       const nuevoTicket: Ticket = {
         ...baseTicket,
@@ -232,8 +221,7 @@ export class VentanaPeticion implements OnInit {
       return;
     }
 
-    // Si no es admin (e.g., Cliente), no se permite seleccionar asignado.
-    // Asignar automáticamente al agente con menos tickets abiertos (si existen agentes)
+    // Si no es admin (cliente), asigno automáticamente al agente con menos carga
     this.ticketService.getAll().subscribe((allTickets) => {
       const agentes = this.rolesus
         .filter((r) => r.rol?.nombre?.toUpperCase() === 'AGENTE')
@@ -241,7 +229,7 @@ export class VentanaPeticion implements OnInit {
         .filter(Boolean);
 
       if (agentes.length === 0) {
-        // No hay agentes registrados: crear sin asignado
+        // No hay agentes: creo el ticket sin asignar
           const nuevoTicket: Ticket = { ...baseTicket, usuario_asignado: undefined };
         this.ticketService.create(nuevoTicket).subscribe({
           next: (ticketCreado) => {
@@ -253,6 +241,7 @@ export class VentanaPeticion implements OnInit {
         return;
       }
 
+      // Cuento cuántos tickets abiertos tiene cada agente
       const cargaPorAgente = agentes.map((agente) => ({
         agente,
         count: allTickets.filter(
@@ -280,7 +269,7 @@ export class VentanaPeticion implements OnInit {
     });
   }
 
-  // Filtrado y utilidades de UI
+  // Filtra los equipos por tipo y por custodio del usuario creador
   filtrarEquiposPorTipo(): void {
     if (!this.productoSeleccionado) {
       this.equiposFiltrados = [];
@@ -290,16 +279,13 @@ export class VentanaPeticion implements OnInit {
       return;
     }
 
-    // Filtrar por tipo de producto Y por custodio del usuario creador
     this.equiposFiltrados = this.equiposInventario.filter((equipo) => {
-      // Verificar que el tipo de producto coincida
       const tipoCoincide = equipo.product?.type === this.productoSeleccionado;
       if (!tipoCoincide) return false;
 
-      // Si no hay usuario seleccionado, no filtrar por custodio
       if (!this.usuarioSeleccionado) return true;
 
-      // Verificar que el custodio coincida con el usuario creador (por email o cedula)
+      // Verifico que el custodio coincida con el usuario creador
       const custodio = equipo.custodian;
       if (!custodio) return false;
 
@@ -313,22 +299,18 @@ export class VentanaPeticion implements OnInit {
         (usuarioCedula && usuarioCedula === custodioCedula)
       );
     });
-    // Reset cascading selections
+    
+    // Reseteo los selectores en cascada
     this.equipoSeleccionado = null;
     this.productoNombreSeleccionado = '';
     this.equiposDelProducto = [];
   }
 
-  /**
-   * Handler cuando se selecciona un equipo (permite que Angular detecte el cambio y muestre detalles).
-   */
+  // Detecta el cambio de equipo seleccionado (Angular lo maneja automáticamente)
   onEquipoSeleccionado(): void {
-    // No necesita lógica adicional; el *ngIf en el HTML detectará el cambio automáticamente
   }
 
-  /**
-   * Obtiene los nombres únicos de productos disponibles después de filtrar por categoría.
-   */
+  // Extrae nombres únicos de productos de los equipos filtrados
   obtenerNombresUnicos(): string[] {
     const nombresSet = new Set<string>();
     this.equiposFiltrados.forEach(equipo => {
@@ -339,9 +321,7 @@ export class VentanaPeticion implements OnInit {
     return Array.from(nombresSet).sort();
   }
 
-  /**
-   * Cuando se selecciona un nombre de producto, filtra los equipos específicos de ese producto.
-   */
+  // Filtra los equipos específicos cuando se selecciona un nombre de producto
   onProductoNombreSeleccionado(): void {
     this.equipoSeleccionado = null;
     if (!this.productoNombreSeleccionado) {
@@ -353,9 +333,7 @@ export class VentanaPeticion implements OnInit {
     );
   }
 
-  /**
-   * Formatea el texto de un equipo específico para el segundo dropdown (serial + modelo + código).
-   */
+  // Formatea el texto del equipo para mostrarlo en el dropdown: Serial | Modelo | Código
   formatearEquipoDetalle(equipo: InventoryUnit): string {
     const partes: string[] = [];
     if (equipo.serial) partes.push(`Serial: ${equipo.serial}`);
@@ -368,6 +346,7 @@ export class VentanaPeticion implements OnInit {
     this.mostrarFormularioEquipo = true;
   }
 
+  // Devuelve el estado ABIERTO para tickets nuevos
   getEstadoPendiente(): Ticket['status'] {
     return {
       id_status: Environment.ID_STATUS_ABIERTO,
@@ -401,19 +380,16 @@ export class VentanaPeticion implements OnInit {
     }
   }
 
-  // Formatear el texto del equipo para el select
+  // Formatea el equipo para el select antiguo (mantener por compatibilidad)
   formatearEquipo(equipo: InventoryUnit): string {
     let texto = '';
     
-    // Solo agregar serial si existe y no es null
     if (equipo.serial && equipo.serial.trim() !== '' && equipo.serial !== 'null') {
       texto = `${equipo.serial} - `;
     }
     
-    // Agregar nombre del producto
     texto += equipo.product.name;
     
-    // Agregar marca y modelo si existen
     if (equipo.product.brand || equipo.product.model) {
       const detalles: string[] = [];
       if (equipo.product.brand) detalles.push(equipo.product.brand);
@@ -424,9 +400,7 @@ export class VentanaPeticion implements OnInit {
     return texto;
   }
 
-  /**
-   * Filtra los roles para mostrar solo ADMIN y AGENTE en el select de asignación
-   */
+  // Filtra para mostrar solo usuarios con rol ADMIN o AGENTE en el select de asignación
   getRolesAdminYAgente(): UsuarioRol[] {
     return this.rolesus.filter(item => {
       const rolNombre = (item.rol?.nombre || '').toUpperCase();

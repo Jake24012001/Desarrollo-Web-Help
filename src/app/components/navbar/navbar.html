@@ -1,8 +1,8 @@
 <nav class="navbar navbar-expand-lg custom-navbar bg-custom px-3 py-2">
   <div class="container-fluid align-items-center">
 
+    <!-- Logo y título del sistema -->
     <div class="d-flex align-items-center">
-
       <img src="https://www.machala.gob.ec/wp-content/uploads/2019/07/cropped-logo-alcaldia.png" alt="Vista de Machala"
         width="48" height="48" class="me-3">
       <span class="navbar-brand mb-0 h4 text-white fw-bold" style="letter-spacing:1px;">Sistema GADMM 2025</span>
@@ -14,11 +14,12 @@
     </button>
     <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
       <div class="d-flex align-items-center gap-3">
-        <!-- Mostrar usuario autenticado -->
+        <!-- Información del usuario autenticado -->
         <div *ngIf="currentUser" class="d-flex align-items-center">
           <div class="text-end me-3">
             <p class="mb-0 text-white fw-semibold">{{ currentUser.nombres }} {{ currentUser.apellidos }}</p>
             <small class="text-white-50">{{ currentUser.email }}</small>
+            <!-- Badge del rol actual -->
             <div *ngIf="authorizationService.getUserRoles().length > 0">
               <small class="text-white-50">
                 <strong>Rol:</strong>
@@ -32,7 +33,7 @@
             alt="Foto de perfil" class="rounded-circle border border-2 border-white" width="40" height="40">
         </div>
 
-        <!-- Botón Logout -->
+        <!-- Botón para cerrar sesión -->
         <button 
           *ngIf="currentUser"
           type="button" 
@@ -43,7 +44,7 @@
           <i class="bi bi-box-arrow-right"></i> Salir
         </button>
 
-        <!-- Usuario no autenticado -->
+        <!-- Placeholder si no hay usuario autenticado -->
         <span *ngIf="!currentUser" class="me-2 text-white fw-semibold">Usuario</span>
       </div>
     </div>

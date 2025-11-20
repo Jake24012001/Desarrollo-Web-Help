@@ -12,7 +12,7 @@ import { AuthorizationService } from '../../services/authorization.service';
 import { TicketAccessService } from '../../services/ticket-access.service';
 import { Ticket } from '../../interface/Ticket';
 import { TicketComment } from '../../interface/TicketComment';
-import { Environment } from '../../environments/environment'; // agregado como variable global
+import { Environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-vista-principal',
@@ -22,7 +22,7 @@ import { Environment } from '../../environments/environment'; // agregado como v
   styleUrls: ['./vista-principal.css'],
 })
 export class VistaPrincipal implements OnInit, OnDestroy {
-  // Constantes y estado UI
+  // Textos dinámicos del buscador que rotan cada 5 segundos
   placeholderText = 'Buscar...';
   mensajes = [
     'Equipo Afectado',
@@ -37,23 +37,21 @@ export class VistaPrincipal implements OnInit, OnDestroy {
   ];
   mensajeIndex = 0;
 
-  // Búsqueda y filtros
+  // Variables de búsqueda y filtrado
   terminoBusqueda: string = '';
   datosOriginalesPendientes: Ticket[] = [];
   datosOriginalesResueltos: Ticket[] = [];
-  // Filtro de vista: 'todos' | 'pendientes' | 'resueltos'
   filtroTickets: 'todos' | 'pendientes' | 'resueltos' = 'todos';
 
-  // Datos mostrados en tablas
+  // Listas que se muestran en las tablas
   datosFiltrados: Ticket[] = [];
   datosFiltradosPendientes: Ticket[] = [];
   datosResueltos: Ticket[] = [];
 
-  // Temporizadores y control por petición
+  // Temporizadores para actualizar el tiempo transcurrido en cada ticket
   temporizadorPlaceholder: any;
   temporizadoresPorPeticion = new Map<number, any>();
 
-  // Constructor
   constructor(
     private router: Router,
     private servicios: TicketService,
@@ -63,18 +61,13 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     public ticketAccessService: TicketAccessService
   ) {}
 
-  /**
-   * Inicializa la vista: carga tickets, aplica filtros por rol y arranca temporizadores.
-   * También actualiza el placeholder con mensajes rotativos.
-   */
+  // Al iniciar, cargo los tickets y filtro según el rol del usuario
   ngOnInit(): void {
-    // Log inicial del usuario autenticado
     const currentUser = this.authService.getCurrentUser();
     
     this.servicios.getAll().subscribe({
       next: (tickets) => {
-        
-        // Filtrar tickets según el rol del usuario
+        // Filtra tickets según permisos del usuario actual
         const ticketsFiltrados = this.ticketAccessService.getTicketsForUser(tickets);
 
         this.datosFiltrados = ticketsFiltrados.map((p: Ticket) => ({
@@ -89,6 +82,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
         this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
         this.datosOriginalesResueltos = [...this.datosResueltos];
 
+        // Inicia temporizadores para mostrar tiempo transcurrido en tickets abiertos
         this.datosFiltradosPendientes.forEach((p) => {
           if (
             typeof p.id_ticket === 'number' &&
@@ -105,24 +99,21 @@ export class VistaPrincipal implements OnInit, OnDestroy {
       }
     });
 
+    // Rota los mensajes del placeholder cada 5 segundos
     this.temporizadorPlaceholder = setInterval(() => {
       this.placeholderText = `Buscar ${this.mensajes[this.mensajeIndex]}`;
       this.mensajeIndex = (this.mensajeIndex + 1) % this.mensajes.length;
     }, 5000);
   }
 
-  /**
-   * Limpia temporizadores y recursos al destruir el componente.
-   */
+  // Limpio todos los temporizadores al destruir el componente
   ngOnDestroy(): void {
     clearInterval(this.temporizadorPlaceholder);
     this.temporizadoresPorPeticion.forEach((t) => clearInterval(t));
     this.temporizadoresPorPeticion.clear();
   }
 
-  /**
-   * Filtra tickets en pantalla según el texto de búsqueda actual.
-   */
+  // Busca en todas las propiedades del ticket
   filtrarDatos(): void {
     if (!this.terminoBusqueda || this.terminoBusqueda.trim() === '') {
       this.datosFiltradosPendientes = [...this.datosOriginalesPendientes];
@@ -132,7 +123,6 @@ export class VistaPrincipal implements OnInit, OnDestroy {
 
     const termino = this.terminoBusqueda.toLowerCase().trim();
 
-    // Filtrar tickets pendientes
     this.datosFiltradosPendientes = this.datosOriginalesPendientes.filter((item) =>
       this.contieneTermino(item, termino)
     );
@@ -142,19 +132,12 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     );
   }
 
-  /**
-   * Aplica filtro de vista (pendientes/resueltos/todos).
-   */
+  // Cambia entre vista de todos, pendientes o resueltos
   aplicarFiltroTickets(): void {
-    // La visibilidad se controla en la plantilla mediante *ngIf en base a `filtroTickets`.
-    // Aquí podemos añadir lógica adicional si se requiere (p. ej. recargar datos desde servidor).
-    // Por ahora solo forzamos la reconstrucción de las listas derivadas.
     this.actualizarListas();
   }
 
-  /**
-   * Resetea el texto de búsqueda y restaura las listas originales.
-   */
+  // Limpia el campo de búsqueda y restaura las listas
   limpiarBusqueda(): void {
     this.terminoBusqueda = '';
     this.filtrarDatos();
@@ -178,9 +161,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     );
   }
 
-  /**
-   * Inicia un temporizador por ticket (muestra tiempo transcurrido desde creación).
-   */
+  // Crea un temporizador que actualiza el tiempo transcurrido cada segundo
   iniciarTemporizador(id: number): void {
     if (this.temporizadoresPorPeticion.has(id)) return;
 
@@ -315,22 +296,21 @@ export class VistaPrincipal implements OnInit, OnDestroy {
    * Marca un ticket como resuelto (cambia el estado a CERRADO) si existe permiso
    * y el ticket está en estado ABIERTO. Solicita un comentario de resolución.
    */
+  // Cambia el ticket a estado CERRADO y solicita un comentario de resolución
   marcarComoResuelta(item: Ticket): void {
     if (item.id_ticket == null || !item.status) return;
 
-    // Verificar si tiene permiso para resolver
     if (!this.ticketAccessService.canResolveTicket(item)) {
       Swal.fire('Acceso Denegado', 'No tienes permiso para resolver este ticket.', 'error');
       return;
     }
 
-    // Solo permitir marcar como resuelto si está ABIERTO
     if (item.status?.nombre !== Environment.NOMBRE_STATUS_ABIERTO) {
       Swal.fire('Acción inválida', 'Solo se pueden resolver tickets que estén abiertos.', 'error');
       return;
     }
 
-    // Mostrar diálogo para ingresar la solución
+    // Pido al usuario que describa la solución aplicada
     Swal.fire({
       title: '<strong style="color: #004A97; font-size: 1.5rem;">Resolver Ticket</strong>',
       html: `
@@ -387,11 +367,8 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Resuelve el ticket y crea el comentario de resolución.
-   */
+  // Actualiza el ticket a CERRADO y guarda la solución como comentario
   private resolverTicketConComentario(item: Ticket, solucion: string): void {
-    // Actualizar el status
     const ticketActualizado: Ticket = {
       ...item,
       status: {
@@ -400,10 +377,9 @@ export class VistaPrincipal implements OnInit, OnDestroy {
       },
     };
 
-    // Actualizar ticket en el backend
     this.servicios.update(item.id_ticket!, ticketActualizado).subscribe({
       next: (ticketResuelto) => {
-        // Crear comentario de resolución
+        // Creo el comentario con la solución aplicada
         const currentUser = this.authService.getCurrentUser();
         const comment: TicketComment = {
           ticket: { id_ticket: item.id_ticket } as Ticket,
@@ -413,13 +389,11 @@ export class VistaPrincipal implements OnInit, OnDestroy {
 
         this.ticketCommentService.create(comment).subscribe({
           next: () => {
-            // Actualizar en el array local
             const index = this.datosFiltrados.findIndex((p) => p.id_ticket === item.id_ticket);
             if (index !== -1) {
               this.datosFiltrados[index] = ticketResuelto;
             }
 
-            // Detener temporizador
             this.detenerTemporizador(item.id_ticket!);
 
             this.actualizarListas();
@@ -493,9 +467,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     return `${dias}d ${horas}h ${minutos}m ${segundos}s restantes`;
   }
 
-  /**
-   * Calcula el tiempo transcurrido desde la fecha de inicio hasta ahora.
-   */
+  // Calcula cuánto tiempo ha pasado desde que se creó el ticket
   calcularTiempoTranscurrido(fechaInicio: string): string {
     const inicio = new Date(fechaInicio);
     if (!fechaInicio || isNaN(inicio.getTime())) return '—';
@@ -511,14 +483,10 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     return `${dias}d ${horas}h ${minutos}m ${segundos}s`;
   }
 
-  /**
-   * Muestra un modal con la descripción completa y metadatos del ticket.
-   * Si el ticket está resuelto, carga y muestra los comentarios de resolución.
-   */
+  // Muestra el modal con toda la información del ticket y comentarios si está resuelto
   verDescripcionCompleta(ticket: Ticket): void {
     if (!ticket.id_ticket) return;
 
-    // Si el ticket está resuelto, cargar comentarios
     if (ticket.status?.nombre === Environment.NOMBRE_STATUS_CERRADO) {
       this.ticketCommentService.getAll().subscribe({
         next: (allComments) => {
@@ -534,9 +502,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Muestra el modal con información del ticket y comentarios (si existen).
-   */
+  // Construye y muestra el modal con la info del ticket y los comentarios de resolución
   private mostrarModalConComentarios(ticket: Ticket, comments: TicketComment[]): void {
     const currentUser = this.authService.getCurrentUser();
     const isAdminOrAgent = this.authorizationService.isAdmin() || this.authorizationService.isAgente();
@@ -553,6 +519,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
       comments.forEach(comment => {
         const isAuthor = comment.author?.idUsuario === currentUser?.idUsuario;
         const isAdmin = this.authorizationService.isAdmin();
+        // Los admins pueden editar cualquier comentario, los agentes solo los suyos
         const canEdit = (isAuthor && isAdminOrAgent) || isAdmin;
         
         commentsHtml += `
@@ -690,9 +657,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Permite editar un comentario de resolución.
-   */
+  // Permite editar el comentario de resolución (solo admin o el autor del comentario)
   private editarComentario(comment: TicketComment, ticket: Ticket): void {
     Swal.fire({
       title: '<strong style="color: #004A97; font-size: 1.5rem;">Editar Solución</strong>',
@@ -766,9 +731,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Devuelve una clase CSS según el nombre del estado para el styling.
-   */
+  // Devuelve la clase CSS que corresponde al estado del ticket
   getClaseEstado(estado: string): string {
     switch (estado) {
       case 'Pendiente':
@@ -786,16 +749,12 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Verifica si un valor es una fecha válida.
-   */
+  // Chequea si un valor es una fecha válida
   isValidDate(date: any): boolean {
     return date && !isNaN(new Date(date).getTime());
   }
 
-  /**
-   * Indica si el tiempo esperado de resolución (según prioridad) ha sido excedido.
-   */
+  // Verifica si el ticket excedió el tiempo esperado de resolución según su prioridad
   tiempoExcedido(ticket: Ticket): boolean {
     if (!ticket.fecha_creacion || !ticket.priority?.resolutionTimeHours) {
       return false;

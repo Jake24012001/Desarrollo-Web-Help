@@ -7,19 +7,18 @@ import { AuthorizationService } from '../../services/authorization.service';
 import { forkJoin } from 'rxjs';
 import { Ticket } from '../../interface/Ticket';
 import { FormsModule } from '@angular/forms';
-import { CommonModule, DatePipe } from '@angular/common'; // DatePipe (template)
+import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-actualizar-peticion',
   standalone: true,
-  // DatePipe en imports
   imports: [FormsModule, CommonModule, DatePipe], 
   templateUrl: './actualizar-peticion.html',
   styleUrls: ['./actualizar-peticion.css'],
 })
 export class ActualizarPeticion implements OnInit {
-  // Valores por defecto para evitar campos undefined en la UI
+  // Objeto con valores por defecto para evitar errores en el template
   datosticket: Ticket = {
     id_ticket: 0, 
     title: '',
@@ -34,21 +33,22 @@ export class ActualizarPeticion implements OnInit {
   };
   
   datosimportados: Ticket[] = [];
-  // IDs seleccionados en los selects
+  
+  // IDs seleccionados en los controles del formulario
   idtick: number = 0;
   selectedStatusId: number = 0;
   selectedPriorityId: number = 0;
   selectedUsuarioId: number = 0;
   selectedEquipoId: number = 0;
 
-  // Flags de rol del usuario
+  // Información del usuario autenticado y sus permisos
   usuarioLogeado: any = null;
   nombreUsuarioLogeado: string = '';
   esCliente: boolean = false;
   esAdmin: boolean = false;
   esAgent: boolean = false;
 
-  // Listas para selects
+  // Listas que alimentan los selectores del formulario
   estadosDisponibles: { id_status: number; nombre: string }[] = [];
   prioridadesDisponibles: { id_priority: number; name: string }[] = [];
   usuariosDisponibles: { id_usuario: number; nombre: string; roleLabel?: string; }[] = [];
@@ -69,23 +69,22 @@ export class ActualizarPeticion implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Obtener datos del usuario logeado
+    // Obtengo información del usuario actual y sus roles
     this.usuarioLogeado = this.authService.getCurrentUser();
     this.esCliente = this.authorizationService.isCliente();
     this.esAdmin = this.authorizationService.isAdmin();
     this.esAgent = this.authorizationService.isAgente();
 
-    // Mostrar nombre del usuario logeado (fallback)
     if (this.usuarioLogeado) {
       this.nombreUsuarioLogeado = this.usuarioLogeado.nombres || this.usuarioLogeado.nombre || 'Usuario';
     }
 
     this.idtick = Number(this.route.snapshot.paramMap.get('id'));
 
-    // Cargar usuarios, roles y tickets en paralelo
+    // Cargo usuarios, tickets y roles en paralelo para llenar los selects
     forkJoin({ users: this.usuarioService.getAll(), tickets: this.servicesticket.getAll(), userRoles: this.usuarioRolService.getAll() }).subscribe(
       ({ users, tickets, userRoles }) => {
-        // Normalizar usuarios
+        // Normalizo los usuarios (pueden venir con campos diferentes)
         const mappedUsers = (users || []).map((u: any) => {
           const id = u.id_usuario ?? u.idUsuario ?? u.id ?? 0;
           const nombres = (u.nombres ?? u.nombre ?? '').toString().trim();

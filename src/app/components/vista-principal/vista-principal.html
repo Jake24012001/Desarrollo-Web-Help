@@ -1,11 +1,13 @@
 <div class="container-fluid px-4">
-  <!-- Buscador (input + limpiar) -->
+  <!-- Barra de búsqueda y filtros -->
   <div class="d-flex align-items-center gap-2 my-3 justify-content-between">
+    <!-- Campo de búsqueda con placeholder dinámico -->
     <div class="d-flex align-items-center gap-2">
       <input type="text" class="form-control form-control-sm search-input" [placeholder]="placeholderText"
         [(ngModel)]="terminoBusqueda" (input)="filtrarDatos()" />
       <button class="btn btn-primary btn-sm" (click)="limpiarBusqueda()">Limpiar</button>
     </div>
+    <!-- Filtro de vista (todos/pendientes/resueltos) -->
     <div class="d-flex align-items-center">
       <label for="filtroTicketsTop" class="visually-hidden">Filtro de tickets</label>
       <select id="filtroTicketsTop" class="header-filter-select ms-2" [(ngModel)]="filtroTickets" (change)="aplicarFiltroTickets()" aria-label="Filtro de tickets">
@@ -16,7 +18,7 @@
     </div>
   </div>
 
-  <!-- Tickets pendientes -->
+  <!-- Tabla de tickets pendientes (header azul) -->
   <div *ngIf="filtroTickets === 'todos' || filtroTickets === 'pendientes'" class="tickets-card mb-4">
     <div class="card-header-custom">
       <div class="header-left">
@@ -35,7 +37,7 @@
             <th>Creador</th>
             <th>Prioridad</th>
             <th>Tiempo</th>
-            <!-- Mostrar ACCIONES solo si no es CLIENTE -->
+            <!-- La columna Acciones solo la ven admin y agentes -->
             <th *ngIf="!authorizationService.isCliente()">Acciones</th>
             <th>Estado</th>
           </tr>
@@ -46,13 +48,16 @@
               <span *ngIf="item.fecha_creacion">{{ item.fecha_creacion | date:'short' }}</span>
               <span *ngIf="!item.fecha_creacion">—</span>
             </td>
+            <!-- Título del ticket -->
             <td class="td-truncate">{{ item.title || '—' }}</td>
+            <!-- Descripción con botón para ver detalle completo -->
             <td class="td-descripcion">
               <span class="descripcion-texto">{{ item.descripcion || '—' }}</span>
               <button *ngIf="item.descripcion" class="btn-ver-mas" (click)="verDescripcionCompleta(item)" title="Ver descripción completa">
                 <i class="bi bi-eye"></i>
               </button>
             </td>
+            <!-- Usuario asignado: nombre completo y email -->
             <td>
               <span *ngIf="item.usuario_asignado">
                 {{ item.usuario_asignado.nombres || item.usuario_asignado.nombre || '—' }}
@@ -64,6 +69,7 @@
               </span>
               <span *ngIf="!item.usuario_asignado">—</span>
             </td>
+            <!-- Equipo afectado: nombre, marca y modelo si existen -->
             <td class="td-truncate">
               <span *ngIf="item.equipoAfectado?.product">
                 {{ item.equipoAfectado?.product?.name || '—' }}
@@ -78,6 +84,7 @@
               </span>
               <span *ngIf="!item.equipoAfectado?.product">—</span>
             </td>
+            <!-- Creador del ticket: nombre completo y email -->
             <td>
               <span *ngIf="item.usuario_creador">
                 {{ item.usuario_creador.nombres || item.usuario_creador.nombre || '—' }}
@@ -89,6 +96,7 @@
               </span>
               <span *ngIf="!item.usuario_creador">—</span>
             </td>
+            <!-- Prioridad con color según nivel (alta/media/baja) -->
             <td>
               <span class="prioridad-text" [class.prioridad-alta]="item.priority?.name === 'ALTA'"
                 [class.prioridad-media]="item.priority?.name === 'MEDIA'"
@@ -96,10 +104,11 @@
                 {{ item.priority?.name || '—' }}
               </span>
             </td>
+            <!-- Tiempo transcurrido - parpadea en rojo si se excedió el plazo -->
             <td class="text-nowrap tiempo-cell" [class.tiempo-excedido]="tiempoExcedido(item)">
               {{ item.tiempoRestante || '—' }}
             </td>
-            <!-- Mostrar ACCIONES solo si no es CLIENTE -->
+            <!-- Botones de acción: editar, eliminar y resolver (ocultos para clientes) -->
             <td *ngIf="!authorizationService.isCliente()">
               <div class="btn-group-actions">
                 <button *ngIf="ticketAccessService.canEditTicket(item)" class="btn-action btn-edit" (click)="modificarPeticion(item)" title="Editar">
@@ -113,6 +122,7 @@
                 </button>
               </div>
             </td>
+            <!-- Estado con clase dinámica para colores -->
             <td>
               <span [ngClass]="getClaseEstado(item.status?.nombre || '')" class="estado-label">
                 {{ item.status?.nombre }}
@@ -124,7 +134,7 @@
     </div>
   </div>
 
-  <!-- Tickets resueltos -->
+  <!-- Tabla de tickets resueltos (cerrados) -->
   <div *ngIf="filtroTickets === 'todos' || filtroTickets === 'resueltos'" class="tickets-card mb-4">
     <div class="card-header-success">
       <h5 class="mb-0 text-white fw-bold"><i class="bi bi-check-circle me-2"></i>Tickets Resueltos</h5>
@@ -140,15 +150,18 @@
             <th>Creador</th>
             <th>Prioridad</th>
             <th>Tiempo</th>
+            <!-- Columna eliminar solo para admin y agentes -->
             <th *ngIf="!authorizationService.isCliente()">Eliminar</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let item of datosResueltos; let i = index">
+            <!-- Fecha de creación -->
             <td class="text-nowrap">
               <span *ngIf="item.fecha_creacion">{{ item.fecha_creacion | date:'short' }}</span>
               <span *ngIf="!item.fecha_creacion">—</span>
             </td>
+            <!-- Descripción con botón de ver más -->
             <td class="td-descripcion">
               <span class="descripcion-texto">{{ item.descripcion || '—' }}</span>
               <button *ngIf="item.descripcion" class="btn-ver-mas" (click)="verDescripcionCompleta(item)" title="Ver descripción completa">
@@ -198,10 +211,12 @@
                 {{ item.priority?.name || '—' }}
               </span>
             </td>
+            <!-- Tiempo de resolución (desde creación hasta cierre) -->
             <td class="text-nowrap">
               <span *ngIf="item.fecha_cierre">{{ calcularTiempoRestante(item.fecha_cierre) }}</span>
               <span *ngIf="!item.fecha_cierre">—</span>
             </td>
+            <!-- Botón eliminar (solo si tiene permiso) -->
             <td *ngIf="!authorizationService.isCliente()">
               <button *ngIf="ticketAccessService.canDeleteTicket(item)" class="btn-action btn-delete" (click)="borrarPeticion(i, 'resuelto')" title="Eliminar">
                 <i class="bi bi-trash3"></i>
@@ -213,7 +228,7 @@
     </div>
   </div>
 
-  <!-- Botón crear -->
+  <!-- Botón para crear nuevo ticket -->
   <div class="d-flex justify-content-end my-3">
     <button class="btn btn-success btn-crear shadow" (click)="crearPeticion()">
       <i class="bi bi-plus-circle me-2"></i> Crear Nuevo Ticket

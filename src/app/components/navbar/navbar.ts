@@ -23,16 +23,19 @@ export class Navbar implements OnInit, OnDestroy {
     private router: Router
   ) {}
 
+  // Escucho cambios en el usuario autenticado
   ngOnInit(): void {
     this.subscription = this.authService.currentUser$.subscribe((user) => {
       this.currentUser = user;
     });
   }
 
+  // Limpio la suscripción al destruir el componente
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
   }
 
+  // Cierra sesión y redirige al login
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);

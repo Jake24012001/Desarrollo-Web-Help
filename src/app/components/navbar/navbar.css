@@ -1,13 +1,16 @@
+/* Navbar con color azul del tema */
 .custom-navbar {
   background-color: var(--primary) !important;
 }
 
+/* Textos en blanco */
 .custom-navbar .navbar-brand,
 .custom-navbar .nav-link,
 .custom-navbar .fw-semibold {
   color: #fff !important;
 }
 
+/* Ícono de menú circular (sin uso actual) */
 .menu-circle {
   width: 48px;
   height: 48px;
@@ -16,6 +19,7 @@
   cursor: pointer;
 }
 
+/* Dropdown del menú hamburguesa */
 .menu-hamburguesa .dropdown-menu {
   min-width: 200px;
   border-radius: 10px;
@@ -27,7 +31,7 @@
   box-shadow: none;
 }
 
-/* Role pill - monochromatic (white / blue) */
+/* Pill con el rol del usuario (fondo blanco, texto azul) */
 .role-pill {
   display: inline-block;
   margin-left: 8px;
@@ -41,5 +45,4 @@
   box-shadow: none;
 }
 
-/* Slightly lighter variant if needed */
 .role-pill.small { padding: 1px 6px; font-size: 0.7rem; }
