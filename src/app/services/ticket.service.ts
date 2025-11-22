@@ -57,6 +57,40 @@ export class TicketService {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
+  /**
+   * Actualiza la calificación de un ticket resuelto.
+   * @param id Id del ticket
+   * @param rating Calificación (1-5 estrellas)
+   */
+  actualizarCalificacion(id: number, rating: number): Observable<Ticket> {
+    // Primero obtenemos el ticket completo para no perder datos
+    return new Observable(observer => {
+      this.getById(id).subscribe({
+        next: (ticket) => {
+          // Actualizamos solo el rating
+          const ticketActualizado = {
+            ...ticket,
+            rating
+          };
+          
+          // Enviamos el ticket completo al backend
+          this.http.put<Ticket>(`${this.apiUrl}/${id}`, ticketActualizado).subscribe({
+            next: (response) => {
+              observer.next(response);
+              observer.complete();
+            },
+            error: (error) => {
+              observer.error(error);
+            }
+          });
+        },
+        error: (error) => {
+          observer.error(error);
+        }
+      });
+    });
+  }
+
   createFromPeticion(ticketData: {
     title: string;
     descripcion: string;

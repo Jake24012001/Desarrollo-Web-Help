@@ -550,6 +550,50 @@
   }
 }
 
+/* ======= CALIFICACIÓN DE TICKETS ======= */
+
+/* Estrellas de calificación mostradas en la tabla */
+.calificacion-mostrar {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
+}
+
+.calificacion-mostrar .star {
+  font-size: 1.1rem;
+  color: #ddd;
+  display: inline-block;
+  margin: 0;
+  transition: color 0.2s;
+}
+
+.calificacion-mostrar .star.filled {
+  color: #FFD700;
+  text-shadow: 0 0 3px rgba(255, 215, 0, 0.5);
+}
+
+/* Botón de calificar */
+.btn-outline-warning {
+  transition: all 0.2s ease;
+}
+
+.btn-outline-warning:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+}
+
+/* Estrellas interactivas en el modal */
+.rating-stars .rating-star {
+  cursor: pointer;
+  margin: 0 3px;
+  transition: all 0.2s ease;
+}
+
+.rating-stars .rating-star:hover {
+  transform: scale(1.1);
+}
+
 /* Modal en tablets y móviles horizontales */
 @media (max-width: 768px) {
   :host ::ng-deep .swal-responsive-modal {

@@ -8,12 +8,15 @@ import Swal from 'sweetalert2';
 import { TicketService } from '../../services/ticket.service';
 import { TicketCommentService } from '../../services/ticket-comment.service';
 import { TicketPriorityService } from '../../services/ticket-priority.service';
+import { UsuarioService } from '../../services/usuario.service';
+import { UsuarioRolService } from '../../services/usuariorol.service';
 import { AuthService } from '../../services/auth.service';
 import { AuthorizationService } from '../../services/authorization.service';
 import { TicketAccessService } from '../../services/ticket-access.service';
 import { Ticket } from '../../interface/Ticket';
 import { TicketComment } from '../../interface/TicketComment';
 import { TicketPriority } from '../../interface/TicketPriority';
+import { Usuario } from '../../interface/Usuario';
 import { Environment } from '../../environments/environment';
 
 @Component({
@@ -730,6 +733,287 @@ export class VistaPrincipal implements OnInit, OnDestroy {
       } else {
         // Volver al modal anterior
         this.verDescripcionCompleta(ticket);
+      }
+    });
+  }
+
+  /**
+   * Verifica si el usuario actual es el creador del ticket
+   */
+  esCreadorDelTicket(ticket: Ticket): boolean {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) return false;
+    
+    const creadorId = ticket.usuario_creador?.idUsuario ?? ticket.usuario_creador?.id_usuario;
+    return creadorId === currentUser.idUsuario;
+  }
+
+  /**
+   * Abre un modal para agregar comentario después de calificar el ticket
+   */
+  agregarComentarioRating(ticket: Ticket, rating: number): void {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) return;
+
+    Swal.fire({
+      title: '<strong style="color: #004A97; font-size: 1.5rem;">Comparte tu Experiencia</strong>',
+      html: `
+        <div style="text-align: left; margin: 20px auto; max-width: 100%;">
+          <!-- Calificación dada -->
+          <div style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+            <p style="margin: 0; color: white; font-weight: 600; font-size: 1rem;">
+              Tu Calificación
+            </p>
+            <div style="font-size: 2rem; color: white; margin-top: 8px;">
+              ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}
+            </div>
+          </div>
+
+          <!-- Info del ticket -->
+          <div style="background: #E3F2FD; padding: 15px; border-radius: 8px; border-left: 4px solid #004A97; margin-bottom: 20px;">
+            <p style="margin: 0 0 8px 0; color: #004A97; font-weight: 600; font-size: 1rem;">
+              <i class="bi bi-ticket-detailed"></i> ${ticket.title || 'Sin título'}
+            </p>
+            <p style="margin: 0; color: #666; font-size: 0.85rem;">
+              <i class="bi bi-person"></i> Asignado a: ${ticket.usuario_asignado?.nombres || ticket.usuario_asignado?.nombre || 'No asignado'}
+            </p>
+          </div>
+
+          <!-- Campo de comentario -->
+          <label style="display: block; margin-bottom: 10px; color: #212121; font-weight: 500; font-size: 0.95rem;">
+            <i class="bi bi-chat-left-text"></i> Cuéntanos sobre tu experiencia:
+          </label>
+          <div style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <textarea id="swal-comment-rating" 
+              style="width: 100%; min-height: 180px; padding: 15px; border: none; 
+              font-size: 0.95rem; resize: vertical; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+              line-height: 1.6; color: #212121; box-sizing: border-box; outline: none;"
+              rows="8"
+              placeholder="¿Qué te pareció la atención recibida? ¿El problema fue resuelto satisfactoriamente?"
+              onfocus="this.parentElement.style.border='2px solid #004A97'; this.parentElement.style.boxShadow='0 0 0 3px rgba(0,74,151,0.1)'"
+              onblur="this.parentElement.style.border='1px solid #ddd'; this.parentElement.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'"></textarea>
+          </div>
+          <small style="display: block; margin-top: 8px; color: #757575; font-size: 0.85rem;">
+            <i class="bi bi-info-circle"></i> Tu comentario ayudará a mejorar nuestro servicio
+          </small>
+        </div>
+      `,
+      width: '800px',
+      padding: '30px 40px',
+      icon: 'question',
+      iconColor: '#FFD700',
+      showCancelButton: true,
+      confirmButtonText: '<i class="bi bi-check-circle"></i> Enviar Comentario',
+      cancelButtonText: '<i class="bi bi-x-circle"></i> Omitir',
+      confirmButtonColor: '#004A97',
+      cancelButtonColor: '#6c757d',
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: 'btn-resolver-custom',
+        cancelButton: 'btn-cancelar-custom'
+      },
+      preConfirm: () => {
+        const comentario = (document.getElementById('swal-comment-rating') as HTMLTextAreaElement)?.value;
+        if (!comentario || comentario.trim().length < 10) {
+          Swal.showValidationMessage('El comentario debe tener al menos 10 caracteres');
+          return false;
+        }
+        return comentario.trim();
+      },
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        // Crear el comentario usando el servicio de comentarios
+        const nuevoComentario: TicketComment = {
+          ticket: ticket,
+          author: {
+            idUsuario: currentUser.idUsuario,
+            nombres: currentUser.nombres,
+            apellidos: currentUser.apellidos,
+            email: currentUser.email,
+          } as any,
+          message: result.value,
+        };
+
+        this.ticketCommentService.create(nuevoComentario).subscribe({
+          next: (comentarioCreado) => {
+            Swal.fire({
+              icon: 'success',
+              title: '¡Comentario Enviado!',
+              html: `
+                <p>Gracias por compartir tu experiencia.</p>
+                <div style="background: #E8F5E9; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #4CAF50;">
+                  <p style="margin: 0; color: #2E7D32; font-size: 0.9rem;">
+                    <i class="bi bi-check-circle"></i> Tu calificación y comentario han sido registrados exitosamente.
+                  </p>
+                </div>
+              `,
+              confirmButtonColor: '#004A97'
+            });
+
+            // Actualizar la vista si es necesario
+            this.actualizarListas();
+          },
+          error: (error) => {
+            console.error('Error al crear comentario:', error);
+            Swal.fire('Error', 'No se pudo guardar tu comentario. Por favor intenta de nuevo.', 'error');
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Abre un modal para calificar el servicio de un ticket resuelto (solo creador)
+   */
+  calificarTicket(ticket: Ticket): void {
+    if (!this.esCreadorDelTicket(ticket)) {
+      Swal.fire('Acceso denegado', 'Solo el creador del ticket puede calificarlo', 'error');
+      return;
+    }
+
+    if (!ticket.id_ticket) return;
+
+    let ratingSeleccionado = 0;
+    
+    Swal.fire({
+      title: '<strong style="color: #004A97;">Calificar Servicio</strong>',
+      html: `
+        <div style="text-align: left; padding: 15px;">
+          <p style="margin-bottom: 20px; color: #555;">
+            <i class="bi bi-info-circle"></i> ¿Cómo calificarías la atención recibida para el ticket:
+            <strong style="color: #004A97;">${ticket.title}</strong>?
+          </p>
+          
+          <div style="text-align: center; margin: 25px 0;">
+            <div class="rating-stars" style="font-size: 2.5rem; cursor: pointer;">
+              ${[1, 2, 3, 4, 5].map(i => `<span class="rating-star" data-rating="${i}" style="color: #ddd; transition: color 0.2s;">★</span>`).join('')}
+            </div>
+            <p id="rating-text" style="color: #004A97; font-weight: 600; margin-top: 10px; min-height: 24px;"></p>
+          </div>
+          
+          <p style="margin-top: 20px; color: #666; font-size: 0.9rem;">
+            <i class="bi bi-chat-dots"></i> Después de calificar, podrás agregar un comentario sobre tu experiencia.
+          </p>
+        </div>
+      `,
+      width: '550px',
+      showCancelButton: true,
+      confirmButtonText: '<i class="bi bi-check-circle"></i> Enviar Calificación',
+      cancelButtonText: '<i class="bi bi-x-circle"></i> Cancelar',
+      confirmButtonColor: '#004A97',
+      cancelButtonColor: '#6c757d',
+      didOpen: () => {
+        const stars = document.querySelectorAll('.rating-star');
+        const ratingText = document.getElementById('rating-text');
+        const ratingLabels = ['', 'Muy Malo', 'Malo', 'Regular', 'Bueno', 'Excelente'];
+        
+        stars.forEach(star => {
+          star.addEventListener('mouseenter', (e) => {
+            const rating = parseInt((e.target as HTMLElement).getAttribute('data-rating') || '0');
+            stars.forEach((s, idx) => {
+              (s as HTMLElement).style.color = idx < rating ? '#FFD700' : '#ddd';
+            });
+            if (ratingText) ratingText.textContent = ratingLabels[rating];
+          });
+
+          star.addEventListener('click', (e) => {
+            ratingSeleccionado = parseInt((e.target as HTMLElement).getAttribute('data-rating') || '0');
+            stars.forEach((s, idx) => {
+              (s as HTMLElement).style.color = idx < ratingSeleccionado ? '#FFD700' : '#ddd';
+              (s as HTMLElement).style.transform = idx < ratingSeleccionado ? 'scale(1.2)' : 'scale(1)';
+            });
+            if (ratingText) {
+              ratingText.textContent = ratingLabels[ratingSeleccionado];
+              ratingText.style.color = '#FFD700';
+            }
+          });
+        });
+
+        // Reset on mouse leave
+        const container = document.querySelector('.rating-stars');
+        container?.addEventListener('mouseleave', () => {
+          if (ratingSeleccionado === 0) {
+            stars.forEach(s => (s as HTMLElement).style.color = '#ddd');
+            if (ratingText) ratingText.textContent = '';
+          } else {
+            stars.forEach((s, idx) => {
+              (s as HTMLElement).style.color = idx < ratingSeleccionado ? '#FFD700' : '#ddd';
+            });
+            if (ratingText) {
+              ratingText.textContent = ratingLabels[ratingSeleccionado];
+              ratingText.style.color = '#FFD700';
+            }
+          }
+        });
+      },
+      preConfirm: () => {
+        if (ratingSeleccionado === 0) {
+          Swal.showValidationMessage('Por favor selecciona una calificación');
+          return false;
+        }
+        return ratingSeleccionado;
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const rating = result.value;
+        
+        console.log('🌟 Enviando calificación:', rating, 'para ticket ID:', ticket.id_ticket);
+        
+        this.servicios.actualizarCalificacion(ticket.id_ticket!, rating).subscribe({
+          next: (ticketActualizado) => {
+            console.log('✅ Respuesta del backend:', ticketActualizado);
+            
+            // Actualizar el ticket en todas las listas locales
+            const ticketId = ticket.id_ticket;
+            
+            // Actualizar datosResueltos
+            const indexResueltos = this.datosResueltos.findIndex(t => t.id_ticket === ticketId);
+            if (indexResueltos !== -1) {
+              this.datosResueltos[indexResueltos] = { ...this.datosResueltos[indexResueltos], rating };
+            }
+            
+            // Actualizar datosFiltrados
+            const indexFiltrados = this.datosFiltrados.findIndex(t => t.id_ticket === ticketId);
+            if (indexFiltrados !== -1) {
+              this.datosFiltrados[indexFiltrados] = { ...this.datosFiltrados[indexFiltrados], rating };
+            }
+            
+            // Actualizar datosOriginalesResueltos
+            const indexOriginales = this.datosOriginalesResueltos.findIndex(t => t.id_ticket === ticketId);
+            if (indexOriginales !== -1) {
+              this.datosOriginalesResueltos[indexOriginales] = { ...this.datosOriginalesResueltos[indexOriginales], rating };
+            }
+            
+            console.log('✅ Calificación guardada:', rating, 'para ticket:', ticketId);
+            
+            // Mostrar confirmación y abrir modal para agregar comentario
+            Swal.fire({
+              icon: 'success',
+              title: '¡Gracias por tu calificación!',
+              html: `
+                <p>Tu opinión nos ayuda a mejorar nuestro servicio.</p>
+                <div style="font-size: 2rem; color: #FFD700; margin: 15px 0;">
+                  ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}
+                </div>
+                <p style="margin-top: 15px; color: #666;">Ahora puedes agregar un comentario sobre tu experiencia.</p>
+              `,
+              confirmButtonText: '<i class="bi bi-chat-left-text"></i> Agregar Comentario',
+              showCancelButton: true,
+              cancelButtonText: 'Cerrar',
+              confirmButtonColor: '#004A97',
+              cancelButtonColor: '#6c757d'
+            }).then((commentResult) => {
+              if (commentResult.isConfirmed) {
+                // Abrir modal para agregar comentario
+                this.agregarComentarioRating(ticket, rating);
+              }
+            });
+          },
+          error: (error) => {
+            console.error('Error al calificar ticket:', error);
+            Swal.fire('Error', 'No se pudo guardar la calificación. Por favor intenta de nuevo.', 'error');
+          }
+        });
       }
     });
   }

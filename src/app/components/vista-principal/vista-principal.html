@@ -160,6 +160,7 @@
             <th>Creador</th>
             <th>Prioridad</th>
             <th>Tiempo</th>
+            <th>Calificación</th>
             <!-- Columna eliminar solo para admin y agentes -->
             <th *ngIf="!authorizationService.isCliente()">Eliminar</th>
           </tr>
@@ -225,6 +226,23 @@
             <td class="text-nowrap">
               <span *ngIf="item.fecha_cierre">{{ calcularTiempoRestante(item.fecha_cierre) }}</span>
               <span *ngIf="!item.fecha_cierre">—</span>
+            </td>
+            <!-- Calificación -->
+            <td class="text-center">
+              <!-- Si ya tiene calificación, mostrar estrellas -->
+              <div *ngIf="item.rating" class="calificacion-mostrar" title="Calificación del servicio">
+                <span *ngFor="let star of [1,2,3,4,5]" class="star" [class.filled]="star <= item.rating!">★</span>
+              </div>
+              <!-- Si no tiene calificación y el usuario es el creador, botón de calificar -->
+              <button 
+                *ngIf="!item.rating && esCreadorDelTicket(item)" 
+                class="btn btn-sm btn-outline-warning" 
+                (click)="calificarTicket(item)"
+                title="Calificar servicio">
+                <i class="bi bi-star"></i> Calificar
+              </button>
+              <!-- Si no tiene calificación y no es el creador -->
+              <span *ngIf="!item.rating && !esCreadorDelTicket(item)" class="text-muted">—</span>
             </td>
             <!-- Botón eliminar (solo si tiene permiso) -->
             <td *ngIf="!authorizationService.isCliente()">
