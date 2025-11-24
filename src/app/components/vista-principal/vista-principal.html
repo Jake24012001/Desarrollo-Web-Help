@@ -161,8 +161,8 @@
             <th>Prioridad</th>
             <th>Tiempo</th>
             <th>Calificación</th>
-            <!-- Columna eliminar solo para admin y agentes -->
-            <th *ngIf="!authorizationService.isCliente()">Eliminar</th>
+            <!-- Columna eliminar solo para admin -->
+            <th *ngIf="authorizationService.isAdmin()">Eliminar</th>
           </tr>
         </thead>
         <tbody>
@@ -244,9 +244,9 @@
               <!-- Si no tiene calificación y no es el creador -->
               <span *ngIf="!item.rating && !esCreadorDelTicket(item)" class="text-muted">—</span>
             </td>
-            <!-- Botón eliminar (solo si tiene permiso) -->
-            <td *ngIf="!authorizationService.isCliente()">
-              <button *ngIf="ticketAccessService.canDeleteTicket(item)" class="btn-action btn-delete" (click)="borrarPeticion(i, 'resuelto')" title="Eliminar">
+            <!-- Botón eliminar (solo admin) -->
+            <td *ngIf="authorizationService.isAdmin()">
+              <button class="btn-action btn-delete" (click)="borrarPeticion(i, 'resuelto')" title="Eliminar">
                 <i class="bi bi-trash3"></i>
               </button>
             </td>

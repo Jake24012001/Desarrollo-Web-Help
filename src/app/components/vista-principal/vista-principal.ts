@@ -532,7 +532,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
           <div style="background: #f8fcff; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #4CAF50; position: relative;">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
               <div>
-                <strong style="color: #004A97;">${comment.author?.nombre || comment.author?.nombres || 'Usuario'}</strong>
+                <strong style="color: #004A97;">${comment.author?.email || 'Usuario'}</strong>
                 <small style="color: #757575; display: block; font-size: 0.85rem;">
                   ${comment.createdAt ? new Date(comment.createdAt).toLocaleString('es-EC') : ''}
                 </small>
