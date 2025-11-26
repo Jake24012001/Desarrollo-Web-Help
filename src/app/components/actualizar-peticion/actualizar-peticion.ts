@@ -9,6 +9,7 @@ import { Ticket } from '../../interface/Ticket';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-actualizar-peticion',
@@ -18,7 +19,6 @@ import { ActivatedRoute, Router } from '@angular/router';
   styleUrls: ['./actualizar-peticion.css'],
 })
 export class ActualizarPeticion implements OnInit {
-  // Objeto con valores por defecto para evitar errores en el template
   datosticket: Ticket = {
     id_ticket: 0, 
     title: '',
@@ -34,21 +34,19 @@ export class ActualizarPeticion implements OnInit {
   
   datosimportados: Ticket[] = [];
   
-  // IDs seleccionados en los controles del formulario
   idtick: number = 0;
   selectedStatusId: number = 0;
   selectedPriorityId: number = 0;
   selectedUsuarioId: number = 0;
   selectedEquipoId: number = 0;
+  fechaEstimada: string = '';
 
-  // Información del usuario autenticado y sus permisos
   usuarioLogeado: any = null;
   nombreUsuarioLogeado: string = '';
   esCliente: boolean = false;
   esAdmin: boolean = false;
   esAgent: boolean = false;
 
-  // Listas que alimentan los selectores del formulario
   estadosDisponibles: { id_status: number; nombre: string }[] = [];
   prioridadesDisponibles: { id_priority: number; name: string }[] = [];
   usuariosDisponibles: { id_usuario: number; nombre: string; roleLabel?: string; }[] = [];
@@ -69,7 +67,6 @@ export class ActualizarPeticion implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Obtengo información del usuario actual y sus roles
     this.usuarioLogeado = this.authService.getCurrentUser();
     this.esCliente = this.authorizationService.isCliente();
     this.esAdmin = this.authorizationService.isAdmin();
@@ -81,10 +78,8 @@ export class ActualizarPeticion implements OnInit {
 
     this.idtick = Number(this.route.snapshot.paramMap.get('id'));
 
-    // Cargo usuarios, tickets y roles en paralelo para llenar los selects
     forkJoin({ users: this.usuarioService.getAll(), tickets: this.servicesticket.getAll(), userRoles: this.usuarioRolService.getAll() }).subscribe(
       ({ users, tickets, userRoles }) => {
-        // Normalizo los usuarios (pueden venir con campos diferentes)
         const mappedUsers = (users || []).map((u: any) => {
           const id = u.id_usuario ?? u.idUsuario ?? u.id ?? 0;
           const nombres = (u.nombres ?? u.nombre ?? '').toString().trim();
@@ -100,8 +95,7 @@ export class ActualizarPeticion implements OnInit {
           };
         });
 
-  // Detectar usuarios con roles relevantes
-        let allowedUserIds = new Set<number>();
+  let allowedUserIds = new Set<number>();
         (userRoles || []).forEach((ur: any) => {
           const rolObj = ur.rol ?? ur.role ?? {};
           const rolId = rolObj.idRol ?? rolObj.id ?? rolObj.id_role ?? 0;
@@ -109,7 +103,6 @@ export class ActualizarPeticion implements OnInit {
           const usuarioObj = ur.usuario ?? ur.user ?? {};
           const uId = usuarioObj.id_usuario ?? usuarioObj.idUsuario ?? usuarioObj.id ?? 0;
           if (!uId) return;
-          // Incluir tanto Admin como Agent/Agente
           if (
             rolId === 1 ||
             rolId === 2 ||
@@ -121,7 +114,6 @@ export class ActualizarPeticion implements OnInit {
           }
         });
 
-        // Construir mapa de roles por usuario
         const rolesPorUsuario = new Map<number, string[]>();
         (userRoles || []).forEach((ur: any) => {
           const usuarioObj = ur.usuario ?? ur.user ?? {};
@@ -134,10 +126,8 @@ export class ActualizarPeticion implements OnInit {
           rolesPorUsuario.set(uId, arr);
         });
 
-        // Adjuntar roleLabel a mappedUsers
         mappedUsers.forEach((mu: any) => {
           const r = rolesPorUsuario.get(mu.id_usuario) ?? [];
-          // Priorizar Admin > Agent > Agente > otros
           let label = '';
           if (r.some((x: string) => x.toLowerCase().includes('admin'))) label = 'Admin';
           else if (r.some((x: string) => x.toLowerCase().includes('agent') || x.toLowerCase().includes('agente'))) label = 'Agent';
@@ -145,21 +135,18 @@ export class ActualizarPeticion implements OnInit {
           mu.roleLabel = label;
         });
 
-        // Aplicar filtro por rol si hay mapeos
         if (allowedUserIds.size > 0) {
           this.usuariosDisponibles = mappedUsers.filter((mu) => allowedUserIds.has(mu.id_usuario));
         } else {
           this.usuariosDisponibles = mappedUsers;
         }
 
-        // Tickets cargados
         this.datosimportados = tickets || [];
         console.log('📦 Todos los tickets importados:', this.datosimportados);
 
         this.estadosDisponibles = this.extraerEstadosUnicos();
         this.prioridadesDisponibles = this.extraerPrioridadesUnicas();
 
-        // Añadir usuarios encontrados en tickets que no estén en la lista
         const usuariosFromTickets = this.extraerUsuariosUnicos().map((ut) => ({
           id_usuario: ut.id_usuario,
           nombre: ut.nombre ?? '',
@@ -169,14 +156,12 @@ export class ActualizarPeticion implements OnInit {
         usuariosFromTickets.forEach((ut) => {
           if (!merged.some((m) => m.id_usuario === ut.id_usuario)) merged.push(ut);
         });
-        // Respetar filtro por roles en la lista combinada
         if (allowedUserIds.size > 0) {
           this.usuariosDisponibles = merged.filter((m) => allowedUserIds.has(m.id_usuario));
         } else {
           this.usuariosDisponibles = merged;
         }
 
-        // Asegurarse de que todos los usuariosDisponibles tengan roleLabel
         this.usuariosDisponibles = this.usuariosDisponibles.map((u: any) => ({
           ...u,
           roleLabel: u.roleLabel ?? rolesPorUsuario.get(u.id_usuario)?.length ? (rolesPorUsuario.get(u.id_usuario)!.some(r => r.toLowerCase().includes('admin')) ? 'Admin' : (rolesPorUsuario.get(u.id_usuario)!.some(r => r.toLowerCase().includes('agent') || r.toLowerCase().includes('agente')) ? 'Agent' : rolesPorUsuario.get(u.id_usuario)![0])) : ''
@@ -184,10 +169,8 @@ export class ActualizarPeticion implements OnInit {
 
     this.equiposDisponibles = this.extraerEquiposUnicos();
 
-    // Cargar ticket seleccionado si existe id en la ruta
         if (this.idtick) {
           this.servicesticket.getById(this.idtick).subscribe((ticket) => {
-      // Normalizar usuario asignado/creador
               const tAny: any = ticket as any;
               const usuarioAsignadoRaw: any = tAny.usuario_asignado ?? tAny.usuarioAsignado ?? tAny.usuarioAsignadoDTO ?? {};
               const usuarioCreadorRaw: any = tAny.usuario_creador ?? tAny.usuarioCreador ?? {};
@@ -203,6 +186,8 @@ export class ActualizarPeticion implements OnInit {
                 id_usuario:
                   usuarioCreadorRaw.id_usuario ?? usuarioCreadorRaw.idUsuario ?? usuarioCreadorRaw.id ?? 0,
                 nombre: usuarioCreadorRaw.nombre ?? usuarioCreadorRaw.nombres ?? usuarioCreadorRaw.cedula ?? '',
+                nombres: usuarioCreadorRaw.nombres ?? '',
+                apellidos: usuarioCreadorRaw.apellidos ?? '',
               };
 
               this.datosticket = {
@@ -219,19 +204,19 @@ export class ActualizarPeticion implements OnInit {
                 id_ticket: ticket.id_ticket ?? this.idtick,
               };
 
-              // Inicializar selects con los valores del ticket
               this.selectedStatusId = this.datosticket.status?.id_status ?? 0;
               this.selectedPriorityId = this.datosticket.priority?.id_priority ?? 0;
               this.selectedEquipoId = this.datosticket.equipoAfectado?.id ?? 0;
 
-              // Preseleccionar usuario asignado por id o coincidencia
+              if (ticket.fecha_estimada) {
+                this.fechaEstimada = this.convertirFechaParaInput(ticket.fecha_estimada);
+              }
+
               const asignadoRaw: any = usuarioAsignadoRaw || {};
               let assignedId = this.datosticket.usuario_asignado?.id_usuario ?? 0;
               if (!assignedId || assignedId === 0) {
-                // Buscar por coincidencia en nombre/cedula
                 const found = this.usuariosDisponibles.find((u) => {
                   if (!u.nombre) return false;
-                  // comparar con cedula o nombre del objeto crudo
                   return (
                     (asignadoRaw.cedula && u.nombre === asignadoRaw.cedula) ||
                     (asignadoRaw.nombre && u.nombre === asignadoRaw.nombre) ||
@@ -254,7 +239,6 @@ export class ActualizarPeticion implements OnInit {
               console.log('Ticket cargado:', this.datosticket);
           });
         } else {
-          // Nuevo ticket: si es cliente, auto-asignar usuario logeado
           if (this.esCliente && this.usuarioLogeado) {
             this.datosticket.usuario_creador = {
               id_usuario: this.usuarioLogeado.idUsuario,
@@ -266,7 +250,6 @@ export class ActualizarPeticion implements OnInit {
     );
   }
 
-  // Métodos auxiliares: extraen listas únicas para selects
   extraerEstadosUnicos(): { id_status: number; nombre: string }[] {
     return this.datosimportados
       .map((t) => t.status)
@@ -342,7 +325,6 @@ export class ActualizarPeticion implements OnInit {
       );
   }
 
-  // Actualizan datosticket cuando cambia un select
   actualizarEstado(): void {
     const estadoSeleccionado = this.estadosDisponibles.find(
       (e) => e.id_status === this.selectedStatusId
@@ -378,40 +360,52 @@ export class ActualizarPeticion implements OnInit {
   }
 
   guardarCambios(): void {
-    // Actualizar fecha de modificación
+    if (!this.esFormularioValido()) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Formulario incompleto',
+        text: 'Por favor, complete todos los campos requeridos correctamente antes de guardar.',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    if (this.esAdmin && this.fechaEstimada && this.fechaEstimadaExpirada()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Fecha inválida',
+        text: 'La fecha estimada de resolución no puede estar en el pasado.',
+        confirmButtonText: 'Corregir'
+      });
+      return;
+    }
+
     this.datosticket.fecha_actualizacion = new Date().toISOString();
 
-    // Obtener el usuario actual (admin que está asignando)
     const usuarioActual = this.authService.getCurrentUser();
 
-    // Construir payload con ids para relaciones
     const payload: any = {
       id_ticket: this.datosticket.id_ticket,
       title: this.datosticket.title,
       descripcion: this.datosticket.descripcion,
       fecha_actualizacion: this.datosticket.fecha_actualizacion,
-      // status / priority: enviar solo ids en las posibles formas que el backend acepte
       status: this.selectedStatusId
         ? { id_status: this.selectedStatusId, idStatus: this.selectedStatusId, id: this.selectedStatusId }
         : this.datosticket.status ?? undefined,
       priority: this.selectedPriorityId
         ? { id_priority: this.selectedPriorityId, idPriority: this.selectedPriorityId, id: this.selectedPriorityId }
         : this.datosticket.priority ?? undefined,
-      // usuario_creador: enviar únicamente el id (evitar enviar objeto sin id)
       usuario_creador: this.datosticket.usuario_creador && (this.datosticket.usuario_creador.id_usuario || (this.datosticket.usuario_creador as any).id)
         ? {
             id_usuario: this.datosticket.usuario_creador.id_usuario ?? (this.datosticket.usuario_creador as any).id ?? (this.datosticket.usuario_creador as any).idUsuario,
             idUsuario: this.datosticket.usuario_creador.id_usuario ?? (this.datosticket.usuario_creador as any).id ?? (this.datosticket.usuario_creador as any).idUsuario,
           }
         : undefined,
-      // usuario_asignado: enviar id desde selectedUsuarioId si existe, si no usar el valor normalizado
       usuario_asignado: this.selectedUsuarioId && this.selectedUsuarioId > 0
         ? { id_usuario: this.selectedUsuarioId, idUsuario: this.selectedUsuarioId, id: this.selectedUsuarioId }
         : this.datosticket.usuario_asignado && this.datosticket.usuario_asignado.id_usuario
         ? { id_usuario: this.datosticket.usuario_asignado.id_usuario }
         : undefined,
-      // usuario_asigno: quien está asignando el ticket (el admin actual)
-      // Solo se envía si se está cambiando la asignación
       usuario_asigno: this.selectedUsuarioId && this.selectedUsuarioId > 0 && usuarioActual
         ? { 
             id_usuario: usuarioActual.idUsuario, 
@@ -419,9 +413,9 @@ export class ActualizarPeticion implements OnInit {
             id: usuarioActual.idUsuario 
           }
         : undefined,
-      // Incluir diferentes formatos de id por compatibilidad con backend
       usuarioAsignado: this.selectedUsuarioId && this.selectedUsuarioId > 0 ? { id: this.selectedUsuarioId } : undefined,
       equipoAfectado: this.selectedEquipoId && this.selectedEquipoId > 0 ? { id: this.selectedEquipoId } : undefined,
+      fecha_estimada: (this.esAdmin && this.fechaEstimada) ? this.convertirFechaISO(this.fechaEstimada) : undefined,
     };
 
   console.log('Enviando payload (obj):', payload);
@@ -431,15 +425,36 @@ export class ActualizarPeticion implements OnInit {
       console.log('No se pudo serializar payload:', e);
     }
 
-    // llamar servicio de actualización
     this.servicesticket.update(this.datosticket.id_ticket!, payload).subscribe({
       next: (response) => {
         console.log('Ticket actualizado con éxito:', response);
-        this.router.navigate(['/help-menu']);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Actualizado!',
+          text: 'El ticket ha sido actualizado correctamente.',
+          timer: 2000,
+          showConfirmButton: false
+        }).then(() => {
+          this.router.navigate(['/help-menu']);
+        });
       },
       error: (err) => {
         console.error('Error al actualizar:', err);
         console.error('Payload enviado:', payload);
+        
+        let mensajeError = 'No se pudo actualizar el ticket. Por favor, intente nuevamente.';
+        if (err.error?.message) {
+          mensajeError = err.error.message;
+        } else if (err.message) {
+          mensajeError = err.message;
+        }
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al actualizar',
+          text: mensajeError,
+          confirmButtonText: 'Entendido'
+        });
         try {
           if (err.error) {
             console.error('err.error:', typeof err.error === 'string' ? err.error : JSON.stringify(err.error, null, 2));
@@ -449,5 +464,68 @@ export class ActualizarPeticion implements OnInit {
         }
       },
     });
+  }
+
+  convertirFechaISO(fechaLocal: string): string {
+    if (!fechaLocal) return '';
+    return `${fechaLocal}:00`;
+  }
+
+  convertirFechaParaInput(fechaISO: string): string {
+    if (!fechaISO) return '';
+    try {
+      const fecha = new Date(fechaISO);
+      const year = fecha.getFullYear();
+      const month = String(fecha.getMonth() + 1).padStart(2, '0');
+      const day = String(fecha.getDate()).padStart(2, '0');
+      const hours = String(fecha.getHours()).padStart(2, '0');
+      const minutes = String(fecha.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch (e) {
+      console.error('Error al convertir fecha:', e);
+      return '';
+    }
+  }
+
+  obtenerFechaMinima(): string {
+    const ahora = new Date();
+    const year = ahora.getFullYear();
+    const month = String(ahora.getMonth() + 1).padStart(2, '0');
+    const day = String(ahora.getDate()).padStart(2, '0');
+    const hours = String(ahora.getHours()).padStart(2, '0');
+    const minutes = String(ahora.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  fechaEstimadaExpirada(): boolean {
+    if (!this.fechaEstimada) return false;
+    const fechaSeleccionada = new Date(this.fechaEstimada);
+    const ahora = new Date();
+    return fechaSeleccionada < ahora;
+  }
+
+  esFormularioValido(): boolean {
+    const tituloValido = !!(this.datosticket.title && 
+                         this.datosticket.title.trim().length >= 5 && 
+                         this.datosticket.title.length <= 100);
+    
+    const descripcionValida = !!(this.datosticket.descripcion && 
+                              this.datosticket.descripcion.trim().length >= 10 && 
+                              this.datosticket.descripcion.length <= 1000);
+    
+    const estadoValido = this.selectedStatusId > 0;
+    
+    const prioridadValida = this.selectedPriorityId > 0;
+    
+    const usuarioValido = this.esCliente ? true : this.selectedUsuarioId > 0;
+    
+    const fechaEstimadaValida = !this.esAdmin || !this.fechaEstimada || !this.fechaEstimadaExpirada();
+    
+    return tituloValido && 
+           descripcionValida && 
+           estadoValido && 
+           prioridadValida && 
+           usuarioValido && 
+           fechaEstimadaValida;
   }
 }

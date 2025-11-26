@@ -338,6 +338,33 @@
   animation: parpadeo 2s ease-in-out infinite;
 }
 
+/* Texto "Expirado" debajo del tiempo */
+.texto-expirado {
+  color: #D32F2F;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.texto-expirado i {
+  font-size: 0.85rem;
+}
+
+/* Fila con fondo rojo tenue para tickets atrasados */
+.fila-atrasada {
+  background-color: rgba(255, 205, 210, 0.25) !important;
+  transition: background-color 0.3s ease;
+}
+
+.fila-atrasada:hover {
+  background-color: rgba(255, 205, 210, 0.4) !important;
+}
+
 @keyframes parpadeo {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }

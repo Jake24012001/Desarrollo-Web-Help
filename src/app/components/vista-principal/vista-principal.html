@@ -6,16 +6,6 @@
       <input type="text" class="form-control form-control-sm search-input" [placeholder]="placeholderText"
         [(ngModel)]="terminoBusqueda" (input)="filtrarDatos()" />
       <button class="btn btn-primary btn-sm" (click)="limpiarBusqueda()">Limpiar</button>
-      
-      <!-- Botón para gestionar prioridades (solo admin) -->
-      <button 
-        *ngIf="authorizationService.isAdmin()" 
-        class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" 
-        (click)="gestionarPrioridades()"
-        title="Gestionar duraciones de prioridades"
-      >
-        <i class="bi bi-gear-fill"></i> Prioridades
-      </button>
     </div>
     <!-- Filtro de vista (todos/pendientes/resueltos) -->
     <div class="d-flex align-items-center">
@@ -54,7 +44,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of datosFiltradosPendientes; let i = index">
+          <tr *ngFor="let item of datosFiltradosPendientes; let i = index" 
+              [class.fila-atrasada]="tiempoExcedido(item)">
             <td class="text-nowrap">
               <span *ngIf="item.fecha_creacion">{{ item.fecha_creacion | date:'short' }}</span>
               <span *ngIf="!item.fecha_creacion">—</span>
@@ -129,7 +120,12 @@
             </td>
             <!-- Tiempo transcurrido - parpadea en rojo si se excedió el plazo -->
             <td class="text-nowrap tiempo-cell" [class.tiempo-excedido]="tiempoExcedido(item)">
-              {{ item.tiempoRestante || '—' }}
+              <div>
+                {{ item.tiempoRestante || '—' }}
+              </div>
+              <div *ngIf="tiempoExcedido(item)" class="texto-expirado">
+                <i class="bi bi-exclamation-triangle-fill"></i> Expirado
+              </div>
             </td>
             <!-- Botones de acción: editar, eliminar y resolver (ocultos para clientes) -->
             <td *ngIf="!authorizationService.isCliente()">
@@ -175,8 +171,7 @@
             <th>Prioridad</th>
             <th>Tiempo</th>
             <th>Calificación</th>
-            <!-- Columna eliminar solo para admin y agentes -->
-            <th *ngIf="!authorizationService.isCliente()">Eliminar</th>
+            <th *ngIf="authorizationService.isAdmin()">Eliminar</th>
           </tr>
         </thead>
         <tbody>
@@ -193,18 +188,7 @@
                 <i class="bi bi-eye"></i>
               </button>
             </td>
-            <td>
-              <span *ngIf="item.usuario_asignado">
-                {{ item.usuario_asignado.nombres || item.usuario_asignado.nombre || '—' }}
-                {{ item.usuario_asignado.apellidos || '' }}
-                <br>
-                <small class="text-muted">
-                  <i class="bi bi-envelope"></i> {{ item.usuario_asignado.email || '—' }}
-                </small>
-              </span>
-              <span *ngIf="!item.usuario_asignado">—</span>
-            </td>
-            <!-- Asignado por -->
+            <!-- Asignado -->
             <td>
               <span *ngIf="item.usuario_asignado">
                 {{ item.usuario_asignado.nombres || item.usuario_asignado.nombre || '—' }}
@@ -228,18 +212,7 @@
               </span>
               <span *ngIf="!item.usuario_asigno">—</span>
             </td>
-            <td class="td-truncate">
-            <td>
-              <span *ngIf="item.usuario_asigno">
-                {{ item.usuario_asigno.nombres || item.usuario_asigno.nombre || '—' }}
-                {{ item.usuario_asigno.apellidos || '' }}
-                <br>
-                <small class="text-muted">
-                  <i class="bi bi-envelope"></i> {{ item.usuario_asigno.email || '—' }}
-                </small>
-              </span>
-              <span *ngIf="!item.usuario_asigno">—</span>
-            </td>
+            <!-- Equipo -->
             <td class="td-truncate">
               <span *ngIf="item.equipoAfectado?.product">
                 {{ item.equipoAfectado?.product?.name || '—' }}
@@ -254,6 +227,7 @@
               </span>
               <span *ngIf="!item.equipoAfectado?.product">—</span>
             </td>
+            <!-- Creador -->
             <td>
               <span *ngIf="item.usuario_creador">
                 {{ item.usuario_creador.nombres || item.usuario_creador.nombre || '—' }}
@@ -274,8 +248,7 @@
             </td>
             <!-- Tiempo de resolución (desde creación hasta cierre) -->
             <td class="text-nowrap">
-              <span *ngIf="item.fecha_cierre">{{ calcularTiempoRestante(item.fecha_cierre) }}</span>
-              <span *ngIf="!item.fecha_cierre">—</span>
+              <span>{{ calcularTiempoResolucion(item.fecha_creacion, item.fecha_cierre) }}</span>
             </td>
             <!-- Calificación -->
             <td class="text-center">

@@ -489,6 +489,37 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     return `${dias}d ${horas}h ${minutos}m ${segundos}s`;
   }
 
+  // Calcula el tiempo de resolución (desde creación hasta cierre del ticket)
+  calcularTiempoResolucion(fechaCreacion: string | undefined, fechaCierre: string | undefined): string {
+    if (!fechaCreacion || !fechaCierre) return '—';
+
+    const inicio = new Date(fechaCreacion);
+    const cierre = new Date(fechaCierre);
+    
+    if (isNaN(inicio.getTime()) || isNaN(cierre.getTime())) return '—';
+
+    const diferencia = cierre.getTime() - inicio.getTime();
+    
+    // Si la diferencia es negativa, hay un error en los datos
+    if (diferencia < 0) return '—';
+
+    const segundos = Math.floor(diferencia / 1000) % 60;
+    const minutos = Math.floor(diferencia / (1000 * 60)) % 60;
+    const horas = Math.floor(diferencia / (1000 * 60 * 60)) % 24;
+    const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+
+    // Formato más legible dependiendo del tiempo
+    if (dias > 0) {
+      return `${dias}d ${horas}h ${minutos}m`;
+    } else if (horas > 0) {
+      return `${horas}h ${minutos}m ${segundos}s`;
+    } else if (minutos > 0) {
+      return `${minutos}m ${segundos}s`;
+    } else {
+      return `${segundos}s`;
+    }
+  }
+
   // Muestra el modal con toda la información del ticket y comentarios si está resuelto
   verDescripcionCompleta(ticket: Ticket): void {
     if (!ticket.id_ticket) return;
@@ -578,6 +609,61 @@ export class VistaPrincipal implements OnInit, OnDestroy {
           <!-- Información del Ticket -->
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
             
+            <!-- Fecha de Creación -->
+            ${ticket.fecha_creacion ? `
+              <div style="background: #f8fcff; padding: 12px; border-radius: 8px; border: 1px solid #BBDEFB;">
+                <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                  <i class="bi bi-calendar-plus" style="color: #004A97; font-size: 1.1rem; margin-right: 8px;"></i>
+                  <strong style="color: #004A97; font-size: 0.85rem;">Fecha de Creación</strong>
+                </div>
+                <div style="color: #212121; font-size: 0.9rem;">
+                  ${new Date(ticket.fecha_creacion).toLocaleDateString('es-EC', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </div>
+                <small style="color: #757575; font-size: 0.8rem; display: block; margin-top: 4px;">
+                  <i class="bi bi-clock"></i> ${new Date(ticket.fecha_creacion).toLocaleTimeString('es-EC', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </small>
+              </div>
+            ` : ''}
+
+            <!-- Fecha Estimada / Límite -->
+            ${ticket.fecha_estimada ? `
+              <div style="background: ${this.fechaEstimadaVencida(ticket) ? '#fff5f5' : '#f8fcff'}; 
+                          padding: 12px; border-radius: 8px; 
+                          border: 2px solid ${this.fechaEstimadaVencida(ticket) ? '#dc3545' : '#BBDEFB'};">
+                <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                  <i class="bi bi-alarm${this.fechaEstimadaVencida(ticket) ? '-fill' : ''}" 
+                     style="color: ${this.fechaEstimadaVencida(ticket) ? '#dc3545' : '#004A97'}; 
+                            font-size: 1.1rem; margin-right: 8px;"></i>
+                  <strong style="color: ${this.fechaEstimadaVencida(ticket) ? '#dc3545' : '#004A97'}; font-size: 0.85rem;">
+                    Fecha Límite
+                  </strong>
+                </div>
+                <div style="color: ${this.fechaEstimadaVencida(ticket) ? '#dc3545' : '#212121'}; 
+                            font-size: 0.9rem; font-weight: ${this.fechaEstimadaVencida(ticket) ? '600' : '400'};">
+                  ${new Date(ticket.fecha_estimada).toLocaleDateString('es-EC', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </div>
+                <small style="color: ${this.fechaEstimadaVencida(ticket) ? '#dc3545' : '#757575'}; 
+                              font-size: 0.8rem; display: block; margin-top: 4px;">
+                  <i class="bi bi-clock"></i> ${new Date(ticket.fecha_estimada).toLocaleTimeString('es-EC', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                  ${this.fechaEstimadaVencida(ticket) ? ' <strong>(Vencida)</strong>' : ''}
+                </small>
+              </div>
+            ` : ''}
+
             ${ticket.equipoAfectado?.product?.name ? `
               <div style="background: #f8fcff; padding: 12px; border-radius: 8px; border: 1px solid #BBDEFB;">
                 <div style="display: flex; align-items: center; margin-bottom: 6px;">
@@ -1041,25 +1127,27 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     return date && !isNaN(new Date(date).getTime());
   }
 
-  // Verifica si el ticket excedió el tiempo esperado de resolución según su prioridad
+  // Verifica si el ticket excedió la fecha estimada de resolución
   tiempoExcedido(ticket: Ticket): boolean {
-    if (!ticket.fecha_creacion || !ticket.priority?.resolutionTimeHours) {
+    if (!ticket.fecha_estimada) {
       return false;
     }
 
-    const fechaCreacion = new Date(ticket.fecha_creacion);
-    if (isNaN(fechaCreacion.getTime())) {
+    const fechaEstimada = new Date(ticket.fecha_estimada);
+    if (isNaN(fechaEstimada.getTime())) {
       return false;
     }
 
     const ahora = Date.now();
-    const tiempoTranscurridoMs = ahora - fechaCreacion.getTime();
-    const horasTranscurridas = tiempoTranscurridoMs / (1000 * 60 * 60);
-
-    return horasTranscurridas > ticket.priority.resolutionTimeHours;
+    return ahora > fechaEstimada.getTime();
   }
 
-  // Abre modal para que el admin gestione las duraciones de las prioridades
+  // Verifica si la fecha estimada del ticket ya venció (para usar en el modal)
+  fechaEstimadaVencida(ticket: Ticket): boolean {
+    return this.tiempoExcedido(ticket);
+  }
+
+  // Abre modal para que el admin gestione las prioridades (sin duración)
   gestionarPrioridades(): void {
     this.ticketPriorityService.getAll().subscribe({
       next: (prioridades: TicketPriority[]) => {
@@ -1071,118 +1159,41 @@ export class VistaPrincipal implements OnInit, OnDestroy {
           return valorA - valorB;
         });
 
-        // Construyo el HTML del modal con inputs editables para cada prioridad
+        // Construyo el HTML del modal mostrando las prioridades existentes
         const prioridadesHTML = prioridadesOrdenadas.map(p => `
           <div style="margin-bottom: 16px; padding: 18px; border: 2px solid #BBDEFB; border-radius: 8px; background: #FAFAFA;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
               <label style="font-weight: 700; color: #1565C0; font-size: 1.05rem; margin: 0;">
-                Prioridad ${p.name}
-              </label>
-              <span style="background: #E3F2FD; color: #0D47A1; padding: 4px 14px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; border: 1px solid #BBDEFB;">
                 ${p.name}
+              </label>
+              <span style="background: #E3F2FD; color: #0D47A1; padding: 6px 16px; border-radius: 4px; font-size: 0.9rem; font-weight: 600; border: 1px solid #BBDEFB;">
+                ${p.description || 'Sin descripción'}
               </span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <input 
-                type="number" 
-                id="priority-${p.id_priority}" 
-                class="swal2-input" 
-                value="${p.resolutionTimeHours || 0}" 
-                min="1"
-                step="1"
-                style="margin: 0; flex: 1; padding: 12px; font-size: 1rem; border: 2px solid #BBDEFB; border-radius: 6px; background: white;"
-                placeholder="Horas"
-              />
-              <span style="color: #1565C0; font-weight: 600; white-space: nowrap; min-width: 50px;">horas</span>
             </div>
           </div>
         `).join('');
 
         Swal.fire({
-          title: '<span style="color: #1565C0; font-weight: 700;">Gestión de Prioridades</span>',
+          title: '<span style="color: #1565C0; font-weight: 700;">Prioridades del Sistema</span>',
           html: `
             <div style="text-align: left; max-height: 500px; overflow-y: auto; padding: 10px;">
               <p style="color: #616161; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5;">
-                Configura el tiempo máximo de resolución para cada nivel de prioridad.
+                Las fechas estimadas de resolución ahora se configuran individualmente para cada ticket.
               </p>
               ${prioridadesHTML}
             </div>
           `,
           width: '600px',
-          showCancelButton: true,
-          confirmButtonText: 'Guardar Cambios',
-          cancelButtonText: 'Cancelar',
+          confirmButtonText: 'Cerrar',
           customClass: {
             popup: 'swal-responsive-modal',
-            confirmButton: 'btn-confirmar-custom',
-            cancelButton: 'btn-cancelar-custom'
-          },
-          preConfirm: () => {
-            const cambios: { prioridad: TicketPriority; nuevasDuracion: number }[] = [];
-            let hayError = false;
-
-            prioridades.forEach(p => {
-              const input = document.getElementById(`priority-${p.id_priority}`) as HTMLInputElement;
-              if (input) {
-                const nuevoValor = parseInt(input.value);
-                if (isNaN(nuevoValor) || nuevoValor < 1) {
-                  Swal.showValidationMessage(`El valor para ${p.name} debe ser mayor a 0`);
-                  hayError = true;
-                  return;
-                }
-                if (nuevoValor !== p.resolutionTimeHours) {
-                  cambios.push({ prioridad: p, nuevasDuracion: nuevoValor });
-                }
-              }
-            });
-
-            if (hayError) return false;
-            return cambios;
-          },
-        }).then((result) => {
-          if (result.isConfirmed && result.value && result.value.length > 0) {
-            // Guardo los cambios en el backend
-            let actualizacionesCompletadas = 0;
-            const totalActualizaciones = result.value.length;
-
-            result.value.forEach((cambio: { prioridad: TicketPriority; nuevasDuracion: number }) => {
-              const prioridadActualizada: TicketPriority = {
-                ...cambio.prioridad,
-                resolutionTimeHours: cambio.nuevasDuracion
-              };
-
-              // Valido que exista el ID antes de actualizar
-              if (!cambio.prioridad.id_priority) {
-                console.error('ID de prioridad no encontrado');
-                return;
-              }
-
-              this.ticketPriorityService.update(cambio.prioridad.id_priority, prioridadActualizada).subscribe({
-                next: () => {
-                  actualizacionesCompletadas++;
-                  if (actualizacionesCompletadas === totalActualizaciones) {
-                    Swal.fire({
-                      icon: 'success',
-                      title: '¡Actualizado!',
-                      text: `Se actualizaron ${totalActualizaciones} prioridad(es) exitosamente.`,
-                      timer: 2000
-                    });
-                    // Recargo los tickets para reflejar los cambios
-                    this.ngOnInit();
-                  }
-                },
-                error: (error) => {
-                  console.error('Error al actualizar prioridad:', error);
-                  Swal.fire('Error', `No se pudo actualizar la prioridad ${cambio.prioridad.name}.`, 'error');
-                }
-              });
-            });
+            confirmButton: 'btn-confirmar-custom'
           }
         });
       },
-      error: (error) => {
-        console.error('Error al cargar prioridades:', error);
-        Swal.fire('Error', 'No se pudieron cargar las prioridades.', 'error');
+      error: (err) => {
+        console.error('Error al cargar prioridades:', err);
+        Swal.fire('Error', 'No se pudieron cargar las prioridades', 'error');
       }
     });
   }

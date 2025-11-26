@@ -8,8 +8,23 @@
                 <div class="row g-3">
 
                     <div class="col-12 col-sm-6 col-lg-4">
-                        <label for="titulo" class="form-label">Título</label>
-                        <input type="text" id="titulo" class="form-control" [(ngModel)]="datosticket.title" name="title" required>
+                        <label for="titulo" class="form-label">Título <span class="text-danger">*</span></label>
+                        <input type="text" 
+                               id="titulo" 
+                               class="form-control" 
+                               [(ngModel)]="datosticket.title" 
+                               name="title" 
+                               #tituloInput="ngModel"
+                               required 
+                               minlength="5"
+                               maxlength="100"
+                               [class.is-invalid]="tituloInput.invalid && (tituloInput.dirty || tituloInput.touched)">
+                        <div class="invalid-feedback" *ngIf="tituloInput.invalid && (tituloInput.dirty || tituloInput.touched)">
+                            <div *ngIf="tituloInput.errors?.['required']">El título es obligatorio.</div>
+                            <div *ngIf="tituloInput.errors?.['minlength']">El título debe tener al menos 5 caracteres.</div>
+                            <div *ngIf="tituloInput.errors?.['maxlength']">El título no puede exceder 100 caracteres.</div>
+                        </div>
+                        <small class="text-muted">{{ (datosticket.title && datosticket.title.length) || 0 }}/100 caracteres</small>
                     </div>
 
                     <div class="col-12 col-sm-6 col-lg-4">
@@ -18,23 +33,65 @@
                     </div>
 
                     <div class="col-12 col-sm-6 col-lg-4">
-                        <label for="select-status" class="form-label">Estado</label>
-                        <select id="select-status" class="form-select" [(ngModel)]="selectedStatusId" (change)="actualizarEstado()" name="statusId" required>
-                            <option [value]="0">-- Seleccione un Estado --</option>
+                        <label for="select-status" class="form-label">Estado <span class="text-danger">*</span></label>
+                        <select id="select-status" 
+                                class="form-select" 
+                                [(ngModel)]="selectedStatusId" 
+                                (change)="actualizarEstado()" 
+                                name="statusId" 
+                                #statusSelect="ngModel"
+                                required
+                                [class.is-invalid]="(statusSelect.invalid || selectedStatusId === 0) && (statusSelect.dirty || statusSelect.touched)">
+                            <option [value]="0" disabled>-- Seleccione un Estado --</option>
                             <option *ngFor="let estado of estadosDisponibles" [value]="estado.id_status">{{ estado.nombre }}</option>
                         </select>
+                        <div class="invalid-feedback" *ngIf="(statusSelect.invalid || selectedStatusId === 0) && (statusSelect.dirty || statusSelect.touched)">
+                            Debe seleccionar un estado válido.
+                        </div>
                     </div>
 
                     <div class="col-12 col-sm-6 col-lg-4">
-                        <label for="select-priority" class="form-label">Prioridad</label>
-                        <select id="select-priority" class="form-select" [(ngModel)]="selectedPriorityId" (change)="actualizarPrioridad()" name="priorityId" required>
-                            <option [value]="0">-- Seleccione una Prioridad --</option>
+                        <label for="select-priority" class="form-label">Prioridad <span class="text-danger">*</span></label>
+                        <select id="select-priority" 
+                                class="form-select" 
+                                [(ngModel)]="selectedPriorityId" 
+                                (change)="actualizarPrioridad()" 
+                                name="priorityId" 
+                                #prioritySelect="ngModel"
+                                required
+                                [class.is-invalid]="(prioritySelect.invalid || selectedPriorityId === 0) && (prioritySelect.dirty || prioritySelect.touched)">
+                            <option [value]="0" disabled>-- Seleccione una Prioridad --</option>
                             <option *ngFor="let prioridad of prioridadesDisponibles" [value]="prioridad.id_priority">{{ prioridad.name }}</option>
                         </select>
+                        <div class="invalid-feedback" *ngIf="(prioritySelect.invalid || selectedPriorityId === 0) && (prioritySelect.dirty || prioritySelect.touched)">
+                            Debe seleccionar una prioridad válida.
+                        </div>
+                    </div>
+
+                    <!-- Fecha estimada de resolución (solo admin) -->
+                    <div class="col-12 col-sm-6 col-lg-4" *ngIf="esAdmin">
+                        <label for="fechaEstimada" class="form-label">Fecha Estimada de Resolución</label>
+                        <input 
+                            type="datetime-local" 
+                            id="fechaEstimada" 
+                            class="form-control" 
+                            [class.is-invalid]="fechaEstimada && fechaEstimadaExpirada()"
+                            [(ngModel)]="fechaEstimada" 
+                            name="fechaEstimada"
+                            [min]="obtenerFechaMinima()">
+                        <div class="invalid-feedback" *ngIf="fechaEstimada && fechaEstimadaExpirada()">
+                            La fecha y hora ya pasó. Debe ser futura.
+                        </div>
+                        <small class="text-muted d-block mt-1" *ngIf="!fechaEstimadaExpirada()">
+                            <i class="bi bi-clock"></i> Fecha y hora límite para resolver este ticket
+                        </small>
+                        <small class="text-danger d-block mt-1 fw-bold" *ngIf="fechaEstimada && fechaEstimadaExpirada()">
+                            Fecha límite en el pasado
+                        </small>
                     </div>
 
                     <div class="col-12 col-sm-6 col-lg-4">
-                           <label for="select-usuario" class="form-label">Usuario Asignado</label>
+                           <label for="select-usuario" class="form-label">Usuario Asignado <span class="text-danger">*</span></label>
                            <!-- Cliente: mostrar nombre en solo lectura; Admin/Agente: select -->
                         <input *ngIf="esCliente" 
                                type="text" 
@@ -42,35 +99,50 @@
                                [value]="nombreUsuarioLogeado" 
                                readonly>
                         <!-- Admin/Agente: select para elegir usuario -->
-                        <select *ngIf="!esCliente"
-                                id="select-usuario" 
-                                class="form-select" 
-                                [(ngModel)]="selectedUsuarioId" 
-                                (change)="actualizarUsuarioAsignado()" 
-                                name="usuarioAsignadoId" 
-                                required>
-                            <option [value]="0">-- Seleccione un Usuario (Admin/Agente) --</option>
-                                                        <option *ngFor="let usuario of usuariosDisponibles" [value]="usuario.id_usuario"
-                                                            [hidden]="!esAdmin && usuario.id_usuario !== usuarioLogeado?.idUsuario">
-                                                                {{ usuario.nombre }}{{ usuario.roleLabel ? ' (' + usuario.roleLabel + ')' : '' }}
-                                                        </option>
-                        </select>
+                        <div *ngIf="!esCliente">
+                            <select id="select-usuario" 
+                                    class="form-select" 
+                                    [(ngModel)]="selectedUsuarioId" 
+                                    (change)="actualizarUsuarioAsignado()" 
+                                    name="usuarioAsignadoId" 
+                                    #usuarioSelect="ngModel"
+                                    required
+                                    [class.is-invalid]="(usuarioSelect.invalid || selectedUsuarioId === 0) && (usuarioSelect.dirty || usuarioSelect.touched)">
+                                <option [value]="0" disabled>-- Seleccione un Usuario (Admin/Agente) --</option>
+                                                            <option *ngFor="let usuario of usuariosDisponibles" [value]="usuario.id_usuario"
+                                                                [hidden]="!esAdmin && usuario.id_usuario !== usuarioLogeado?.idUsuario">
+                                                                    {{ usuario.nombre }}{{ usuario.roleLabel ? ' (' + usuario.roleLabel + ')' : '' }}
+                                                            </option>
+                            </select>
+                            <div class="invalid-feedback" *ngIf="(usuarioSelect.invalid || selectedUsuarioId === 0) && (usuarioSelect.dirty || usuarioSelect.touched)">
+                                Debe seleccionar un usuario asignado válido.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-12 col-sm-6 col-lg-4">
                         <label for="select-equipo" class="form-label">Equipo Afectado</label>
-                        <select id="select-equipo" class="form-select" [(ngModel)]="selectedEquipoId" (change)="actualizarEquipoAfectado()" name="equipoId" required>
+                        <select id="select-equipo" 
+                                class="form-select" 
+                                [(ngModel)]="selectedEquipoId" 
+                                (change)="actualizarEquipoAfectado()" 
+                                name="equipoId" 
+                                #equipoSelect="ngModel"
+                                required>
                             <option [value]="0">N/A - Sin Equipo Afectado</option>
                             <option *ngFor="let equipo of equiposDisponibles" [value]="equipo.id">
                                 {{ equipo.serial }} ({{ equipo.product.name }})
                                 <span *ngIf="equipo.product.brand || equipo.product.model">- {{ equipo.product.brand }} {{ equipo.product.model }}</span>
                             </option>
                         </select>
+                        <small class="text-muted">Seleccione el equipo relacionado con este ticket o deje en N/A</small>
                     </div>
 
                     <div class="col-12 col-sm-6 col-lg-4">
                         <label class="form-label">Creador</label>
-                        <input type="text" class="form-control bg-light" [value]="datosticket.usuario_creador?.nombre" readonly>
+                        <input type="text" class="form-control bg-light" 
+                               [value]="((datosticket.usuario_creador?.nombres || '') + ' ' + (datosticket.usuario_creador?.apellidos || '')).trim() || datosticket.usuario_creador?.nombre || ''" 
+                               readonly>
                     </div>
 
                     <div class="col-12 col-sm-6 col-lg-4">
@@ -84,14 +156,39 @@
                     </div>
 
                     <div class="col-12">
-                        <label for="descripcion" class="form-label">Descripción</label>
-                        <textarea id="descripcion" rows="4" class="form-control" [(ngModel)]="datosticket.descripcion" name="descripcion" required></textarea>
+                        <label for="descripcion" class="form-label">Descripción <span class="text-danger">*</span></label>
+                        <textarea id="descripcion" 
+                                  rows="4" 
+                                  class="form-control" 
+                                  [(ngModel)]="datosticket.descripcion" 
+                                  name="descripcion" 
+                                  #descripcionInput="ngModel"
+                                  required
+                                  minlength="10"
+                                  maxlength="1000"
+                                  [class.is-invalid]="descripcionInput.invalid && (descripcionInput.dirty || descripcionInput.touched)"></textarea>
+                        <div class="invalid-feedback" *ngIf="descripcionInput.invalid && (descripcionInput.dirty || descripcionInput.touched)">
+                            <div *ngIf="descripcionInput.errors?.['required']">La descripción es obligatoria.</div>
+                            <div *ngIf="descripcionInput.errors?.['minlength']">La descripción debe tener al menos 10 caracteres.</div>
+                            <div *ngIf="descripcionInput.errors?.['maxlength']">La descripción no puede exceder 1000 caracteres.</div>
+                        </div>
+                        <small class="text-muted">{{ (datosticket.descripcion && datosticket.descripcion.length) || 0 }}/1000 caracteres</small>
                     </div>
 
                 </div>
 
                 <div class="mt-3">
-                    <button type="submit" class="btn btn-primary w-100 submit-btn" [class.disabled]="!actualizarForm?.valid" [attr.disabled]="!actualizarForm?.valid ? true : null">Guardar Cambios del Ticket</button>
+                    <button type="submit" 
+                            class="btn btn-primary w-100 submit-btn" 
+                            [class.disabled]="!esFormularioValido()" 
+                            [attr.disabled]="!esFormularioValido() ? true : null"
+                            [title]="!esFormularioValido() ? 'Complete todos los campos requeridos correctamente' : 'Guardar cambios'">
+                        <i class="bi bi-check-circle me-2"></i>Guardar Cambios del Ticket
+                    </button>
+                    <div class="alert alert-warning mt-2" *ngIf="actualizarForm?.submitted && !esFormularioValido()">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Por favor, complete todos los campos requeridos correctamente antes de guardar.
+                    </div>
                 </div>
 
             </div>

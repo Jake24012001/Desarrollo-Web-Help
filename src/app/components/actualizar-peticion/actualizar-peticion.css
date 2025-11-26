@@ -28,7 +28,7 @@
 label{ font-weight:600; color:#334155; font-size:0.95rem }
 
 /* Layout: usar filas/columnas (Bootstrap) pero mantener reglas compactas */
-input[type='text'], textarea, select{
+input[type='text'], input[type='datetime-local'], textarea, select{
   width:100%;
   padding:8px 10px;
   border:1px solid var(--border);
@@ -38,10 +38,45 @@ input[type='text'], textarea, select{
   transition: border-color .12s ease, box-shadow .12s ease;
 }
 
-input[type='text']:focus, textarea:focus, select:focus{
+input[type='text']:focus, input[type='datetime-local']:focus, textarea:focus, select:focus{
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 6px rgba(25,118,210,0.06);
+}
+
+/* Estilos específicos para datetime-local */
+input[type="datetime-local"] {
+  cursor: pointer;
+  color: #334155;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+input[type="datetime-local"]:hover {
+  border-color: #42A5F5;
+  box-shadow: 0 2px 8px rgba(0, 74, 151, 0.1);
+}
+
+input[type="datetime-local"].is-invalid {
+  border-color: #dc3545 !important;
+  background-color: #fff5f5;
+  animation: shake 0.3s ease-in-out;
+}
+
+/* Animación de sacudida para fechas inválidas */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Advertencia de fecha expirada */
+.text-danger.fw-bold {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .campo-bloqueado-valor{
@@ -117,4 +152,91 @@ input[type='text']:focus, textarea:focus, select:focus{
   opacity: 0.95;
   box-shadow: none;
   border-color: #e6eefc;
+}
+
+/* Estilos para campos inválidos */
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: #dc3545 !important;
+  background-color: #fff5f5;
+  padding-right: calc(1.5em + 0.75rem);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right calc(0.375em + 0.1875rem) center;
+  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}
+
+/* Mensajes de error de validación */
+.invalid-feedback {
+  display: none;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #dc3545;
+  font-weight: 500;
+}
+
+.form-control.is-invalid ~ .invalid-feedback,
+.form-select.is-invalid ~ .invalid-feedback {
+  display: block;
+}
+
+/* Asterisco rojo para campos requeridos */
+.form-label .text-danger {
+  color: #dc3545;
+  font-weight: 700;
+}
+
+/* Contador de caracteres */
+small.text-muted {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+/* Alerta de formulario incompleto */
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffecb5;
+  color: #856404;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  border-left: 4px solid #ffc107;
+}
+
+.alert-warning .bi {
+  margin-right: 0.5rem;
+}
+
+/* Animación de entrada para mensajes de error */
+.invalid-feedback {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mejorar el aspecto del botón submit deshabilitado */
+.submit-btn.disabled:hover {
+  transform: none !important;
+  cursor: not-allowed;
+}
+
+.submit-btn:not(.disabled) {
+  cursor: pointer;
 }

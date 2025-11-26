@@ -1,13 +1,9 @@
-/* Estilos del formulario de creación de tickets */
-
-/* Card principal con bordes redondeados */
 .card {
   border: none;
   border-radius: 12px;
   overflow: hidden;
 }
 
-/* Header con gradiente azul */
 .card-header {
   background: linear-gradient(135deg, var(--primary) 0%, #1565C0 100%) !important;
   border: none;
@@ -27,7 +23,6 @@
   background-color: #FAFAFA;
 }
 
-/* Colores consistentes para botones y fondos */
 .btn-primary,
 .btn-primary:hover,
 .btn-primary:active,
@@ -38,7 +33,6 @@
   color: white !important;
 }
 
-/* Botón deshabilitado */
 .btn-primary:disabled {
   background-color: #BDBDBD !important;
   border-color: #BDBDBD !important;
@@ -47,7 +41,6 @@
   opacity: 0.6;
 }
 
-/* Validaciones - campos inválidos con borde rojo */
 .form-control.is-invalid,
 .form-select.is-invalid {
   border-color: #dc3545 !important;
@@ -61,7 +54,6 @@
   box-shadow: 0 0 0 0.3rem rgba(220, 53, 69, 0.25);
 }
 
-/* Mensaje de error */
 .invalid-feedback {
   display: block;
   color: #dc3545;
@@ -70,7 +62,50 @@
   font-weight: 500;
 }
 
-/* Select de equipos con estilo mejorado y texto oscuro */
+input[type="datetime-local"] {
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  border: 2px solid #BBDEFB;
+  border-radius: 10px;
+  background: white;
+  color: #212121;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+input[type="datetime-local"]:hover {
+  border-color: #42A5F5;
+  box-shadow: 0 3px 8px rgba(0, 74, 151, 0.15);
+}
+
+input[type="datetime-local"]:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
+}
+
+input[type="datetime-local"].is-invalid {
+  border-color: #dc3545 !important;
+  background-color: #fff5f5;
+  animation: shake 0.3s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.text-danger.fw-bold {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
 #equipo,
 .equipo-select {
   padding: 12px 16px;
@@ -104,7 +139,6 @@
   color: #212121 !important;
 }
 
-/* Opciones del select con texto oscuro y separador */
 #equipo option,
 .equipo-select option {
   padding: 14px 18px;
@@ -116,7 +150,6 @@
   font-weight: 500;
 }
 
-/* Estados hover y checked de las opciones */
 #equipo option:hover,
 #equipo option:focus,
 .equipo-select option:hover,
@@ -133,7 +166,6 @@
   font-weight: 700;
 }
 
-/* Placeholder (opción deshabilitada) con estilo gris itálico */
 #equipo option:disabled,
 .equipo-select option:disabled {
   color: #9E9E9E;
@@ -143,7 +175,6 @@
   font-size: 0.92rem;
 }
 
-/* Todos los selects del formulario con borde azul claro */
 .form-select {
   border: 2px solid #E3F2FD;
   border-radius: 8px;

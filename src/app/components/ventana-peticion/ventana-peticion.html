@@ -3,10 +3,8 @@
     <h5 class="mb-0">Creación de Ticket de Soporte</h5>
   </div>
   <div class="card-body">
-    <!-- Formulario para crear un nuevo ticket -->
     <form class="formulario-peticion" (ngSubmit)="crearTicket()">
 
-      <!-- Título del ticket -->
       <div class="form-group mb-3">
         <label for="tipoPeticion" class="form-label">Tipo de petición:</label>
         <input type="text" id="tipoPeticion" class="form-control" 
@@ -21,7 +19,6 @@
         </div>
       </div>
 
-      <!-- Usuario creador: select para admin, readonly para otros roles -->
       <div class="form-group mb-3">
         <label for="usuario" class="form-label">Usuario creador:</label>
         <select *ngIf="authorizationService.isAdmin()" 
@@ -38,7 +35,6 @@
         <div class="invalid-feedback" *ngIf="authorizationService.isAdmin() && esCampoInvalido('usuario')">
           Debe seleccionar un usuario creador
         </div>
-        <!-- Usuario actual (no editable para no-admin) -->
           <div *ngIf="!authorizationService.isAdmin()" class="form-control" style="background-color: #f8f9fa; padding: 10px;">
             <div class="fw-bold">{{ usuarioSeleccionado?.apellidos }} {{ usuarioSeleccionado?.nombres }}</div>
             <small class="text-muted">Cédula: {{ usuarioSeleccionado?.cedula }}</small>
@@ -46,19 +42,16 @@
           <input *ngIf="!authorizationService.isAdmin()" type="hidden" name="usuario" [(ngModel)]="usuarioSeleccionado" />
       </div>
 
-      <!-- Asignación manual (solo admin) -->
       <div class="form-group mb-3" *ngIf="authorizationService.isAdmin()">
         <label for="asignarTrabajo" class="form-label">Asignar Trabajo</label>
         <select id="asignarTrabajo" class="form-select" [(ngModel)]="usuarioSeleccionados" name="usuarioAsignado">
           <option value="" disabled selected>-- Selecciona --</option>
-          <!-- Muestra solo usuarios con rol ADMIN o AGENTE -->
           <option *ngFor="let item of getRolesAdminYAgente()" [ngValue]="item">
             {{ item.rol.nombre }} - {{ (item.usuario.nombres || item.usuario.nombre) + (item.usuario.apellidos ? ' ' + item.usuario.apellidos : '') }}
           </option>
         </select>
       </div>
 
-      <!-- Selectores en cascada: tipo de equipo → nombre → equipo específico -->
       <div class="form-group mb-3">
         <label for="producto" class="form-label">Categoría de equipo</label>
         <select name="producto" 
@@ -77,7 +70,6 @@
         </div>
       </div>
 
-      <!-- Nombre del producto (segundo nivel de filtrado) -->
       <div class="form-group mb-3">
         <label for="productoNombre" class="form-label">Nombre del Producto:</label>
         <select id="productoNombre" 
@@ -96,7 +88,6 @@
         </div>
       </div>
 
-      <!-- Equipo específico con serial, modelo y código -->
       <div class="form-group mb-3" *ngIf="productoNombreSeleccionado">
         <label for="equipo" class="form-label">Equipo específico (Serial / Modelo / Código):</label>
         <select id="equipo" 
@@ -117,7 +108,6 @@
         </div>
       </div>
 
-      <!-- Prioridad: editable por admin, fija para otros roles -->
       <div class="form-group mb-3">
         <label for="prioridad" class="form-label">Prioridad del ticket:</label>
 
@@ -136,13 +126,36 @@
           Debe seleccionar una prioridad
         </div>
 
-        <!-- Mensaje para usuarios no admin -->
         <div *ngIf="!authorizationService.isAdmin()" class="form-control" style="background-color: #f8f9fa; padding: 10px;">
           <div class="fw-bold text-muted">La prioridad será asignada por un administrador.</div>
         </div>
       </div>
 
-      <!-- Descripción detallada del problema -->
+      <div class="form-group mb-3" *ngIf="authorizationService.isAdmin()">
+        <label for="fechaEstimada" class="form-label">Fecha estimada de resolución:</label>
+        <input 
+          type="datetime-local" 
+          id="fechaEstimada" 
+          class="form-control" 
+          [class.is-invalid]="esCampoInvalido('fechaEstimada')"
+          [(ngModel)]="fechaEstimada" 
+          name="fechaEstimada"
+          (blur)="marcarCampoTocado('fechaEstimada')"
+          (change)="marcarCampoTocado('fechaEstimada')"
+          [min]="obtenerFechaMinima()"
+          required>
+        <div class="invalid-feedback" *ngIf="esCampoInvalido('fechaEstimada')">
+          <span *ngIf="!fechaEstimada || !fechaEstimada.trim()">Debe establecer una fecha estimada de resolución</span>
+          <span *ngIf="fechaEstimada && fechaEstimadaExpirada()">La fecha y hora seleccionada ya pasó. Debe ser futura.</span>
+        </div>
+        <small class="text-muted d-block mt-1" *ngIf="!esCampoInvalido('fechaEstimada')">
+          <i class="bi bi-info-circle"></i> Seleccione la fecha y hora en que espera resolver este ticket
+        </small>
+        <small class="text-danger d-block mt-1 fw-bold" *ngIf="fechaEstimada && fechaEstimadaExpirada()">
+          <i class="bi bi-exclamation-triangle-fill"></i> Fecha límite en el pasado
+        </small>
+      </div>
+
       <div class="form-group mb-3">
         <label for="detallePeticion" class="form-label">Detalle de petición:</label>
         <textarea id="detallePeticion" 
@@ -159,7 +172,6 @@
         </div>
       </div>
 
-      <!-- Botones de acción -->
       <div class="d-flex gap-2 pt-3">
         <button type="button" 
           class="btn btn-primary btn-lg" 
@@ -170,7 +182,6 @@
         <button type="button" class="btn btn-outline-secondary btn-lg" (click)="cancelarAccion()">Cancelar</button>
       </div>
 
-      <!-- Muestra el estado inicial del ticket (siempre ABIERTO) -->
       <div class="form-group mt-4 pt-3 border-top">
         <label class="form-label">Estado inicial del ticket:</label>
         <div class="alert alert-success fw-bold p-2 mb-0" role="alert">{{ getEstadoPendiente()?.nombre || 'ABIERTO' }}</div>

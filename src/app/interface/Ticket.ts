@@ -9,7 +9,6 @@ export interface Ticket {
   priority?: {
     id_priority?: number;
     name?: string;
-    resolutionTimeHours?: number;
   };
   // Backend devuelve camelCase (idUsuario) pero también soportamos snake_case
   usuario_creador?: {
@@ -49,6 +48,7 @@ export interface Ticket {
   fecha_creacion?: string;
   fecha_actualizacion?: string;
   fecha_cierre?: string;
+  fecha_estimada?: string;
   tiempoRestante?: string;
   rating?: number;
 }
