@@ -60,6 +60,17 @@ export class VentanaPeticion implements OnInit {
   detallePeticion = '';
   prioridadSeleccionada: TicketPriority | null = null;
 
+  // Propiedades para validaciones en tiempo real
+  camposTocados = {
+    tipoPeticion: false,
+    detallePeticion: false,
+    usuario: false,
+    producto: false,
+    productoNombre: false,
+    equipo: false,
+    prioridad: false
+  };
+
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
@@ -161,30 +172,13 @@ export class VentanaPeticion implements OnInit {
   crearTicket(): void {
     console.log('crearTicket() invoked');
     
-    // Valido todos los campos requeridos
-    if (!this.tipoPeticion || !this.tipoPeticion.trim()) {
-      Swal.fire('Error', 'Por favor ingrese el tipo de petición.', 'error');
-      return;
-    }
-    if (!this.detallePeticion || !this.detallePeticion.trim()) {
-      Swal.fire('Error', 'Por favor ingrese el detalle de la petición.', 'error');
-      return;
-    }
-    if (!this.usuarioSeleccionado) {
-      Swal.fire('Error', 'Por favor seleccione un usuario creador.', 'error');
-      return;
-    }
-    if (!this.productoSeleccionado) {
-      Swal.fire('Error', 'Por favor seleccione una categoría de equipo.', 'error');
-      return;
-    }
-    if (!this.equipoSeleccionado) {
-      Swal.fire('Error', 'Por favor seleccione un equipo disponible.', 'error');
-      return;
-    }
-    // Solo admins deben seleccionar prioridad manualmente
-    if (this.authorizationService.isAdmin() && !this.prioridadSeleccionada) {
-      Swal.fire('Error', 'Por favor seleccione una prioridad.', 'error');
+    // Marcar todos los campos como tocados para mostrar validaciones
+    Object.keys(this.camposTocados).forEach(key => {
+      this.camposTocados[key as keyof typeof this.camposTocados] = true;
+    });
+    
+    // Si el formulario no es válido, no continuar
+    if (!this.esFormularioValido()) {
       return;
     }
 
@@ -197,7 +191,7 @@ export class VentanaPeticion implements OnInit {
       usuario_creador: this.usuarioSeleccionado
         ? ({ idUsuario: this.usuarioSeleccionado.idUsuario } as any)
         : undefined,
-      equipoAfectado: this.equipoSeleccionado,
+      equipoAfectado: this.equipoSeleccionado ?? undefined,
     };
 
     // Si es admin, permite asignar manualmente el ticket
@@ -378,6 +372,50 @@ export class VentanaPeticion implements OnInit {
         estadoElemento.style.backgroundColor = 'transparent';
         estadoElemento.style.color = '#333';
     }
+  }
+
+  // Marca un campo como tocado para mostrar validación
+  marcarCampoTocado(campo: keyof typeof this.camposTocados): void {
+    this.camposTocados[campo] = true;
+  }
+
+  // Verifica si un campo es inválido y ha sido tocado
+  esCampoInvalido(campo: keyof typeof this.camposTocados): boolean {
+    if (!this.camposTocados[campo]) return false;
+    
+    switch (campo) {
+      case 'tipoPeticion':
+        return !this.tipoPeticion || !this.tipoPeticion.trim();
+      case 'detallePeticion':
+        return !this.detallePeticion || !this.detallePeticion.trim();
+      case 'usuario':
+        return !this.usuarioSeleccionado;
+      case 'producto':
+        return !this.productoSeleccionado;
+      case 'productoNombre':
+        return !this.productoNombreSeleccionado && this.equiposFiltrados.length > 0;
+      case 'equipo':
+        return !this.equipoSeleccionado && this.equiposDelProducto.length > 0;
+      case 'prioridad':
+        return this.authorizationService.isAdmin() && !this.prioridadSeleccionada;
+      default:
+        return false;
+    }
+  }
+
+  // Verifica si el formulario es válido completo
+  esFormularioValido(): boolean {
+    // Validaciones básicas
+    if (!this.tipoPeticion || !this.tipoPeticion.trim()) return false;
+    if (!this.detallePeticion || !this.detallePeticion.trim()) return false;
+    if (!this.usuarioSeleccionado) return false;
+    if (!this.productoSeleccionado) return false;
+    if (!this.equipoSeleccionado) return false;
+    
+    // Admin debe seleccionar prioridad
+    if (this.authorizationService.isAdmin() && !this.prioridadSeleccionada) return false;
+    
+    return true;
   }
 
   // Formatea el equipo para el select antiguo (mantener por compatibilidad)

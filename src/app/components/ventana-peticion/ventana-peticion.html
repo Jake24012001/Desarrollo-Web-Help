@@ -9,17 +9,35 @@
       <!-- Título del ticket -->
       <div class="form-group mb-3">
         <label for="tipoPeticion" class="form-label">Tipo de petición:</label>
-        <input type="text" id="tipoPeticion" class="form-control" placeholder="Ingrese su petición"
-          [(ngModel)]="tipoPeticion" name="tipoPeticion" required />
+        <input type="text" id="tipoPeticion" class="form-control" 
+          [class.is-invalid]="esCampoInvalido('tipoPeticion')"
+          placeholder="Ingrese su petición"
+          [(ngModel)]="tipoPeticion" 
+          name="tipoPeticion" 
+          (blur)="marcarCampoTocado('tipoPeticion')"
+          required />
+        <div class="invalid-feedback" *ngIf="esCampoInvalido('tipoPeticion')">
+          El tipo de petición es requerido
+        </div>
       </div>
 
       <!-- Usuario creador: select para admin, readonly para otros roles -->
       <div class="form-group mb-3">
         <label for="usuario" class="form-label">Usuario creador:</label>
-        <select *ngIf="authorizationService.isAdmin()" id="usuario" class="form-select" [(ngModel)]="usuarioSeleccionado" name="usuario" required>
+        <select *ngIf="authorizationService.isAdmin()" 
+          id="usuario" 
+          class="form-select" 
+          [class.is-invalid]="esCampoInvalido('usuario')"
+          [(ngModel)]="usuarioSeleccionado" 
+          name="usuario" 
+          (blur)="marcarCampoTocado('usuario')"
+          required>
           <option value="" disabled selected>-- Selecciona --</option>
             <option *ngFor="let usuario of usuarios" [ngValue]="usuario">{{ usuario.apellidos }} {{ usuario.nombres }} — {{ usuario.cedula }}</option>
         </select>
+        <div class="invalid-feedback" *ngIf="authorizationService.isAdmin() && esCampoInvalido('usuario')">
+          Debe seleccionar un usuario creador
+        </div>
         <!-- Usuario actual (no editable para no-admin) -->
           <div *ngIf="!authorizationService.isAdmin()" class="form-control" style="background-color: #f8f9fa; padding: 10px;">
             <div class="fw-bold">{{ usuarioSeleccionado?.apellidos }} {{ usuarioSeleccionado?.nombres }}</div>
@@ -43,44 +61,80 @@
       <!-- Selectores en cascada: tipo de equipo → nombre → equipo específico -->
       <div class="form-group mb-3">
         <label for="producto" class="form-label">Categoría de equipo</label>
-        <select name="producto" id="producto" class="form-select" [(ngModel)]="productoSeleccionado"
-          (change)="filtrarEquiposPorTipo()" required>
+        <select name="producto" 
+          id="producto" 
+          class="form-select" 
+          [class.is-invalid]="esCampoInvalido('producto')"
+          [(ngModel)]="productoSeleccionado"
+          (change)="filtrarEquiposPorTipo()" 
+          (blur)="marcarCampoTocado('producto')"
+          required>
           <option value="" disabled selected>-- Selecciona --</option>
           <option *ngFor="let producto of productosUnicos" [value]="producto.type">{{ producto.type }}</option>
         </select>
+        <div class="invalid-feedback" *ngIf="esCampoInvalido('producto')">
+          Debe seleccionar una categoría de equipo
+        </div>
       </div>
 
       <!-- Nombre del producto (segundo nivel de filtrado) -->
       <div class="form-group mb-3">
         <label for="productoNombre" class="form-label">Nombre del Producto:</label>
-        <select id="productoNombre" class="form-select" [(ngModel)]="productoNombreSeleccionado" 
-          (change)="onProductoNombreSeleccionado()" name="productoNombre" 
+        <select id="productoNombre" 
+          class="form-select" 
+          [class.is-invalid]="esCampoInvalido('productoNombre')"
+          [(ngModel)]="productoNombreSeleccionado" 
+          (change)="onProductoNombreSeleccionado()" 
+          (blur)="marcarCampoTocado('productoNombre')"
+          name="productoNombre" 
           [disabled]="!equiposFiltrados || equiposFiltrados.length === 0">
           <option [ngValue]="''" *ngIf="!productoNombreSeleccionado" disabled selected>── Selecciona un producto ──</option>
           <option *ngFor="let nombre of obtenerNombresUnicos()" [value]="nombre">{{ nombre }}</option>
         </select>
+        <div class="invalid-feedback" *ngIf="esCampoInvalido('productoNombre')">
+          Debe seleccionar el nombre del producto
+        </div>
       </div>
 
       <!-- Equipo específico con serial, modelo y código -->
       <div class="form-group mb-3" *ngIf="productoNombreSeleccionado">
         <label for="equipo" class="form-label">Equipo específico (Serial / Modelo / Código):</label>
-        <select id="equipo" class="form-select equipo-select" [(ngModel)]="equipoSeleccionado" 
-          (change)="onEquipoSeleccionado()" name="equipo" required>
+        <select id="equipo" 
+          class="form-select equipo-select" 
+          [class.is-invalid]="esCampoInvalido('equipo')"
+          [(ngModel)]="equipoSeleccionado" 
+          (change)="onEquipoSeleccionado()" 
+          (blur)="marcarCampoTocado('equipo')"
+          name="equipo" 
+          required>
           <option [ngValue]="null" *ngIf="!equipoSeleccionado" disabled selected>── Selecciona el equipo ──</option>
           <option *ngFor="let equipo of equiposDelProducto" [ngValue]="equipo">
             {{ formatearEquipoDetalle(equipo) }}
           </option>
         </select>
+        <div class="invalid-feedback" *ngIf="esCampoInvalido('equipo')">
+          Debe seleccionar un equipo
+        </div>
       </div>
 
       <!-- Prioridad: editable por admin, fija para otros roles -->
       <div class="form-group mb-3">
         <label for="prioridad" class="form-label">Prioridad del ticket:</label>
 
-        <select *ngIf="authorizationService.isAdmin()" id="prioridad" class="form-select" [(ngModel)]="prioridadSeleccionada" name="prioridad" required>
+        <select *ngIf="authorizationService.isAdmin()" 
+          id="prioridad" 
+          class="form-select" 
+          [class.is-invalid]="esCampoInvalido('prioridad')"
+          [(ngModel)]="prioridadSeleccionada" 
+          name="prioridad" 
+          (blur)="marcarCampoTocado('prioridad')"
+          required>
           <option value="" disabled selected>-- Selecciona --</option>
           <option *ngFor="let prioridad of ticketPrioridades" [ngValue]="prioridad">{{ prioridad.name }}</option>
         </select>
+        <div class="invalid-feedback" *ngIf="authorizationService.isAdmin() && esCampoInvalido('prioridad')">
+          Debe seleccionar una prioridad
+        </div>
 
         <!-- Mensaje para usuarios no admin -->
         <div *ngIf="!authorizationService.isAdmin()" class="form-control" style="background-color: #f8f9fa; padding: 10px;">
@@ -91,13 +145,28 @@
       <!-- Descripción detallada del problema -->
       <div class="form-group mb-3">
         <label for="detallePeticion" class="form-label">Detalle de petición:</label>
-        <textarea id="detallePeticion" class="form-control" rows="4" placeholder="Describa su problemática"
-          [(ngModel)]="detallePeticion" name="detallePeticion" required></textarea>
+        <textarea id="detallePeticion" 
+          class="form-control" 
+          [class.is-invalid]="esCampoInvalido('detallePeticion')"
+          rows="4" 
+          placeholder="Describa su problemática"
+          [(ngModel)]="detallePeticion" 
+          name="detallePeticion" 
+          (blur)="marcarCampoTocado('detallePeticion')"
+          required></textarea>
+        <div class="invalid-feedback" *ngIf="esCampoInvalido('detallePeticion')">
+          El detalle de la petición es requerido
+        </div>
       </div>
 
       <!-- Botones de acción -->
       <div class="d-flex gap-2 pt-3">
-        <button type="button" class="btn btn-primary btn-lg" (click)="crearTicket()">Enviar</button>
+        <button type="button" 
+          class="btn btn-primary btn-lg" 
+          (click)="crearTicket()"
+          [disabled]="!esFormularioValido()">
+          Enviar
+        </button>
         <button type="button" class="btn btn-outline-secondary btn-lg" (click)="cancelarAccion()">Cancelar</button>
       </div>
 
