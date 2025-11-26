@@ -28,6 +28,14 @@ export interface Ticket {
     nombre?: string;
     email?: string;
   };
+  usuario_asigno?: {
+    idUsuario?: number;
+    id_usuario?: number;
+    nombres?: string;
+    apellidos?: string;
+    nombre?: string;
+    email?: string;
+  };
   equipoAfectado?: {
     id?: number;
     serial?: string;

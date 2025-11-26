@@ -43,6 +43,7 @@
             <th>Problema</th>
             <th>Descripción</th>
             <th>Asignado</th>
+            <th>Asignado por</th>
             <th>Equipo</th>
             <th>Creador</th>
             <th>Prioridad</th>
@@ -78,6 +79,18 @@
                 </small>
               </span>
               <span *ngIf="!item.usuario_asignado">—</span>
+            </td>
+            <!-- Asignado por -->
+            <td>
+              <span *ngIf="item.usuario_asigno">
+                {{ item.usuario_asigno.nombres || item.usuario_asigno.nombre || '—' }}
+                {{ item.usuario_asigno.apellidos || '' }}
+                <br>
+                <small class="text-muted">
+                  <i class="bi bi-envelope"></i> {{ item.usuario_asigno.email || '—' }}
+                </small>
+              </span>
+              <span *ngIf="!item.usuario_asigno">—</span>
             </td>
             <!-- Equipo afectado: nombre, marca y modelo si existen -->
             <td class="td-truncate">
@@ -156,13 +169,14 @@
             <th>Fecha</th>
             <th>Descripción</th>
             <th>Asignado</th>
+            <th>Asignado por</th>
             <th>Equipo</th>
             <th>Creador</th>
             <th>Prioridad</th>
             <th>Tiempo</th>
             <th>Calificación</th>
-            <!-- Columna eliminar solo para admin -->
-            <th *ngIf="authorizationService.isAdmin()">Eliminar</th>
+            <!-- Columna eliminar solo para admin y agentes -->
+            <th *ngIf="!authorizationService.isCliente()">Eliminar</th>
           </tr>
         </thead>
         <tbody>
@@ -189,6 +203,42 @@
                 </small>
               </span>
               <span *ngIf="!item.usuario_asignado">—</span>
+            </td>
+            <!-- Asignado por -->
+            <td>
+              <span *ngIf="item.usuario_asignado">
+                {{ item.usuario_asignado.nombres || item.usuario_asignado.nombre || '—' }}
+                {{ item.usuario_asignado.apellidos || '' }}
+                <br>
+                <small class="text-muted">
+                  <i class="bi bi-envelope"></i> {{ item.usuario_asignado.email || '—' }}
+                </small>
+              </span>
+              <span *ngIf="!item.usuario_asignado">—</span>
+            </td>
+            <!-- Asignado por -->
+            <td>
+              <span *ngIf="item.usuario_asigno">
+                {{ item.usuario_asigno.nombres || item.usuario_asigno.nombre || '—' }}
+                {{ item.usuario_asigno.apellidos || '' }}
+                <br>
+                <small class="text-muted">
+                  <i class="bi bi-envelope"></i> {{ item.usuario_asigno.email || '—' }}
+                </small>
+              </span>
+              <span *ngIf="!item.usuario_asigno">—</span>
+            </td>
+            <td class="td-truncate">
+            <td>
+              <span *ngIf="item.usuario_asigno">
+                {{ item.usuario_asigno.nombres || item.usuario_asigno.nombre || '—' }}
+                {{ item.usuario_asigno.apellidos || '' }}
+                <br>
+                <small class="text-muted">
+                  <i class="bi bi-envelope"></i> {{ item.usuario_asigno.email || '—' }}
+                </small>
+              </span>
+              <span *ngIf="!item.usuario_asigno">—</span>
             </td>
             <td class="td-truncate">
               <span *ngIf="item.equipoAfectado?.product">

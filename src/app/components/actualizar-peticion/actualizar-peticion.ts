@@ -381,6 +381,9 @@ export class ActualizarPeticion implements OnInit {
     // Actualizar fecha de modificación
     this.datosticket.fecha_actualizacion = new Date().toISOString();
 
+    // Obtener el usuario actual (admin que está asignando)
+    const usuarioActual = this.authService.getCurrentUser();
+
     // Construir payload con ids para relaciones
     const payload: any = {
       id_ticket: this.datosticket.id_ticket,
@@ -406,6 +409,15 @@ export class ActualizarPeticion implements OnInit {
         ? { id_usuario: this.selectedUsuarioId, idUsuario: this.selectedUsuarioId, id: this.selectedUsuarioId }
         : this.datosticket.usuario_asignado && this.datosticket.usuario_asignado.id_usuario
         ? { id_usuario: this.datosticket.usuario_asignado.id_usuario }
+        : undefined,
+      // usuario_asigno: quien está asignando el ticket (el admin actual)
+      // Solo se envía si se está cambiando la asignación
+      usuario_asigno: this.selectedUsuarioId && this.selectedUsuarioId > 0 && usuarioActual
+        ? { 
+            id_usuario: usuarioActual.idUsuario, 
+            idUsuario: usuarioActual.idUsuario, 
+            id: usuarioActual.idUsuario 
+          }
         : undefined,
       // Incluir diferentes formatos de id por compatibilidad con backend
       usuarioAsignado: this.selectedUsuarioId && this.selectedUsuarioId > 0 ? { id: this.selectedUsuarioId } : undefined,
