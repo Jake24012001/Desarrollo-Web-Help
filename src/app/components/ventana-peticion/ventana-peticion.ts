@@ -196,20 +196,65 @@ export class VentanaPeticion implements OnInit {
 
     // Si es admin, permite asignar manualmente el ticket
     if (this.authorizationService.isAdmin()) {
+      const usuarioActual = this.authService.getCurrentUser();
+      
       const nuevoTicket: Ticket = {
         ...baseTicket,
         usuario_asignado: this.usuarioSeleccionados?.usuario
-          ? ({ idUsuario: this.usuarioSeleccionados.usuario.idUsuario } as any)
+          ? ({ 
+              idUsuario: this.usuarioSeleccionados.usuario.idUsuario,
+              id_usuario: this.usuarioSeleccionados.usuario.idUsuario,
+              id: this.usuarioSeleccionados.usuario.idUsuario
+            } as any)
+          : undefined,
+        // Agregar quién está asignando el ticket (el admin actual)
+        usuario_asigno: this.usuarioSeleccionados?.usuario && usuarioActual
+          ? ({ 
+              idUsuario: usuarioActual.idUsuario,
+              id_usuario: usuarioActual.idUsuario,
+              id: usuarioActual.idUsuario
+            } as any)
           : undefined,
       };
-      console.log('Payload POST (admin):', nuevoTicket);
+      console.log('✅ Payload POST (admin) con usuario_asigno:', nuevoTicket);
+      console.log('   - usuario_asignado:', nuevoTicket.usuario_asignado);
+      console.log('   - usuario_asigno:', nuevoTicket.usuario_asigno);
+      
       this.ticketService.create(nuevoTicket).subscribe({
         next: (ticketCreado) => {
-          console.log('Ticket creado (admin):', ticketCreado);
-          this.router.navigate(['/help-menu']);
+          console.log('✅ Ticket creado (admin):', ticketCreado);
+          console.log('   - usuario_asigno guardado:', ticketCreado.usuario_asigno);
+          
+          // Si se asignó un usuario pero usuario_asigno es null, hacer un update inmediato
+          if (ticketCreado.usuario_asignado && !ticketCreado.usuario_asigno && usuarioActual) {
+            console.log('⚠️ usuario_asigno no se guardó en CREATE, actualizando...');
+            
+            const ticketActualizado = {
+              ...ticketCreado,
+              usuario_asigno: {
+                idUsuario: usuarioActual.idUsuario,
+                id_usuario: usuarioActual.idUsuario,
+                id: usuarioActual.idUsuario
+              }
+            };
+            
+            this.ticketService.update(ticketCreado.id_ticket!, ticketActualizado).subscribe({
+              next: (ticketFinal) => {
+                console.log('✅ usuario_asigno actualizado correctamente:', ticketFinal.usuario_asigno);
+                this.router.navigate(['/help-menu']);
+              },
+              error: (errUpdate) => {
+                console.error('❌ Error al actualizar usuario_asigno:', errUpdate);
+                // Navegar de todas formas porque el ticket sí se creó
+                this.router.navigate(['/help-menu']);
+              }
+            });
+          } else {
+            this.router.navigate(['/help-menu']);
+          }
         },
         error: (err) => {
-          console.error('Error al crear ticket (admin):', err);
+          console.error('❌ Error al crear ticket (admin):', err);
         },
       });
       return;
