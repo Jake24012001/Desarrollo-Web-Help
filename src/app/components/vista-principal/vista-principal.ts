@@ -47,6 +47,8 @@ export class VistaPrincipal implements OnInit, OnDestroy {
   datosOriginalesPendientes: Ticket[] = [];
   datosOriginalesResueltos: Ticket[] = [];
   filtroTickets: 'todos' | 'pendientes' | 'resueltos' = 'todos';
+  mostrarSoloMisTickets: boolean = false;
+  todosLosTickets: Ticket[] = [];
 
   // Listas que se muestran en las tablas
   datosFiltrados: Ticket[] = [];
@@ -75,6 +77,7 @@ export class VistaPrincipal implements OnInit, OnDestroy {
       next: (tickets) => {
         // Filtra tickets según permisos del usuario actual
         const ticketsFiltrados = this.ticketAccessService.getTicketsForUser(tickets);
+        this.todosLosTickets = ticketsFiltrados;
 
         this.datosFiltrados = ticketsFiltrados.map((p: Ticket) => ({
           ...p,
@@ -149,12 +152,72 @@ export class VistaPrincipal implements OnInit, OnDestroy {
     this.filtrarDatos();
   }
 
+  toggleMisTickets(): void {
+    this.mostrarSoloMisTickets = !this.mostrarSoloMisTickets;
+    
+    if (this.mostrarSoloMisTickets) {
+      const currentUser = this.authService.getCurrentUser();
+      if (!currentUser) {
+        this.mostrarSoloMisTickets = false;
+        return;
+      }
+
+      const currentUserId = currentUser.idUsuario;
+      
+      this.datosFiltrados = this.todosLosTickets.filter((ticket) => {
+        const creadorId = ticket.usuario_creador?.idUsuario || 
+                         ticket.usuario_creador?.id_usuario || 
+                         (ticket.usuario_creador as any)?.id;
+        return creadorId === currentUserId;
+      }).map((p: Ticket) => ({
+        ...p,
+        fechaEntrega: this.isValidDate(p.fecha_creacion) ? new Date(p.fecha_creacion!) : undefined,
+        tiempoRestante:
+          p.status?.nombre === Environment.NOMBRE_STATUS_ABIERTO && p.fecha_creacion
+            ? this.calcularTiempoTranscurrido(p.fecha_creacion)
+            : '—',
+      }));
+    } else {
+      this.datosFiltrados = this.todosLosTickets.map((p: Ticket) => ({
+        ...p,
+        fechaEntrega: this.isValidDate(p.fecha_creacion) ? new Date(p.fecha_creacion!) : undefined,
+        tiempoRestante:
+          p.status?.nombre === Environment.NOMBRE_STATUS_ABIERTO && p.fecha_creacion
+            ? this.calcularTiempoTranscurrido(p.fecha_creacion)
+            : '—',
+      }));
+    }
+    
+    this.actualizarListas();
+    this.datosOriginalesPendientes = [...this.datosFiltradosPendientes];
+    this.datosOriginalesResueltos = [...this.datosResueltos];
+    
+    this.datosFiltradosPendientes.forEach((p) => {
+      if (
+        typeof p.id_ticket === 'number' &&
+        p.status?.nombre === Environment.NOMBRE_STATUS_ABIERTO
+      ) {
+        this.iniciarTemporizador(p.id_ticket);
+      }
+    });
+    
+    if (this.terminoBusqueda) {
+      this.filtrarDatos();
+    }
+  }
+
   private contieneTermino(item: Ticket, termino: string): boolean {
     return (
       item.title?.toLowerCase().includes(termino) ||
       item.descripcion?.toLowerCase().includes(termino) ||
       item.usuario_asignado?.nombre?.toLowerCase().includes(termino) ||
+      item.usuario_asignado?.nombres?.toLowerCase().includes(termino) ||
+      item.usuario_asignado?.apellidos?.toLowerCase().includes(termino) ||
+      item.usuario_asignado?.email?.toLowerCase().includes(termino) ||
       item.usuario_creador?.nombre?.toLowerCase().includes(termino) ||
+      item.usuario_creador?.nombres?.toLowerCase().includes(termino) ||
+      item.usuario_creador?.apellidos?.toLowerCase().includes(termino) ||
+      item.usuario_creador?.email?.toLowerCase().includes(termino) ||
       item.equipoAfectado?.serial?.toLowerCase().includes(termino) ||
       item.equipoAfectado?.product?.name?.toLowerCase().includes(termino) ||
       item.priority?.name?.toLowerCase().includes(termino) ||

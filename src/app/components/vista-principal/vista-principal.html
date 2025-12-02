@@ -5,7 +5,19 @@
     <div class="d-flex align-items-center gap-2">
       <input type="text" class="form-control form-control-sm search-input" [placeholder]="placeholderText"
         [(ngModel)]="terminoBusqueda" (input)="filtrarDatos()" />
-      <button class="btn btn-primary btn-sm" (click)="limpiarBusqueda()">Limpiar</button>
+      <button class="btn btn-primary btn-sm" (click)="limpiarBusqueda()" style="white-space: nowrap;">Limpiar</button>
+      
+      <button 
+        *ngIf="authorizationService.isAdmin() || authorizationService.isAgente()" 
+        class="btn btn-sm d-flex align-items-center gap-1" 
+        [class.btn-success]="mostrarSoloMisTickets"
+        [class.btn-outline-secondary]="!mostrarSoloMisTickets"
+        (click)="toggleMisTickets()"
+        style="white-space: nowrap; min-width: 110px;"
+        title="{{ mostrarSoloMisTickets ? 'Mostrar todos los tickets' : 'Mostrar solo mis tickets' }}">
+        <i class="bi" [class.bi-person-check-fill]="mostrarSoloMisTickets" [class.bi-person-check]="!mostrarSoloMisTickets"></i>
+        <span>{{ mostrarSoloMisTickets ? 'Mis Tickets' : 'Todos' }}</span>
+      </button>
     </div>
     <!-- Filtro de vista (todos/pendientes/resueltos) -->
     <div class="d-flex align-items-center">
