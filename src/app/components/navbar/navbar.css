@@ -31,14 +31,14 @@
   box-shadow: none;
 }
 
-/* Pill con el rol del usuario (fondo blanco, texto azul) */
+/* Pill con el rol del usuario (sin fondo, texto blanco) */
 .role-pill {
   display: inline-block;
   margin-left: 8px;
   padding: 2px 8px;
   border-radius: 12px;
-  background: #ffffff;
-  color: var(--primary);
+  background: transparent;
+  color: #ffffff;
   font-weight: 600;
   font-size: 0.75rem;
   line-height: 1;
